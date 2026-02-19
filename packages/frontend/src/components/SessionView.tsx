@@ -58,7 +58,7 @@ export default function SessionView({ onFinished }: Props) {
         />
       </div>
 
-      <QuestionCard item={item} />
+      <QuestionCard key={currentItemIndex} item={item} />
 
       {phase === "confidence" && <ConfidenceRating />}
       {phase === "feedback" && <FeedbackDisplay />}

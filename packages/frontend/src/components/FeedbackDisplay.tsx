@@ -1,29 +1,91 @@
+import { useEffect, useRef } from "react";
 import { useSessionStore } from "../store/sessionStore.js";
+import { useSubmitReview } from "../api/hooks.js";
+import { scoreFromSelfRating } from "@skillclimb/core";
+import type { SelfRating } from "@skillclimb/core";
 import { colors, buttonStyles } from "../styles/theme.js";
 
 export default function FeedbackDisplay() {
   const {
+    userId,
     session,
     currentItemIndex,
     selectedAnswer,
-    didSelectDontKnow,
+    confidenceRating,
     reviewResult,
+    setSelfRating,
+    setReviewResult,
+    recordReview,
     nextItem,
   } = useSessionStore();
 
-  if (!session || !reviewResult) return null;
-  if (!selectedAnswer && !didSelectDontKnow) return null;
+  const submitReview = useSubmitReview();
+  const autoSubmitted = useRef(false);
 
-  const item = session.items[currentItemIndex];
+  const ready = !!(session && userId && selectedAnswer !== null && confidenceRating !== null);
+  const isEmptyAnswer = selectedAnswer !== null && selectedAnswer.trim() === "";
+
+  useEffect(() => {
+    if (!ready || !isEmptyAnswer || reviewResult || autoSubmitted.current) return;
+    autoSubmitted.current = true;
+
+    const item = session!.items[currentItemIndex];
+    setSelfRating("incorrect");
+
+    submitReview.mutateAsync({
+      userId: userId!,
+      nodeId: item.node.id,
+      score: 0,
+      confidence: confidenceRating!,
+      response: selectedAnswer!,
+    }).then((result) => {
+      setReviewResult(result);
+      recordReview({
+        nodeId: item.node.id,
+        score: 0,
+        confidence: confidenceRating!,
+        wasCorrect: result.wasCorrect,
+        calibrationQuadrant: result.calibrationQuadrant,
+      });
+    }).catch((err) => {
+      console.error("Failed to submit review:", err);
+    });
+  }, [ready, isEmptyAnswer, reviewResult]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (!ready) return null;
+
+  const item = session!.items[currentItemIndex];
   const { questionTemplate } = item;
-  const isCorrect = reviewResult.wasCorrect;
 
-  const quadrantLabels: Record<string, string> = {
-    calibrated: "Well calibrated — you knew it and you knew you knew it.",
-    illusion: "Careful — you felt confident but got it wrong.",
-    undervalued: "You knew more than you thought!",
-    known_unknown: "Honest self-assessment — keep studying this one.",
+  const handleSelfRate = (rating: SelfRating) => {
+    setSelfRating(rating);
+    const score = scoreFromSelfRating(rating);
+
+    submitReview.mutateAsync({
+      userId: userId!,
+      nodeId: item.node.id,
+      score,
+      confidence: confidenceRating!,
+      response: selectedAnswer!,
+    }).then((result) => {
+      recordReview({
+        nodeId: item.node.id,
+        score,
+        confidence: confidenceRating!,
+        wasCorrect: result.wasCorrect,
+        calibrationQuadrant: result.calibrationQuadrant,
+      });
+      nextItem();
+    }).catch((err) => {
+      console.error("Failed to submit review:", err);
+    });
   };
+
+  const ratingButtons: { label: string; value: SelfRating; color: string }[] = [
+    { label: "Correct", value: "correct", color: colors.green },
+    { label: "Partially Correct", value: "partially_correct", color: colors.amber },
+    { label: "Incorrect", value: "incorrect", color: colors.red },
+  ];
 
   return (
     <div style={{ marginTop: "1.5rem" }}>
@@ -32,25 +94,15 @@ export default function FeedbackDisplay() {
           padding: "1rem",
           borderRadius: "8px",
           marginBottom: "1rem",
-          background: isCorrect ? colors.successBg : didSelectDontKnow ? colors.neutralBg : colors.errorBg,
-          border: isCorrect
-            ? `2px solid ${colors.green}`
-            : didSelectDontKnow
-              ? "2px solid #5c5c8a"
-              : `2px solid ${colors.red}`,
+          background: colors.cardBg,
+          border: `2px solid ${colors.inputBorder}`,
         }}
       >
-        <div style={{ fontWeight: 600, fontSize: "1.1rem", marginBottom: "0.5rem" }}>
-          {isCorrect ? "Correct!" : didSelectDontKnow ? "Here's the answer" : "Incorrect"}
+        <div style={{ fontSize: "0.85rem", color: colors.textMuted, marginBottom: "0.25rem" }}>
+          Your answer
         </div>
-        {!isCorrect && !didSelectDontKnow && selectedAnswer && (
-          <div style={{ marginBottom: "0.5rem", color: colors.errorText }}>
-            Your answer: {selectedAnswer}
-          </div>
-        )}
-        <div style={{ color: colors.successText }}>
-          {didSelectDontKnow ? "" : "Correct answer: "}
-          {questionTemplate.correctAnswer}
+        <div style={{ color: isEmptyAnswer ? colors.textMuted : colors.textPrimary, whiteSpace: "pre-wrap" }}>
+          {isEmptyAnswer ? "(no answer)" : selectedAnswer}
         </div>
       </div>
 
@@ -58,8 +110,23 @@ export default function FeedbackDisplay() {
         style={{
           padding: "1rem",
           borderRadius: "8px",
-          background: colors.cardBg,
           marginBottom: "1rem",
+          background: colors.successBg,
+          border: `2px solid ${colors.green}`,
+        }}
+      >
+        <div style={{ fontSize: "0.85rem", color: colors.textMuted, marginBottom: "0.25rem" }}>
+          Correct answer
+        </div>
+        <div style={{ color: colors.successText }}>{questionTemplate.correctAnswer}</div>
+      </div>
+
+      <div
+        style={{
+          padding: "1rem",
+          borderRadius: "8px",
+          background: colors.cardBg,
+          marginBottom: "1.5rem",
         }}
       >
         <div style={{ fontSize: "0.85rem", color: colors.textMuted, marginBottom: "0.25rem" }}>
@@ -68,25 +135,43 @@ export default function FeedbackDisplay() {
         <div>{questionTemplate.explanation}</div>
       </div>
 
-      <div
-        style={{
-          padding: "0.75rem",
-          borderRadius: "6px",
-          background: "#1a1f2e",
-          marginBottom: "1.5rem",
-          fontSize: "0.9rem",
-          color: "#aaa",
-        }}
-      >
-        {quadrantLabels[reviewResult.calibrationQuadrant] ?? ""}
-      </div>
+      {!isEmptyAnswer && !reviewResult && (
+        <>
+          <h3 style={{ marginBottom: "0.75rem", color: "#b0b0b0" }}>
+            How did you do?
+          </h3>
+          <div style={{ display: "flex", gap: "0.75rem" }}>
+            {ratingButtons.map(({ label, value, color }) => (
+              <button
+                key={value}
+                onClick={() => handleSelfRate(value)}
+                disabled={submitReview.isPending}
+                style={{
+                  flex: 1,
+                  padding: "0.75rem",
+                  background: colors.cardBg,
+                  border: `2px solid ${color}`,
+                  color,
+                  borderRadius: "8px",
+                  fontSize: "0.9rem",
+                  fontWeight: 600,
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
 
-      <button
-        onClick={nextItem}
-        style={buttonStyles.primary}
-      >
-        Continue
-      </button>
+      {isEmptyAnswer && reviewResult && (
+        <button
+          onClick={nextItem}
+          style={buttonStyles.primary}
+        >
+          Continue
+        </button>
+      )}
     </div>
   );
 }

@@ -1,6 +1,16 @@
 import type { CalibrationHistory, CalibrationQuadrant, CalibrationEntry } from "../types.js";
 import { createQuadrantCounts } from "../utils.js";
 
+export type SelfRating = "correct" | "partially_correct" | "incorrect";
+
+export function scoreFromSelfRating(rating: SelfRating): number {
+  switch (rating) {
+    case "correct": return 5;
+    case "partially_correct": return 3;
+    case "incorrect": return 0;
+  }
+}
+
 /**
  * Evaluate a recognition (multiple choice) answer.
  * Returns a score on the 0–5 scale.

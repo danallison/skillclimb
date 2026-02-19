@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { ReviewRecord as CoreReviewRecord } from "@skillclimb/core";
+import type { ReviewRecord as CoreReviewRecord, SelfRating } from "@skillclimb/core";
 import type { SessionResponse, ReviewResponse } from "../api/hooks.js";
 
 const STORAGE_KEYS = {
@@ -22,7 +22,7 @@ interface SessionStore {
   session: SessionResponse | null;
   currentItemIndex: number;
   selectedAnswer: string | null;
-  didSelectDontKnow: boolean;
+  selfRating: SelfRating | null;
   confidenceRating: number | null;
   reviewResult: ReviewResponse | null;
   reviewHistory: ReviewRecord[];
@@ -32,7 +32,7 @@ interface SessionStore {
   setSession: (session: SessionResponse) => void;
   resumeSession: (session: SessionResponse, itemIndex: number) => void;
   selectAnswer: (answer: string) => void;
-  selectDontKnow: () => void;
+  setSelfRating: (rating: SelfRating) => void;
   setConfidenceRating: (rating: number) => void;
   setReviewResult: (result: ReviewResponse) => void;
   recordReview: (record: ReviewRecord) => void;
@@ -49,7 +49,7 @@ export const useSessionStore = create<SessionStore>((set) => ({
   session: null,
   currentItemIndex: 0,
   selectedAnswer: null,
-  didSelectDontKnow: false,
+  selfRating: null,
   confidenceRating: null,
   reviewResult: null,
   reviewHistory: [],
@@ -80,8 +80,8 @@ export const useSessionStore = create<SessionStore>((set) => ({
       phase: isComplete ? "summary" : "answering",
     });
   },
-  selectAnswer: (answer) => set({ selectedAnswer: answer, didSelectDontKnow: false }),
-  selectDontKnow: () => set({ selectedAnswer: null, didSelectDontKnow: true }),
+  selectAnswer: (answer) => set({ selectedAnswer: answer }),
+  setSelfRating: (rating) => set({ selfRating: rating }),
   setConfidenceRating: (rating) => set({ confidenceRating: rating }),
   setReviewResult: (result) => set({ reviewResult: result }),
   recordReview: (record) =>
@@ -103,7 +103,7 @@ export const useSessionStore = create<SessionStore>((set) => ({
       return {
         currentItemIndex: nextIndex,
         selectedAnswer: null,
-        didSelectDontKnow: false,
+        selfRating: null,
         confidenceRating: null,
         reviewResult: null,
         phase: isComplete ? "summary" : "answering",
@@ -120,7 +120,7 @@ export const useSessionStore = create<SessionStore>((set) => ({
       savedItemIndex: 0,
       currentItemIndex: 0,
       selectedAnswer: null,
-      didSelectDontKnow: false,
+      selfRating: null,
       confidenceRating: null,
       reviewResult: null,
       reviewHistory: [],
@@ -139,7 +139,7 @@ export const useSessionStore = create<SessionStore>((set) => ({
       savedItemIndex: 0,
       currentItemIndex: 0,
       selectedAnswer: null,
-      didSelectDontKnow: false,
+      selfRating: null,
       confidenceRating: null,
       reviewResult: null,
       reviewHistory: [],

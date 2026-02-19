@@ -1,69 +1,15 @@
-import { useEffect } from "react";
 import { useSessionStore } from "../store/sessionStore.js";
-import { useSubmitReview } from "../api/hooks.js";
-import { evaluateRecognition } from "@skillclimb/core";
 import { colors } from "../styles/theme.js";
 
 export default function ConfidenceRating() {
-  const {
-    userId,
-    session,
-    currentItemIndex,
-    selectedAnswer,
-    didSelectDontKnow,
-    setConfidenceRating,
-    setReviewResult,
-    recordReview,
-    setPhase,
-  } = useSessionStore();
+  const { selectedAnswer, setConfidenceRating, setPhase } = useSessionStore();
 
-  const submitReview = useSubmitReview();
+  if (selectedAnswer === null) return null;
 
-  const item = session?.items[currentItemIndex];
-
-  // Auto-submit with confidence 1 when "I don't know" was selected
-  useEffect(() => {
-    if (didSelectDontKnow && item && userId && !submitReview.isPending) {
-      handleSubmit(1);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [didSelectDontKnow]);
-
-  if (!session || !userId || !item) return null;
-  if (!selectedAnswer && !didSelectDontKnow) return null;
-
-  const { questionTemplate, node } = item;
-
-  const handleSubmit = async (confidence: number) => {
-    setConfidenceRating(confidence);
-
-    const score = evaluateRecognition(selectedAnswer, questionTemplate.correctAnswer);
-
-    try {
-      const result = await submitReview.mutateAsync({
-        userId,
-        nodeId: node.id,
-        score,
-        confidence,
-        response: selectedAnswer ?? "",
-      });
-
-      setReviewResult(result);
-      recordReview({
-        nodeId: node.id,
-        score,
-        confidence,
-        wasCorrect: result.wasCorrect,
-        calibrationQuadrant: result.calibrationQuadrant,
-      });
-      setPhase("feedback");
-    } catch (err) {
-      console.error("Failed to submit review:", err);
-    }
+  const handleSelect = (rating: number) => {
+    setConfidenceRating(rating);
+    setPhase("feedback");
   };
-
-  // Don't render the rating UI for "I don't know" — it auto-submits above
-  if (didSelectDontKnow) return null;
 
   const labels = ["Very unsure", "Unsure", "Somewhat sure", "Sure", "Very sure"];
 
@@ -76,8 +22,7 @@ export default function ConfidenceRating() {
         {[1, 2, 3, 4, 5].map((rating) => (
           <button
             key={rating}
-            onClick={() => handleSubmit(rating)}
-            disabled={submitReview.isPending}
+            onClick={() => handleSelect(rating)}
             style={{
               flex: 1,
               padding: "0.75rem 0.5rem",

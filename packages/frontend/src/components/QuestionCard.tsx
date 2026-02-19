@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useSessionStore } from "../store/sessionStore.js";
 import type { SessionItemResponse } from "../api/hooks.js";
 import { colors, buttonStyles } from "../styles/theme.js";
@@ -7,22 +8,26 @@ interface Props {
 }
 
 export default function QuestionCard({ item }: Props) {
-  const { selectedAnswer, didSelectDontKnow, selectAnswer, selectDontKnow, setPhase } =
-    useSessionStore();
+  const { selectedAnswer, phase, selectAnswer, setConfidenceRating, setPhase } = useSessionStore();
   const { questionTemplate, node } = item;
-  const answered = selectedAnswer !== null || didSelectDontKnow;
+  const answered = selectedAnswer !== null;
+  const [text, setText] = useState("");
 
-  const handleSelect = (choice: string) => {
+  const handleSubmit = () => {
     if (answered) return;
-    selectAnswer(choice);
-    setPhase("confidence");
+    selectAnswer(text);
+    if (text.trim() === "") {
+      setConfidenceRating(1);
+      setPhase("feedback");
+    } else {
+      setPhase("confidence");
+    }
   };
 
-  const handleDontKnow = () => {
-    if (answered) return;
-    selectDontKnow();
-    // Skip confidence — go straight to submitting (ConfidenceRating handles this)
-    setPhase("confidence");
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.ctrlKey && e.key === "Enter") {
+      handleSubmit();
+    }
   };
 
   return (
@@ -33,39 +38,52 @@ export default function QuestionCard({ item }: Props) {
       <h2 style={{ marginBottom: "1.5rem", color: colors.textPrimary }}>
         {questionTemplate.prompt}
       </h2>
-      <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-        {questionTemplate.choices.map((choice) => {
-          const isSelected = selectedAnswer === choice;
-          return (
-            <button
-              key={choice}
-              onClick={() => handleSelect(choice)}
-              style={{
-                padding: "1rem",
-                background: isSelected ? colors.selectedBg : colors.cardBg,
-                border: isSelected ? `2px solid ${colors.cyan}` : `2px solid ${colors.inputBorder}`,
-                color: colors.textPrimary,
-                textAlign: "left",
-                fontSize: "0.95rem",
-                borderRadius: "8px",
-              }}
-            >
-              {choice}
-            </button>
-          );
-        })}
-      </div>
-      {!answered && (
-        <button
-          onClick={handleDontKnow}
+      {answered && phase === "confidence" && (
+        <div
           style={{
-            ...buttonStyles.secondary,
-            marginTop: "1rem",
-            width: "100%",
+            padding: "1rem",
+            background: colors.cardBg,
+            border: `2px solid ${colors.inputBorder}`,
+            color: colors.textPrimary,
+            fontSize: "0.95rem",
+            borderRadius: "8px",
+            whiteSpace: "pre-wrap",
           }}
         >
-          I don't know
-        </button>
+          {selectedAnswer}
+        </div>
+      )}
+      {!answered && (
+        <>
+          <textarea
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Type your answer..."
+            rows={3}
+            style={{
+              width: "100%",
+              padding: "1rem",
+              background: colors.cardBg,
+              border: `2px solid ${colors.inputBorder}`,
+              color: colors.textPrimary,
+              fontSize: "0.95rem",
+              borderRadius: "8px",
+              resize: "vertical",
+              fontFamily: "inherit",
+              boxSizing: "border-box",
+            }}
+          />
+          <button
+            onClick={handleSubmit}
+            style={{
+              ...buttonStyles.primary,
+              marginTop: "1rem",
+            }}
+          >
+            Submit
+          </button>
+        </>
       )}
     </div>
   );

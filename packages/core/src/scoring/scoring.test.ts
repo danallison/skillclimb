@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   evaluateRecognition,
+  scoreFromSelfRating,
   getCalibrationQuadrant,
   updateCalibration,
   getCalibrationStats,
@@ -18,6 +19,20 @@ describe("evaluateRecognition", () => {
 
   it("returns 1 for 'I don't know' (null selection)", () => {
     expect(evaluateRecognition(null, "AES")).toBe(1);
+  });
+});
+
+describe("scoreFromSelfRating", () => {
+  it("returns 5 for correct", () => {
+    expect(scoreFromSelfRating("correct")).toBe(5);
+  });
+
+  it("returns 3 for partially_correct", () => {
+    expect(scoreFromSelfRating("partially_correct")).toBe(3);
+  });
+
+  it("returns 0 for incorrect", () => {
+    expect(scoreFromSelfRating("incorrect")).toBe(0);
   });
 });
 
