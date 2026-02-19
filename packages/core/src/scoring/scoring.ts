@@ -1,7 +1,11 @@
-import type { CalibrationHistory, CalibrationQuadrant, CalibrationEntry } from "../types.js";
+import type { CalibrationHistory, CalibrationQuadrant, CalibrationEntry, QuestionTemplate } from "../types.js";
 import { createQuadrantCounts } from "../utils.js";
+import { CORRECT_SCORE_THRESHOLD } from "../types.js";
 
 export type SelfRating = "correct" | "partially_correct" | "incorrect";
+
+/** Maximum score for a hint-assisted second attempt. */
+export const HINTED_ATTEMPT_SCORE_CAP = 2;
 
 export function scoreFromSelfRating(rating: SelfRating): number {
   switch (rating) {
@@ -9,6 +13,39 @@ export function scoreFromSelfRating(rating: SelfRating): number {
     case "partially_correct": return 3;
     case "incorrect": return 0;
   }
+}
+
+/**
+ * Cap a score for hint-assisted second attempts.
+ * Needing a hint means partial credit at best — keeps SRS intervals short.
+ */
+export function capScoreForHintedAttempt(rawScore: number, attemptNumber: number): number {
+  if (attemptNumber >= 2) return Math.min(rawScore, HINTED_ATTEMPT_SCORE_CAP);
+  return rawScore;
+}
+
+/**
+ * Classify a numeric score into a SelfRating.
+ * Uses the correct score threshold (3) as the boundary.
+ */
+export function classifyScore(score: number): SelfRating {
+  if (score >= CORRECT_SCORE_THRESHOLD) return "correct";
+  if (score >= HINTED_ATTEMPT_SCORE_CAP) return "partially_correct";
+  return "incorrect";
+}
+
+/**
+ * Whether a question type is auto-scored (vs requiring self-rating or AI evaluation).
+ */
+export function isAutoScoredType(type: QuestionTemplate["type"]): boolean {
+  return type === "recognition" || type === "cued_recall";
+}
+
+/**
+ * Whether a question type requires self-rating (or AI evaluation) for scoring.
+ */
+export function requiresSelfRating(type: QuestionTemplate["type"]): boolean {
+  return !isAutoScoredType(type);
 }
 
 /**

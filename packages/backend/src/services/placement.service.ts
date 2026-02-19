@@ -9,6 +9,8 @@ import {
   processResponse,
   shouldTerminate,
   buildPlacementResult,
+  evaluateRecognition,
+  CORRECT_SCORE_THRESHOLD,
   DEFAULT_PLACEMENT_CONFIG,
 } from "@skillclimb/core";
 
@@ -144,7 +146,8 @@ export async function submitPlacementAnswer(
   if (!node) throw new Error("Node not found");
 
   const template = node.questionTemplates[0];
-  const correct = selectedAnswer === template.correctAnswer;
+  const score = evaluateRecognition(selectedAnswer, template.correctAnswer);
+  const correct = score >= CORRECT_SCORE_THRESHOLD;
 
   // Build IRT item for this node
   const item: IRTItem = {

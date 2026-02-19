@@ -261,7 +261,7 @@ export function formatNextSession(nextSession: {
   nextDueDate: Date | string | null;
   dueTodayRemaining: number;
   dueWithinWeek: number;
-}, now: Date = new Date()): string {
+}, now: Date): string {
   if (nextSession.dueNow > 0) {
     return `${nextSession.dueNow} items ready for review`;
   }

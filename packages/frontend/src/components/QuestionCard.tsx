@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useSessionStore } from "../store/sessionStore.js";
 import type { SessionItemResponse } from "../api/hooks.js";
+import { getQuestionTypeLabel } from "@skillclimb/core";
 import { colors, buttonStyles } from "../styles/theme.js";
 
 interface Props {
@@ -54,7 +55,7 @@ export default function QuestionCard({ item }: Props) {
             padding: "0.1rem 0.4rem",
           }}
         >
-          {type === "recognition" ? "Multiple Choice" : type === "cued_recall" ? "Short Answer" : "Free Recall"}
+          {getQuestionTypeLabel(type)}
         </div>
       </div>
       <h2 style={{ marginBottom: "1.5rem", color: colors.textPrimary }}>

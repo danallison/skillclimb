@@ -2,7 +2,15 @@ import { useEffect, useRef, useState } from "react";
 import { useSessionStore } from "../store/sessionStore.js";
 import { useSubmitReview, useEvaluateAnswer, useRequestHint } from "../api/hooks.js";
 import type { AIFeedbackResponse } from "../api/hooks.js";
-import { scoreFromSelfRating, evaluateRecognition, evaluateCuedRecall } from "@skillclimb/core";
+import {
+  scoreFromSelfRating,
+  evaluateRecognition,
+  evaluateCuedRecall,
+  capScoreForHintedAttempt,
+  classifyScore,
+  isAutoScoredType,
+  requiresSelfRating,
+} from "@skillclimb/core";
 import type { SelfRating } from "@skillclimb/core";
 import { colors, buttonStyles } from "../styles/theme.js";
 import AIFeedbackDisplay from "./AIFeedbackDisplay.js";
@@ -87,10 +95,9 @@ export default function FeedbackDisplay() {
     // Auto-score recognition questions
     if (questionType === "recognition") {
       autoSubmitted.current = true;
-      let score = evaluateRecognition(selectedAnswer, item.questionTemplate.correctAnswer);
-      // Cap score on hint-assisted second attempts: you needed help, so partial credit at best
-      if (attemptNumber === 2) score = Math.min(score, 2);
-      const rating: SelfRating = score >= 3 ? "correct" : attemptNumber === 2 && score === 2 ? "partially_correct" : "incorrect";
+      const rawScore = evaluateRecognition(selectedAnswer, item.questionTemplate.correctAnswer);
+      const score = capScoreForHintedAttempt(rawScore, attemptNumber);
+      const rating: SelfRating = classifyScore(score);
       setSelfRating(rating);
 
       submitReview.mutateAsync({
@@ -117,14 +124,13 @@ export default function FeedbackDisplay() {
     // Auto-score cued_recall questions
     if (questionType === "cued_recall") {
       autoSubmitted.current = true;
-      let score = evaluateCuedRecall(
+      const rawScore = evaluateCuedRecall(
         selectedAnswer!,
         item.questionTemplate.correctAnswer,
         item.questionTemplate.acceptableAnswers,
       );
-      // Cap score on hint-assisted second attempts
-      if (attemptNumber === 2) score = Math.min(score, 2);
-      const rating: SelfRating = score >= 4 ? "correct" : attemptNumber === 2 && score === 2 ? "partially_correct" : "incorrect";
+      const score = capScoreForHintedAttempt(rawScore, attemptNumber);
+      const rating: SelfRating = classifyScore(score);
       setSelfRating(rating);
 
       submitReview.mutateAsync({
@@ -172,14 +178,12 @@ export default function FeedbackDisplay() {
   if (!ready || !item) return null;
 
   const { questionTemplate } = item;
-  const wasAutoScored = questionType === "recognition" || questionType === "cued_recall";
+  const wasAutoScored = isAutoScoredType(questionType!);
   const autoScoreCorrect = reviewResult?.wasCorrect ?? false;
 
   const handleSelfRate = (rating: SelfRating) => {
     setSelfRating(rating);
-    let score = scoreFromSelfRating(rating);
-    // Cap score on hint-assisted second attempts
-    if (attemptNumber === 2) score = Math.min(score, 2);
+    const score = capScoreForHintedAttempt(scoreFromSelfRating(rating), attemptNumber);
 
     submitReview.mutateAsync({
       userId: userId!,
@@ -202,9 +206,8 @@ export default function FeedbackDisplay() {
   };
 
   const handleAcceptAIScore = (rawScore: number) => {
-    // Cap score on hint-assisted second attempts
-    const score = attemptNumber === 2 ? Math.min(rawScore, 2) : rawScore;
-    const rating: SelfRating = score >= 4 ? "correct" : score >= 2 ? "partially_correct" : "incorrect";
+    const score = capScoreForHintedAttempt(rawScore, attemptNumber);
+    const rating: SelfRating = classifyScore(score);
     setSelfRating(rating);
 
     submitReview.mutateAsync({
@@ -265,7 +268,7 @@ export default function FeedbackDisplay() {
     { label: "Incorrect", value: "incorrect", color: colors.red },
   ];
 
-  const needsSelfRate = questionType === "free_recall" || questionType === "application" || questionType === "practical";
+  const needsSelfRate = requiresSelfRating(questionType!);
 
   return (
     <div style={{ marginTop: "1.5rem" }}>

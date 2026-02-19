@@ -269,7 +269,7 @@ export default function ProgressView({ userId, onStartSession, onStartPlacement,
       >
         <div>
           <div style={{ fontWeight: 600, marginBottom: "0.25rem" }}>
-            {formatNextSession(data.nextSession)}
+            {formatNextSession(data.nextSession, new Date())}
           </div>
           {data.nextSession.dueWithinWeek > 0 && !hasItemsDue && (
             <div style={{ fontSize: "0.8rem", color: colors.textMuted }}>

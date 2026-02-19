@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import type { QuestionTemplate } from "@skillclimb/core";
 
 const API_BASE = "/api";
 
@@ -24,7 +25,7 @@ export interface SessionResponse {
 }
 
 export interface QuestionTemplateResponse {
-  type: string;
+  type: QuestionTemplate["type"];
   prompt: string;
   choices?: string[];
   correctAnswer: string;
@@ -167,7 +168,7 @@ export interface PlacementQuestion {
   domainId: string;
   concept: string;
   questionTemplate: {
-    type: string;
+    type: QuestionTemplate["type"];
     prompt: string;
     choices?: string[];
     correctAnswer: string;

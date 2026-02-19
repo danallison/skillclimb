@@ -15,6 +15,21 @@ export function getQuestionTypeDifficulty(type: QuestionTemplate["type"]): numbe
   return QUESTION_TYPE_ORDER.indexOf(type);
 }
 
+const QUESTION_TYPE_LABELS: Record<QuestionTemplate["type"], string> = {
+  recognition: "Multiple Choice",
+  cued_recall: "Short Answer",
+  free_recall: "Free Recall",
+  application: "Application",
+  practical: "Practical",
+};
+
+/**
+ * Get the human-readable label for a question type.
+ */
+export function getQuestionTypeLabel(type: QuestionTemplate["type"]): string {
+  return QUESTION_TYPE_LABELS[type] ?? type;
+}
+
 /**
  * Select the appropriate question type based on learner mastery level.
  *
