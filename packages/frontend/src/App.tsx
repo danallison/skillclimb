@@ -16,7 +16,7 @@ function getInitialView(userId: string | null, savedSessionId: string | null): V
 }
 
 export default function App() {
-  const { userId, savedSessionId, savedItemIndex, session, setUserId, setSession, resumeSession, logout } = useSessionStore();
+  const { userId, savedSessionId, savedItemIndex, session, setUserId, setSession, resumeSession, reset: resetSession, logout } = useSessionStore();
   const placementStore = usePlacementStore();
   const [email, setEmail] = useState("");
   const [view, setView] = useState<View>(() => getInitialView(userId, savedSessionId));
@@ -73,22 +73,22 @@ export default function App() {
     }
   };
 
+  // If we're in session view but have no session to show, fall back to progress
+  useEffect(() => {
+    if (view === "session" && !session && userId && !sessionIdToRestore) {
+      setView("progress");
+    }
+  }, [view, session, userId, sessionIdToRestore]);
+
   // Active session
   if (view === "session" && session) {
-    return <SessionView onFinished={() => setView("progress")} />;
+    return <SessionView onFinished={() => { resetSession(); setView("progress"); }} />;
   }
 
   // Session view but still loading from API — show loading state
   if (view === "session" && !session && sessionIdToRestore) {
     return <div style={{ textAlign: "center", padding: "3rem", color: colors.textMuted }}>Resuming session...</div>;
   }
-
-  // If we have a userId but no session, fall through to progress
-  useEffect(() => {
-    if (view === "session" && !session && userId && !sessionIdToRestore) {
-      setView("progress");
-    }
-  }, [view, session, userId, sessionIdToRestore]);
 
   // Placement test
   if (view === "placement") {

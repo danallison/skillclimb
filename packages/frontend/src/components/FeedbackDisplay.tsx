@@ -32,6 +32,7 @@ export default function FeedbackDisplay() {
   const [aiLoading, setAiLoading] = useState(false);
   const [showSelfRate, setShowSelfRate] = useState(false);
   const [hintLoading, setHintLoading] = useState(false);
+  const [answerRevealed, setAnswerRevealed] = useState(false);
 
   const ready = !!(session && userId && selectedAnswer !== null && confidenceRating !== null);
   const isEmptyAnswer = selectedAnswer !== null && selectedAnswer.trim() === "";
@@ -47,6 +48,7 @@ export default function FeedbackDisplay() {
     setAiLoading(false);
     setShowSelfRate(false);
     setHintLoading(false);
+    setAnswerRevealed(false);
     autoSubmitted.current = false;
   }, [currentItemIndex, attemptNumber]);
 
@@ -85,8 +87,10 @@ export default function FeedbackDisplay() {
     // Auto-score recognition questions
     if (questionType === "recognition") {
       autoSubmitted.current = true;
-      const score = evaluateRecognition(selectedAnswer, item.questionTemplate.correctAnswer);
-      const rating: SelfRating = score >= 3 ? "correct" : "incorrect";
+      let score = evaluateRecognition(selectedAnswer, item.questionTemplate.correctAnswer);
+      // Cap score on hint-assisted second attempts: you needed help, so partial credit at best
+      if (attemptNumber === 2) score = Math.min(score, 2);
+      const rating: SelfRating = score >= 3 ? "correct" : attemptNumber === 2 && score === 2 ? "partially_correct" : "incorrect";
       setSelfRating(rating);
 
       submitReview.mutateAsync({
@@ -113,12 +117,14 @@ export default function FeedbackDisplay() {
     // Auto-score cued_recall questions
     if (questionType === "cued_recall") {
       autoSubmitted.current = true;
-      const score = evaluateCuedRecall(
+      let score = evaluateCuedRecall(
         selectedAnswer!,
         item.questionTemplate.correctAnswer,
         item.questionTemplate.acceptableAnswers,
       );
-      const rating: SelfRating = score >= 4 ? "correct" : "incorrect";
+      // Cap score on hint-assisted second attempts
+      if (attemptNumber === 2) score = Math.min(score, 2);
+      const rating: SelfRating = score >= 4 ? "correct" : attemptNumber === 2 && score === 2 ? "partially_correct" : "incorrect";
       setSelfRating(rating);
 
       submitReview.mutateAsync({
@@ -171,7 +177,9 @@ export default function FeedbackDisplay() {
 
   const handleSelfRate = (rating: SelfRating) => {
     setSelfRating(rating);
-    const score = scoreFromSelfRating(rating);
+    let score = scoreFromSelfRating(rating);
+    // Cap score on hint-assisted second attempts
+    if (attemptNumber === 2) score = Math.min(score, 2);
 
     submitReview.mutateAsync({
       userId: userId!,
@@ -193,7 +201,9 @@ export default function FeedbackDisplay() {
     });
   };
 
-  const handleAcceptAIScore = (score: number) => {
+  const handleAcceptAIScore = (rawScore: number) => {
+    // Cap score on hint-assisted second attempts
+    const score = attemptNumber === 2 ? Math.min(rawScore, 2) : rawScore;
     const rating: SelfRating = score >= 4 ? "correct" : score >= 2 ? "partially_correct" : "incorrect";
     setSelfRating(rating);
 
@@ -217,10 +227,15 @@ export default function FeedbackDisplay() {
     });
   };
 
-  // Check if hint flow is available (always offer on first wrong attempt)
+  // Hint availability: first wrong attempt only
   const hints = questionTemplate.hints;
   const hasStaticHints = hints && hints.length > 0;
   const canOfferHint = attemptNumber === 1 && !isSecondFeedback;
+
+  // Should we hide the answer to offer a hint first?
+  // For auto-scored: wrong answer on attempt 1
+  // For free_recall: before self-rating on attempt 1
+  const holdingForHint = canOfferHint && !answerRevealed && !autoScoreCorrect;
 
   const handleTryAgainWithHint = () => {
     // Fast path: use static hints from the template
@@ -238,6 +253,10 @@ export default function FeedbackDisplay() {
       // Last resort: generic hint from explanation
       showHint(`Think about: ${questionTemplate.explanation.split(".")[0]}.`);
     });
+  };
+
+  const handleRevealAnswer = () => {
+    setAnswerRevealed(true);
   };
 
   const ratingButtons: { label: string; value: SelfRating; color: string }[] = [
@@ -268,8 +287,57 @@ export default function FeedbackDisplay() {
         </div>
       </div>
 
-      {/* Auto-scored result for recognition/cued_recall */}
-      {wasAutoScored && reviewResult && (
+      {/* Auto-scored: "Incorrect" label without revealing the answer (when hint is available) */}
+      {wasAutoScored && reviewResult && !autoScoreCorrect && holdingForHint && (
+        <div
+          style={{
+            padding: "1rem",
+            borderRadius: "8px",
+            marginBottom: "1rem",
+            background: colors.errorBg,
+            border: `2px solid ${colors.red}`,
+          }}
+        >
+          <div style={{
+            fontWeight: 600,
+            color: colors.errorText,
+          }}>
+            Incorrect
+          </div>
+        </div>
+      )}
+
+      {/* Hint choice buttons (shown BEFORE revealing the answer) */}
+      {wasAutoScored && reviewResult && !autoScoreCorrect && holdingForHint && (
+        <div style={{ display: "flex", gap: "0.75rem", marginBottom: "1rem" }}>
+          <button
+            onClick={handleTryAgainWithHint}
+            disabled={hintLoading}
+            style={{
+              ...buttonStyles.primary,
+              flex: 1,
+              background: colors.amber,
+              color: "#1a1a2e",
+              opacity: hintLoading ? 0.7 : 1,
+            }}
+          >
+            {hintLoading ? "Loading hint..." : "Try Again with Hint"}
+          </button>
+          <button
+            onClick={handleRevealAnswer}
+            disabled={hintLoading}
+            style={{
+              ...buttonStyles.secondary,
+              flex: 1,
+            }}
+          >
+            Show Answer
+          </button>
+        </div>
+      )}
+
+      {/* Auto-scored result with correct answer (shown after reveal or when correct) */}
+      {wasAutoScored && reviewResult && !holdingForHint && (
         <div
           style={{
             padding: "1rem",
@@ -293,8 +361,37 @@ export default function FeedbackDisplay() {
         </div>
       )}
 
-      {/* Correct answer (for free recall / self-rated) */}
-      {needsSelfRate && !aiFeedback && (
+      {/* Free recall: hint choice (shown BEFORE revealing the answer) */}
+      {needsSelfRate && !aiFeedback && !aiLoading && !isEmptyAnswer && !isIdkAnswer && !reviewResult && holdingForHint && (
+        <div style={{ display: "flex", gap: "0.75rem", marginBottom: "1.5rem" }}>
+          <button
+            onClick={handleTryAgainWithHint}
+            disabled={hintLoading}
+            style={{
+              ...buttonStyles.primary,
+              flex: 1,
+              background: colors.amber,
+              color: "#1a1a2e",
+              opacity: hintLoading ? 0.7 : 1,
+            }}
+          >
+            {hintLoading ? "Loading hint..." : "Try Again with Hint"}
+          </button>
+          <button
+            onClick={handleRevealAnswer}
+            disabled={hintLoading}
+            style={{
+              ...buttonStyles.secondary,
+              flex: 1,
+            }}
+          >
+            Show Answer & Rate
+          </button>
+        </div>
+      )}
+
+      {/* Correct answer (for free recall / self-rated — only after reveal) */}
+      {needsSelfRate && !aiFeedback && !holdingForHint && (
         <div
           style={{
             padding: "1rem",
@@ -311,8 +408,8 @@ export default function FeedbackDisplay() {
         </div>
       )}
 
-      {/* Explanation (shown for auto-scored and self-rated, not for AI feedback) */}
-      {!aiFeedback && (
+      {/* Explanation (only after answer is revealed, not for AI feedback) */}
+      {!aiFeedback && !holdingForHint && (
         <div
           style={{
             padding: "1rem",
@@ -328,45 +425,14 @@ export default function FeedbackDisplay() {
         </div>
       )}
 
-      {/* Auto-scored: show hint option or continue */}
-      {wasAutoScored && reviewResult && (
-        <>
-          {!autoScoreCorrect && canOfferHint && (
-            <div style={{ display: "flex", gap: "0.75rem", marginBottom: "1rem" }}>
-              <button
-                onClick={handleTryAgainWithHint}
-                disabled={hintLoading}
-                style={{
-                  ...buttonStyles.primary,
-                  flex: 1,
-                  background: colors.amber,
-                  color: "#1a1a2e",
-                  opacity: hintLoading ? 0.7 : 1,
-                }}
-              >
-                {hintLoading ? "Loading hint..." : "Try Again with Hint"}
-              </button>
-              <button
-                onClick={nextItem}
-                disabled={hintLoading}
-                style={{
-                  ...buttonStyles.secondary,
-                  flex: 1,
-                }}
-              >
-                Continue
-              </button>
-            </div>
-          )}
-          {(autoScoreCorrect || !canOfferHint) && (
-            <button
-              onClick={nextItem}
-              style={buttonStyles.primary}
-            >
-              Continue
-            </button>
-          )}
-        </>
+      {/* Auto-scored: Continue button (after answer is revealed) */}
+      {wasAutoScored && reviewResult && !holdingForHint && (
+        <button
+          onClick={nextItem}
+          style={buttonStyles.primary}
+        >
+          Continue
+        </button>
       )}
 
       {/* Free recall: AI loading spinner */}
@@ -386,8 +452,8 @@ export default function FeedbackDisplay() {
         />
       )}
 
-      {/* Free recall: self-rating buttons (fallback when AI unavailable) */}
-      {needsSelfRate && (showSelfRate || (!aiLoading && !aiFeedback)) && !isEmptyAnswer && !isIdkAnswer && !reviewResult && (
+      {/* Free recall: self-rating buttons (after answer revealed) */}
+      {needsSelfRate && !holdingForHint && (showSelfRate || (!aiLoading && !aiFeedback)) && !isEmptyAnswer && !isIdkAnswer && !reviewResult && (
         <>
           <h3 style={{ marginBottom: "0.75rem", color: "#b0b0b0" }}>
             How did you do?
@@ -413,22 +479,6 @@ export default function FeedbackDisplay() {
               </button>
             ))}
           </div>
-          {/* Offer hint for wrong free recall answers */}
-          {canOfferHint && (
-            <button
-              onClick={handleTryAgainWithHint}
-              disabled={hintLoading}
-              style={{
-                ...buttonStyles.secondary,
-                width: "100%",
-                marginTop: "0.75rem",
-                textAlign: "center",
-                opacity: hintLoading ? 0.7 : 1,
-              }}
-            >
-              {hintLoading ? "Loading hint..." : "Not sure? Try again with a hint"}
-            </button>
-          )}
         </>
       )}
 

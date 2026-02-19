@@ -37,7 +37,23 @@ export default function SessionView({ onFinished }: Props) {
         }}
       >
         <h1 style={{ marginBottom: 0 }}>SkillClimb</h1>
-        <div style={{ color: colors.textMuted, fontSize: "0.9rem" }}>{progress}</div>
+        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+          <div style={{ color: colors.textMuted, fontSize: "0.9rem" }}>{progress}</div>
+          <button
+            onClick={onFinished}
+            style={{
+              background: "transparent",
+              border: `1px solid ${colors.inputBorder}`,
+              color: colors.textMuted,
+              borderRadius: "6px",
+              padding: "0.3rem 0.6rem",
+              fontSize: "0.8rem",
+              cursor: "pointer",
+            }}
+          >
+            Exit
+          </button>
+        </div>
       </div>
 
       <div
