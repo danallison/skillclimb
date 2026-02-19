@@ -1,5 +1,7 @@
 # CYBERCLIMB
 
+> **Note:** This document describes the Cybersecurity content pack for SkillClimb. The platform itself is now generic — see `CLAUDE.md` for the overall architecture.
+
 **A Test-Driven Cybersecurity Learning Platform**
 
 *Built on Desirable Difficulties, Spaced Repetition, and Adaptive Assessment*

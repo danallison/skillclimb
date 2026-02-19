@@ -84,14 +84,9 @@ describe("computeCalibrationAnalysis", () => {
       makeEntry(2, false, 0),
     ];
 
-    const domainMap = new Map([
-      ["0", "d1"],
-      ["1", "d1"],
-      ["2", "d2"],
-      ["3", "d2"],
-    ]);
+    const entryDomainIds = ["d1", "d1", "d2", "d2"];
 
-    const analysis = computeCalibrationAnalysis(entries, domainMap);
+    const analysis = computeCalibrationAnalysis(entries, entryDomainIds);
 
     expect(analysis.overallScore).toBe(50);
     expect(analysis.quadrantCounts.calibrated).toBe(1);
@@ -110,14 +105,9 @@ describe("computeCalibrationAnalysis", () => {
       makeEntry(4, false, 0),  // d2 illusion
     ];
 
-    const domainMap = new Map([
-      ["0", "d1"],
-      ["1", "d1"],
-      ["2", "d2"],
-      ["3", "d2"],
-    ]);
+    const entryDomainIds = ["d1", "d1", "d2", "d2"];
 
-    const analysis = computeCalibrationAnalysis(entries, domainMap);
+    const analysis = computeCalibrationAnalysis(entries, entryDomainIds);
     expect(analysis.domainBreakdown[0].domainId).toBe("d2"); // worst first
     expect(analysis.domainBreakdown[0].score).toBe(0);
     expect(analysis.domainBreakdown[1].domainId).toBe("d1");

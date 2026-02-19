@@ -9,39 +9,33 @@ import PlacementView from "./components/PlacementView.js";
 
 type View = "login" | "progress" | "session" | "placement";
 
-function getInitialView(userId: string | null): View {
+function getInitialView(userId: string | null, savedSessionId: string | null): View {
   if (!userId) return "login";
-  const sessionId = localStorage.getItem("cyberclimb_sessionId");
-  if (sessionId) return "session";
+  if (savedSessionId) return "session";
   return "progress";
 }
 
 export default function App() {
-  const { userId, session, setUserId, setSession, resumeSession, reset } = useSessionStore();
+  const { userId, savedSessionId, savedItemIndex, session, setUserId, setSession, resumeSession, logout } = useSessionStore();
   const placementStore = usePlacementStore();
   const [email, setEmail] = useState("");
-  const [view, setView] = useState<View>(() => getInitialView(userId));
+  const [view, setView] = useState<View>(() => getInitialView(userId, savedSessionId));
   const createUser = useCreateUser();
   const createSession = useCreateSession();
   const startPlacement = useStartPlacement();
 
-  // Check if user has learner nodes (to decide placement vs progress)
-  const { data: progressData } = useProgress(
-    view === "progress" && userId ? userId : null,
-  );
+  // Pre-fetch progress data so it's cached when ProgressView mounts
+  useProgress(view === "progress" && userId ? userId : null);
 
-  // Restore in-progress session from localStorage
-  const savedSessionId = view === "session" && !session
-    ? localStorage.getItem("cyberclimb_sessionId")
-    : null;
-  const { data: restoredSession } = useSession(savedSessionId);
+  // Restore in-progress session from store's saved state
+  const sessionIdToRestore = view === "session" && !session ? savedSessionId : null;
+  const { data: restoredSession } = useSession(sessionIdToRestore);
 
   useEffect(() => {
     if (restoredSession && !session) {
-      const savedIndex = parseInt(localStorage.getItem("cyberclimb_itemIndex") ?? "0", 10);
-      resumeSession(restoredSession, savedIndex);
+      resumeSession(restoredSession, savedItemIndex);
     }
-  }, [restoredSession, session, resumeSession]);
+  }, [restoredSession, session, resumeSession, savedItemIndex]);
 
   const handleLogin = async () => {
     try {
@@ -85,14 +79,16 @@ export default function App() {
   }
 
   // Session view but still loading from API — show loading state
-  if (view === "session" && !session && savedSessionId) {
+  if (view === "session" && !session && sessionIdToRestore) {
     return <div style={{ textAlign: "center", padding: "3rem", color: colors.textMuted }}>Resuming session...</div>;
   }
 
-  // If we have a userId but no session, show progress (e.g. after session ends)
-  if (view === "session" && !session && userId) {
-    setView("progress");
-  }
+  // If we have a userId but no session, fall through to progress
+  useEffect(() => {
+    if (view === "session" && !session && userId && !sessionIdToRestore) {
+      setView("progress");
+    }
+  }, [view, session, userId, sessionIdToRestore]);
 
   // Placement test
   if (view === "placement") {
@@ -118,8 +114,7 @@ export default function App() {
         onStartSession={handleStartSession}
         onStartPlacement={handleStartPlacement}
         onBack={() => {
-          localStorage.removeItem("cyberclimb_userId");
-          reset();
+          logout();
           setView("login");
         }}
       />
@@ -132,9 +127,9 @@ export default function App() {
 
   return (
     <div style={{ textAlign: "center", paddingTop: "4rem" }}>
-      <h1 style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>CyberClimb</h1>
+      <h1 style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>SkillClimb</h1>
       <p style={{ color: colors.textMuted, marginBottom: "2.5rem", fontSize: "1.1rem" }}>
-        Test-driven cybersecurity learning
+        Test-driven learning with spaced repetition
       </p>
 
       <div style={{ marginBottom: "1.5rem" }}>

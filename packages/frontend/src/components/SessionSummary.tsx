@@ -1,6 +1,7 @@
 import { useSessionStore } from "../store/sessionStore.js";
-import { computeSessionSummary } from "@cyberclimb/core";
+import { computeSessionSummary } from "@skillclimb/core";
 import { colors, buttonStyles } from "../styles/theme.js";
+import StatCard from "./StatCard.js";
 
 interface Props {
   onViewProgress: () => void;
@@ -42,25 +43,25 @@ export default function SessionSummary({ onViewProgress }: Props) {
           marginBottom: "1.5rem",
         }}
       >
-        <CalibrationCard
+        <StatCard
           label="Calibrated"
           count={quadrantCounts.calibrated}
           color={colors.green}
           description="Confident & correct"
         />
-        <CalibrationCard
+        <StatCard
           label="Illusion"
           count={quadrantCounts.illusion}
           color={colors.red}
           description="Confident & wrong"
         />
-        <CalibrationCard
+        <StatCard
           label="Undervalued"
           count={quadrantCounts.undervalued}
           color={colors.amber}
           description="Unsure & correct"
         />
-        <CalibrationCard
+        <StatCard
           label="Known Unknown"
           count={quadrantCounts.known_unknown}
           color={colors.textMuted}
@@ -77,33 +78,6 @@ export default function SessionSummary({ onViewProgress }: Props) {
       >
         View Progress
       </button>
-    </div>
-  );
-}
-
-function CalibrationCard({
-  label,
-  count,
-  color,
-  description,
-}: {
-  label: string;
-  count: number;
-  color: string;
-  description: string;
-}) {
-  return (
-    <div
-      style={{
-        padding: "1rem",
-        background: colors.cardBg,
-        borderRadius: "8px",
-        borderLeft: `4px solid ${color}`,
-      }}
-    >
-      <div style={{ fontWeight: 600, fontSize: "1.5rem", color }}>{count}</div>
-      <div style={{ fontWeight: 500 }}>{label}</div>
-      <div style={{ fontSize: "0.8rem", color: colors.textMuted }}>{description}</div>
     </div>
   );
 }

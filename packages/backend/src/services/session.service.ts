@@ -1,9 +1,9 @@
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { db } from "../db/connection.js";
 import { learnerNodes, nodes as nodesTable, sessions } from "../db/schema.js";
 import { dbRowToLearnerState, dbRowToNode } from "../db/mappers.js";
-import { buildSession, DEFAULT_SESSION_CONFIG } from "@cyberclimb/core";
-import type { SessionResult } from "@cyberclimb/core";
+import { buildSession, DEFAULT_SESSION_CONFIG } from "@skillclimb/core";
+import type { SessionResult } from "@skillclimb/core";
 
 export interface SessionWithItems {
   id: string;
@@ -23,8 +23,7 @@ export async function createSession(userId: string): Promise<SessionWithItems> {
   const nodeIds = learnerRows.map((r) => r.nodeId);
   let nodeRows: (typeof nodesTable.$inferSelect)[] = [];
   if (nodeIds.length > 0) {
-    nodeRows = await db.select().from(nodesTable);
-    nodeRows = nodeRows.filter((n) => nodeIds.includes(n.id));
+    nodeRows = await db.select().from(nodesTable).where(inArray(nodesTable.id, nodeIds));
   }
 
   const states = learnerRows.map(dbRowToLearnerState);
@@ -61,8 +60,7 @@ export async function getSession(sessionId: string): Promise<SessionWithItems | 
   const nodeIds = session.nodeIds as string[];
   let nodeRows: (typeof nodesTable.$inferSelect)[] = [];
   if (nodeIds.length > 0) {
-    const allNodes = await db.select().from(nodesTable);
-    nodeRows = allNodes.filter((n) => nodeIds.includes(n.id));
+    nodeRows = await db.select().from(nodesTable).where(inArray(nodesTable.id, nodeIds));
   }
 
   const learnerRows = await db

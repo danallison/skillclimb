@@ -120,7 +120,7 @@ export default function PlacementView({ onComplete, onSkip }: Props) {
             padding: "1rem",
             borderRadius: "8px",
             marginBottom: "1rem",
-            background: lastResult.correct ? "#0d2818" : "#2d0a0a",
+            background: lastResult.correct ? colors.successBg : colors.errorBg,
             border: `2px solid ${lastResult.correct ? colors.green : colors.red}`,
             textAlign: "center",
           }}
@@ -138,7 +138,7 @@ export default function PlacementView({ onComplete, onSkip }: Props) {
             padding: "0.75rem",
             borderRadius: "8px",
             marginBottom: "1rem",
-            background: "#2d0a0a",
+            background: colors.errorBg,
             border: `1px solid ${colors.red}`,
             color: colors.red,
             fontSize: "0.9rem",
@@ -175,7 +175,7 @@ export default function PlacementView({ onComplete, onSkip }: Props) {
                   disabled={submitAnswer.isPending}
                   style={{
                     padding: "0.75rem 1rem",
-                    background: selectedAnswer === choice ? "#1a3a4a" : colors.surfaceBg,
+                    background: selectedAnswer === choice ? colors.selectedBg : colors.surfaceBg,
                     border: selectedAnswer === choice
                       ? `2px solid ${colors.cyan}`
                       : `1px solid ${colors.inputBorder}`,

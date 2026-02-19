@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useProgress } from "../api/hooks.js";
 import type { DomainProgressResponse, TopicProgressResponse } from "../api/hooks.js";
-import { computeTierProgress } from "@cyberclimb/core";
+import { computeTierProgress, formatNextSession } from "@skillclimb/core";
 import { colors, buttonStyles } from "../styles/theme.js";
 import SkillTreeMap from "./SkillTreeMap.js";
 import CalibrationDashboard from "./CalibrationDashboard.js";
@@ -35,29 +35,6 @@ function tierGroups(domains: DomainProgressResponse[]) {
       label: TIER_LABELS[tier] ?? `Tier ${tier}`,
       domains,
     }));
-}
-
-function formatNextSession(nextSession: {
-  dueNow: number;
-  nextDueDate: string | null;
-  dueTodayRemaining: number;
-  dueWithinWeek: number;
-}): string {
-  if (nextSession.dueNow > 0) {
-    return `${nextSession.dueNow} items ready for review`;
-  }
-  if (!nextSession.nextDueDate) {
-    return "No items scheduled";
-  }
-  const next = new Date(nextSession.nextDueDate);
-  const now = new Date();
-  const diffMs = next.getTime() - now.getTime();
-  const diffHours = Math.round(diffMs / (1000 * 60 * 60));
-  const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
-
-  if (diffHours < 1) return "Next review in less than an hour";
-  if (diffHours < 24) return `Next review in ${diffHours} hour${diffHours === 1 ? "" : "s"}`;
-  return `Next review in ${diffDays} day${diffDays === 1 ? "" : "s"}`;
 }
 
 function ProgressBar({
@@ -105,7 +82,7 @@ function TopicRow({ topic }: { topic: TopicProgressResponse }) {
           fontSize: "0.85rem",
         }}
       >
-        <span style={{ color: "#ccc" }}>{topic.name}</span>
+        <span style={{ color: colors.textPrimary }}>{topic.name}</span>
         <span style={{ fontSize: "0.8rem" }}>
           {topic.mastered > 0 && (
             <span style={{ color: colors.green }}>{topic.mastered} mastered</span>
@@ -148,7 +125,7 @@ function DomainCard({ domain }: { domain: DomainProgressResponse }) {
       >
         <div>
           <span style={{ fontWeight: 600, fontSize: "0.95rem" }}>{domain.name}</span>
-          <div style={{ fontSize: "0.8rem", color: "#666", marginTop: "0.2rem" }}>
+          <div style={{ fontSize: "0.8rem", color: colors.textDim, marginTop: "0.2rem" }}>
             {domain.description}
           </div>
         </div>
@@ -265,7 +242,7 @@ export default function ProgressView({ userId, onStartSession, onStartPlacement,
               padding: "0.4rem 1rem",
               borderRadius: "6px",
               border: progressView === v ? `2px solid ${colors.cyan}` : `1px solid ${colors.inputBorder}`,
-              background: progressView === v ? "#1a3a4a" : "transparent",
+              background: progressView === v ? colors.selectedBg : "transparent",
               color: progressView === v ? colors.cyan : colors.textMuted,
               fontSize: "0.85rem",
               fontWeight: progressView === v ? 600 : 400,
@@ -280,7 +257,7 @@ export default function ProgressView({ userId, onStartSession, onStartPlacement,
       {/* Next session timing */}
       <div
         style={{
-          background: hasItemsDue ? "#0d2818" : "#1a1a2e",
+          background: hasItemsDue ? colors.successBg : colors.neutralBg,
           border: hasItemsDue ? `2px solid ${colors.green}` : "2px solid #3a3a5a",
           borderRadius: "12px",
           padding: "1rem 1.25rem",

@@ -30,7 +30,7 @@ export default function QuestionCard({ item }: Props) {
       <div style={{ fontSize: "0.85rem", color: colors.textMuted, marginBottom: "0.5rem" }}>
         {node.concept}
       </div>
-      <h2 style={{ marginBottom: "1.5rem", color: "#e0e0e0" }}>
+      <h2 style={{ marginBottom: "1.5rem", color: colors.textPrimary }}>
         {questionTemplate.prompt}
       </h2>
       <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
@@ -42,7 +42,7 @@ export default function QuestionCard({ item }: Props) {
               onClick={() => handleSelect(choice)}
               style={{
                 padding: "1rem",
-                background: isSelected ? "#1a3a5c" : colors.cardBg,
+                background: isSelected ? colors.selectedBg : colors.cardBg,
                 border: isSelected ? `2px solid ${colors.cyan}` : `2px solid ${colors.inputBorder}`,
                 color: colors.textPrimary,
                 textAlign: "left",

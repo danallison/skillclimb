@@ -1,5 +1,5 @@
 import { pgTable, uuid, text, integer, real, timestamp, jsonb, primaryKey } from "drizzle-orm/pg-core";
-import type { IRTResponse } from "@cyberclimb/core";
+import type { IRTResponse } from "@skillclimb/core";
 
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),

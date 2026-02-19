@@ -32,7 +32,7 @@ export default function FeedbackDisplay() {
           padding: "1rem",
           borderRadius: "8px",
           marginBottom: "1rem",
-          background: isCorrect ? "#0d2818" : didSelectDontKnow ? "#1a1a2e" : "#2d0f0f",
+          background: isCorrect ? colors.successBg : didSelectDontKnow ? colors.neutralBg : colors.errorBg,
           border: isCorrect
             ? `2px solid ${colors.green}`
             : didSelectDontKnow
@@ -44,11 +44,11 @@ export default function FeedbackDisplay() {
           {isCorrect ? "Correct!" : didSelectDontKnow ? "Here's the answer" : "Incorrect"}
         </div>
         {!isCorrect && !didSelectDontKnow && selectedAnswer && (
-          <div style={{ marginBottom: "0.5rem", color: "#ff8a80" }}>
+          <div style={{ marginBottom: "0.5rem", color: colors.errorText }}>
             Your answer: {selectedAnswer}
           </div>
         )}
-        <div style={{ color: "#81c784" }}>
+        <div style={{ color: colors.successText }}>
           {didSelectDontKnow ? "" : "Correct answer: "}
           {questionTemplate.correctAnswer}
         </div>

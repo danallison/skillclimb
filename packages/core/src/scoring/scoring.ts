@@ -1,4 +1,5 @@
 import type { CalibrationHistory, CalibrationQuadrant, CalibrationEntry } from "../types.js";
+import { createQuadrantCounts } from "../utils.js";
 
 /**
  * Evaluate a recognition (multiple choice) answer.
@@ -58,12 +59,7 @@ export function updateCalibration(
  * Returns the fraction of each quadrant in the history.
  */
 export function getCalibrationStats(history: CalibrationHistory): Record<CalibrationQuadrant, number> {
-  const counts: Record<CalibrationQuadrant, number> = {
-    calibrated: 0,
-    illusion: 0,
-    undervalued: 0,
-    known_unknown: 0,
-  };
+  const counts = createQuadrantCounts();
 
   for (const entry of history.entries) {
     const quadrant = getCalibrationQuadrant(entry.confidence, entry.wasCorrect);

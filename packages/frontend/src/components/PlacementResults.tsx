@@ -1,4 +1,5 @@
 import { colors, buttonStyles } from "../styles/theme.js";
+import StatCard from "./StatCard.js";
 
 interface Props {
   result: {
@@ -117,33 +118,37 @@ export default function PlacementResults({ result, onContinue }: Props) {
             gap: "0.75rem",
           }}
         >
-          <ClassificationCard
+          <StatCard
             label="Mastered"
             count={classifications.mastered}
-            total={total}
+            percentage={total > 0 ? Math.round((classifications.mastered / total) * 100) : 0}
             color={colors.green}
             description="Scheduled 30+ days out"
+            background={colors.surfaceBg}
           />
-          <ClassificationCard
+          <StatCard
             label="Partial"
             count={classifications.partial}
-            total={total}
+            percentage={total > 0 ? Math.round((classifications.partial / total) * 100) : 0}
             color={colors.amber}
             description="Review in 3 days"
+            background={colors.surfaceBg}
           />
-          <ClassificationCard
+          <StatCard
             label="Weak"
             count={classifications.weak}
-            total={total}
+            percentage={total > 0 ? Math.round((classifications.weak / total) * 100) : 0}
             color={colors.red}
             description="Due immediately"
+            background={colors.surfaceBg}
           />
-          <ClassificationCard
+          <StatCard
             label="Unknown"
             count={classifications.unknown}
-            total={total}
+            percentage={total > 0 ? Math.round((classifications.unknown / total) * 100) : 0}
             color={colors.textMuted}
             description="Start from scratch"
+            background={colors.surfaceBg}
           />
         </div>
       </div>
@@ -151,39 +156,6 @@ export default function PlacementResults({ result, onContinue }: Props) {
       <button onClick={onContinue} style={buttonStyles.primary}>
         Start Learning
       </button>
-    </div>
-  );
-}
-
-function ClassificationCard({
-  label,
-  count,
-  total,
-  color,
-  description,
-}: {
-  label: string;
-  count: number;
-  total: number;
-  color: string;
-  description: string;
-}) {
-  const pct = total > 0 ? Math.round((count / total) * 100) : 0;
-
-  return (
-    <div
-      style={{
-        padding: "1rem",
-        background: colors.surfaceBg,
-        borderRadius: "8px",
-        borderLeft: `4px solid ${color}`,
-      }}
-    >
-      <div style={{ fontWeight: 600, fontSize: "1.5rem", color }}>{count}</div>
-      <div style={{ fontWeight: 500, fontSize: "0.9rem" }}>
-        {label} <span style={{ color: colors.textDim }}>({pct}%)</span>
-      </div>
-      <div style={{ fontSize: "0.75rem", color: colors.textMuted }}>{description}</div>
     </div>
   );
 }

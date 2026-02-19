@@ -2,8 +2,8 @@ import { eq, and } from "drizzle-orm";
 import { db } from "../db/connection.js";
 import { learnerNodes, reviews } from "../db/schema.js";
 import { dbRowToLearnerState } from "../db/mappers.js";
-import { calculateNextState, evaluateRecognition, getCalibrationQuadrant, updateCalibration } from "@cyberclimb/core";
-import type { CalibrationHistory, ReviewResult, CalibrationEntry } from "@cyberclimb/core";
+import { calculateNextState, evaluateRecognition, getCalibrationQuadrant, updateCalibration, CORRECT_SCORE_THRESHOLD } from "@skillclimb/core";
+import type { CalibrationHistory, ReviewResult, CalibrationEntry } from "@skillclimb/core";
 
 export async function submitReview(
   userId: string,
@@ -24,7 +24,7 @@ export async function submitReview(
 
   const currentState = dbRowToLearnerState(row);
   const now = new Date();
-  const wasCorrect = score >= 3;
+  const wasCorrect = score >= CORRECT_SCORE_THRESHOLD;
 
   // 2. Calculate next SRS state (pure)
   const nextState = calculateNextState(currentState, score, now);

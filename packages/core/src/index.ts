@@ -1,4 +1,5 @@
 export * from "./types.js";
+export * from "./utils.js";
 export * from "./srs/sm2.js";
 export * from "./session/builder.js";
 export * from "./scoring/scoring.js";

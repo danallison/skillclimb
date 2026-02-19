@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { ReactFlow, Background, Controls, type Node, type Edge } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import type { DomainProgressResponse } from "../api/hooks.js";
+import { MASTERY_THRESHOLD_PERCENT } from "@skillclimb/core";
 import DomainNode from "./DomainNode.js";
 import { colors } from "../styles/theme.js";
 
@@ -34,7 +35,7 @@ export default function SkillTreeMap({ domains }: Props) {
 
     // Find recommended domain (highest tier with content and items due/in progress)
     const recommended = domains
-      .filter((d) => d.hasContent && d.masteryPercentage < 60)
+      .filter((d) => d.hasContent && d.masteryPercentage < MASTERY_THRESHOLD_PERCENT)
       .sort((a, b) => a.tier - b.tier || b.totalNodes - a.totalNodes)[0];
 
     const sortedTiers = Array.from(tierGroups.keys()).sort((a, b) => a - b);
@@ -73,7 +74,7 @@ export default function SkillTreeMap({ domains }: Props) {
             if (prereqId) {
               // Determine if prerequisite is met (60% mastery)
               const prereqDomain = domains.find((dd) => dd.domainId === prereqId);
-              const met = prereqDomain ? prereqDomain.masteryPercentage >= 60 : false;
+              const met = prereqDomain ? prereqDomain.masteryPercentage >= MASTERY_THRESHOLD_PERCENT : false;
 
               flowEdges.push({
                 id: `${prereqId}-${d.domainId}`,

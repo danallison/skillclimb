@@ -6,6 +6,7 @@ import type {
   CalibrationInsight,
 } from "../types.js";
 import { getCalibrationQuadrant } from "../scoring/scoring.js";
+import { createQuadrantCounts } from "../utils.js";
 
 /**
  * Compute a calibration score from entries.
@@ -70,12 +71,7 @@ export function computeCalibrationTrend(
 }
 
 function computeQuadrantCounts(entries: CalibrationEntry[]): Record<CalibrationQuadrant, number> {
-  const counts: Record<CalibrationQuadrant, number> = {
-    calibrated: 0,
-    illusion: 0,
-    undervalued: 0,
-    known_unknown: 0,
-  };
+  const counts = createQuadrantCounts();
   for (const entry of entries) {
     const quadrant = getCalibrationQuadrant(entry.confidence, entry.wasCorrect);
     counts[quadrant]++;
@@ -89,7 +85,7 @@ function computeQuadrantCounts(entries: CalibrationEntry[]): Record<CalibrationQ
  */
 export function computeCalibrationAnalysis(
   entries: CalibrationEntry[],
-  domainMap: Map<string, string>, // nodeId → domainId (or entry key → domainId)
+  entryDomainIds: string[], // parallel array: entryDomainIds[i] is the domainId for entries[i]
 ): CalibrationAnalysis {
   const overallScore = computeCalibrationScore(entries);
   const quadrantCounts = computeQuadrantCounts(entries);
@@ -102,13 +98,10 @@ export function computeCalibrationAnalysis(
     known_unknown: Math.round((quadrantCounts.known_unknown / total) * 100),
   };
 
-  // Per-domain breakdown
-  // domainMap maps an index/key to domainId — entries must be paired with domain info
+  // Per-domain breakdown using parallel array
   const byDomain = new Map<string, CalibrationEntry[]>();
-  // We receive domainMap as a generic mapping. For the backend, each entry at index i
-  // maps to domainId via a parallel array. We'll accept domainMap keyed by string index.
   for (let i = 0; i < entries.length; i++) {
-    const domainId = domainMap.get(String(i));
+    const domainId = entryDomainIds[i];
     if (!domainId) continue;
     const list = byDomain.get(domainId) ?? [];
     list.push(entries[i]);

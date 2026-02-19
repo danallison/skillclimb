@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm";
 import { db } from "../db/connection.js";
 import { domains, learnerNodes } from "../db/schema.js";
 import { dbRowToLearnerState } from "../db/mappers.js";
-import { computeDomainProgress } from "@cyberclimb/core";
+import { computeDomainProgress } from "@skillclimb/core";
 
 const router = Router();
 

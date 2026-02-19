@@ -98,6 +98,12 @@ export interface SessionResult {
   totalItems: number;
 }
 
+/** Score threshold for considering a review "correct" (0–5 scale) */
+export const CORRECT_SCORE_THRESHOLD = 3;
+
+/** Mastery percentage required to unlock prerequisite domains */
+export const MASTERY_THRESHOLD_PERCENT = 60;
+
 export const DEFAULT_SESSION_CONFIG: SessionConfig = {
   minItems: 15,
   maxItems: 25,

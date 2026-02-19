@@ -8,6 +8,16 @@ import type {
   NodeClassificationResult,
   LearnerNodeState,
 } from "../types.js";
+import { groupBy } from "../utils.js";
+
+/**
+ * Compute item difficulty from tier base and topic complexity weight.
+ * difficulty = tierBase + (complexityWeight - 1.0) * 2
+ */
+export function computeDifficulty(tierBases: Record<number, number>, tier: number, complexityWeight: number): number {
+  const base = tierBases[tier] ?? 0;
+  return base + (complexityWeight - 1.0) * 2;
+}
 
 /**
  * 1-Parameter Logistic (Rasch) model probability.
@@ -153,6 +163,7 @@ export function selectNextItem(
   state: IRTState,
   availableItems: IRTItem[],
   config: PlacementConfig,
+  randomFn: () => number = Math.random,
 ): IRTItem | null {
   if (availableItems.length === 0) return null;
 
@@ -186,7 +197,7 @@ export function selectNextItem(
 
   // Pick randomly from top-K
   const topK = Math.min(config.topK, scored.length);
-  const randomIndex = Math.floor(Math.random() * topK);
+  const randomIndex = Math.floor(randomFn() * topK);
   return scored[randomIndex].item;
 }
 
@@ -242,12 +253,7 @@ export function processResponse(
  * Compute per-domain ability estimates from a subset of responses.
  */
 export function computeDomainThetas(responses: IRTResponse[]): Map<string, number> {
-  const byDomain = new Map<string, IRTResponse[]>();
-  for (const r of responses) {
-    const list = byDomain.get(r.domainId) ?? [];
-    list.push(r);
-    byDomain.set(r.domainId, list);
-  }
+  const byDomain = groupBy(responses, (r) => r.domainId);
 
   const domainThetas = new Map<string, number>();
   for (const [domainId, domainResponses] of byDomain) {

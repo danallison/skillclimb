@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useSessionStore } from "../store/sessionStore.js";
 import { useSubmitReview } from "../api/hooks.js";
-import { evaluateRecognition } from "@cyberclimb/core";
+import { evaluateRecognition } from "@skillclimb/core";
 import { colors } from "../styles/theme.js";
 
 export default function ConfidenceRating() {

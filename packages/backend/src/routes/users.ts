@@ -3,8 +3,8 @@ import { eq } from "drizzle-orm";
 import { db } from "../db/connection.js";
 import { users, learnerNodes, nodes, domains, topics, reviews } from "../db/schema.js";
 import { dbRowToLearnerState } from "../db/mappers.js";
-import { computeOverallProgress, computeTopicProgress, computeCalibrationAnalysis } from "@cyberclimb/core";
-import type { CalibrationEntry } from "@cyberclimb/core";
+import { computeOverallProgress, computeTopicProgress, computeCalibrationAnalysis, CORRECT_SCORE_THRESHOLD } from "@skillclimb/core";
+import type { CalibrationEntry } from "@skillclimb/core";
 
 const router = Router();
 
@@ -157,20 +157,14 @@ router.get("/:id/calibration", async (req, res) => {
     // Derive calibration entries
     const entries: CalibrationEntry[] = userReviews.map((r) => ({
       confidence: r.confidence,
-      wasCorrect: r.score >= 3,
+      wasCorrect: r.score >= CORRECT_SCORE_THRESHOLD,
       timestamp: r.createdAt,
     }));
 
-    // Build domain map indexed by entry position
-    const domainMap = new Map<string, string>();
-    for (let i = 0; i < userReviews.length; i++) {
-      const domainId = nodeDomainMap.get(userReviews[i].nodeId);
-      if (domainId) {
-        domainMap.set(String(i), domainId);
-      }
-    }
+    // Build parallel array of domain IDs for each entry
+    const entryDomainIds = userReviews.map((r) => nodeDomainMap.get(r.nodeId) ?? "");
 
-    const analysis = computeCalibrationAnalysis(entries, domainMap);
+    const analysis = computeCalibrationAnalysis(entries, entryDomainIds);
 
     // Replace domain IDs with names in the breakdown
     const allDomains = await db.select().from(domains);

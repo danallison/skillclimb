@@ -1,5 +1,5 @@
-import type { LearnerNodeState, Node, QuestionTemplate } from "@cyberclimb/core";
-import type { learnerNodes, nodes as nodesTable } from "./schema.js";
+import type { LearnerNodeState, Node, QuestionTemplate, IRTItem, IRTState, IRTResponse } from "@skillclimb/core";
+import type { learnerNodes, nodes as nodesTable, placementTests } from "./schema.js";
 
 export function dbRowToLearnerState(row: typeof learnerNodes.$inferSelect): LearnerNodeState {
   return {
@@ -26,5 +26,28 @@ export function dbRowToNode(row: typeof nodesTable.$inferSelect): Node {
     domainId: row.domainId,
     concept: row.concept,
     questionTemplates: (row.questionTemplates ?? []) as QuestionTemplate[],
+  };
+}
+
+/**
+ * Map DB node rows to IRT items for placement tests.
+ */
+export function nodesToIRTItems(nodeRows: (typeof nodesTable.$inferSelect)[]): IRTItem[] {
+  return nodeRows.map((n) => ({
+    nodeId: n.id,
+    domainId: n.domainId,
+    difficulty: n.difficulty,
+  }));
+}
+
+/**
+ * Reconstruct an IRTState from a placement test DB row.
+ */
+export function buildIRTStateFromPlacement(placement: typeof placementTests.$inferSelect): IRTState {
+  return {
+    theta: placement.currentTheta,
+    standardError: placement.currentSE,
+    responses: placement.responses as IRTResponse[],
+    domainThetas: new Map<string, number>(),
   };
 }

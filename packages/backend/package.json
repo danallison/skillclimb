@@ -1,5 +1,5 @@
 {
-  "name": "@cyberclimb/backend",
+  "name": "@skillclimb/backend",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -11,7 +11,7 @@
     "migrate": "tsx src/db/migrate.ts"
   },
   "dependencies": {
-    "@cyberclimb/core": "*",
+    "@skillclimb/core": "*",
     "express": "^5.0.1",
     "drizzle-orm": "^0.38.4",
     "postgres": "^3.4.5",

@@ -1,5 +1,6 @@
 import { useCalibration } from "../api/hooks.js";
 import { colors, buttonStyles } from "../styles/theme.js";
+import StatCard from "./StatCard.js";
 
 interface Props {
   userId: string;
@@ -140,28 +141,28 @@ export default function CalibrationDashboard({ userId, onBack }: Props) {
           marginBottom: "1.5rem",
         }}
       >
-        <QuadrantCard
+        <StatCard
           label="Calibrated"
           count={data.quadrantCounts.calibrated ?? 0}
           percentage={data.quadrantPercentages.calibrated ?? 0}
           color={colors.green}
           description="Confident & correct"
         />
-        <QuadrantCard
+        <StatCard
           label="Illusion"
           count={data.quadrantCounts.illusion ?? 0}
           percentage={data.quadrantPercentages.illusion ?? 0}
           color={colors.red}
           description="Confident & wrong"
         />
-        <QuadrantCard
+        <StatCard
           label="Undervalued"
           count={data.quadrantCounts.undervalued ?? 0}
           percentage={data.quadrantPercentages.undervalued ?? 0}
           color={colors.amber}
           description="Unsure & correct"
         />
-        <QuadrantCard
+        <StatCard
           label="Known Unknown"
           count={data.quadrantCounts.known_unknown ?? 0}
           percentage={data.quadrantPercentages.known_unknown ?? 0}
@@ -238,10 +239,10 @@ export default function CalibrationDashboard({ userId, onBack }: Props) {
                 borderRadius: "8px",
                 marginBottom: "0.5rem",
                 background: insight.severity === "success"
-                  ? "#0d2818"
+                  ? colors.successBg
                   : insight.severity === "warning"
-                  ? "#2d1f0a"
-                  : "#1a1a2e",
+                  ? colors.warningBg
+                  : colors.neutralBg,
                 borderLeft: `4px solid ${
                   insight.severity === "success"
                     ? colors.green
@@ -258,37 +259,6 @@ export default function CalibrationDashboard({ userId, onBack }: Props) {
           ))}
         </div>
       )}
-    </div>
-  );
-}
-
-function QuadrantCard({
-  label,
-  count,
-  percentage,
-  color,
-  description,
-}: {
-  label: string;
-  count: number;
-  percentage: number;
-  color: string;
-  description: string;
-}) {
-  return (
-    <div
-      style={{
-        padding: "1rem",
-        background: colors.cardBg,
-        borderRadius: "8px",
-        borderLeft: `4px solid ${color}`,
-      }}
-    >
-      <div style={{ fontWeight: 600, fontSize: "1.5rem", color }}>{count}</div>
-      <div style={{ fontWeight: 500, fontSize: "0.9rem" }}>
-        {label} <span style={{ color: colors.textDim }}>({percentage}%)</span>
-      </div>
-      <div style={{ fontSize: "0.8rem", color: colors.textMuted }}>{description}</div>
     </div>
   );
 }

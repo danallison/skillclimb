@@ -1,7 +1,8 @@
 import { eq } from "drizzle-orm";
 import { db } from "../db/connection.js";
 import { nodes, learnerNodes, placementTests, domains } from "../db/schema.js";
-import type { IRTItem, IRTResponse } from "@cyberclimb/core";
+import { nodesToIRTItems, buildIRTStateFromPlacement } from "../db/mappers.js";
+import type { IRTItem, IRTResponse } from "@skillclimb/core";
 import {
   createInitialIRTState,
   selectNextItem,
@@ -9,7 +10,7 @@ import {
   shouldTerminate,
   buildPlacementResult,
   DEFAULT_PLACEMENT_CONFIG,
-} from "@cyberclimb/core";
+} from "@skillclimb/core";
 
 interface PlacementQuestion {
   nodeId: string;
@@ -80,11 +81,7 @@ export async function startPlacement(userId: string): Promise<PlacementStartResu
   }
 
   // Build IRT items
-  const irtItems: IRTItem[] = allNodes.map((n) => ({
-    nodeId: n.id,
-    domainId: n.domainId,
-    difficulty: n.difficulty,
-  }));
+  const irtItems = nodesToIRTItems(allNodes);
 
   // Create initial state and select first item
   const state = createInitialIRTState();
@@ -158,12 +155,7 @@ export async function submitPlacementAnswer(
 
   // Reconstruct current IRT state from stored responses
   const previousResponses: IRTResponse[] = placement.responses as IRTResponse[];
-  const currentState = {
-    theta: placement.currentTheta,
-    standardError: placement.currentSE,
-    responses: previousResponses,
-    domainThetas: new Map<string, number>(),
-  };
+  const currentState = buildIRTStateFromPlacement(placement);
 
   // Process response (pure)
   const newState = processResponse(currentState, item, correct);
@@ -180,11 +172,7 @@ export async function submitPlacementAnswer(
   if (done) {
     // Classify all nodes
     const allNodes = await db.select().from(nodes);
-    const allItems: IRTItem[] = allNodes.map((n) => ({
-      nodeId: n.id,
-      domainId: n.domainId,
-      difficulty: n.difficulty,
-    }));
+    const allItems = nodesToIRTItems(allNodes);
 
     const now = new Date();
     const placementResult = buildPlacementResult(newState, allItems, now);
@@ -273,13 +261,7 @@ export async function submitPlacementAnswer(
   // Not done — select next item
   const allNodes = await db.select().from(nodes);
   const answeredNodeIds = new Set(newResponses.map((r) => r.nodeId));
-  const availableItems: IRTItem[] = allNodes
-    .filter((n) => !answeredNodeIds.has(n.id))
-    .map((n) => ({
-      nodeId: n.id,
-      domainId: n.domainId,
-      difficulty: n.difficulty,
-    }));
+  const availableItems = nodesToIRTItems(allNodes.filter((n) => !answeredNodeIds.has(n.id)));
 
   const nextItem = selectNextItem(newState, availableItems, DEFAULT_PLACEMENT_CONFIG);
   let nextQuestion: PlacementQuestion | undefined;
@@ -333,20 +315,9 @@ export async function getPlacement(placementId: string) {
     const answeredNodeIds = new Set(
       (placement.responses as IRTResponse[]).map((r) => r.nodeId),
     );
-    const availableItems: IRTItem[] = allNodes
-      .filter((n) => !answeredNodeIds.has(n.id))
-      .map((n) => ({
-        nodeId: n.id,
-        domainId: n.domainId,
-        difficulty: n.difficulty,
-      }));
+    const availableItems = nodesToIRTItems(allNodes.filter((n) => !answeredNodeIds.has(n.id)));
 
-    const state = {
-      theta: placement.currentTheta,
-      standardError: placement.currentSE,
-      responses: placement.responses as IRTResponse[],
-      domainThetas: new Map<string, number>(),
-    };
+    const state = buildIRTStateFromPlacement(placement);
 
     const nextItem = selectNextItem(state, availableItems, DEFAULT_PLACEMENT_CONFIG);
     let question: PlacementQuestion | undefined;

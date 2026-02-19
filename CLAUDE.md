@@ -4,23 +4,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-CyberClimb is a test-driven cybersecurity learning platform built on spaced repetition, desirable difficulties, and adaptive assessment. The full specification lives in `CYBERCLIMB.md`.
+SkillClimb is a generic test-driven learning platform built on spaced repetition, desirable difficulties, and adaptive assessment. It works with arbitrary skill trees via a content pack system. The cybersecurity content pack is the first and primary content pack. The full cybersecurity specification lives in `CYBERCLIMB.md`.
 
-**Current status:** Pre-implementation (planning/design phase). No application code exists yet.
+## Tech Stack
 
-## Planned Tech Stack
-
-- **Frontend:** React + TypeScript, Zustand + React Query, IndexedDB (Dexie.js) for offline-first SRS
-- **Backend:** Ruby on Rails API
-- **Database:** PostgreSQL (with JSONB for flexible question/answer schemas)
-- **Background Jobs:** Sidekiq + Redis
-- **AI Tutor:** Claude API (Sonnet) for elaboration evaluation, hints, misconception detection
-- **Lab Environment:** Docker containers for practical challenges
-- **Hosting:** Fly.io or Railway
+- **Frontend:** React + TypeScript, Zustand + React Query
+- **Backend:** Express + TypeScript (tsx for dev)
+- **Database:** PostgreSQL (Drizzle ORM)
+- **Monorepo:** npm workspaces — `@skillclimb/core`, `@skillclimb/backend`, `@skillclimb/frontend`
 
 ## Development Strategy
 
-This project follows a **functional core, imperative shell** architecture. Keep domain logic (SRS calculations, session building, scoring, prerequisite graph traversal, IRT algorithms) as pure functions with no side effects. Push all I/O, database access, API calls, and state mutations to the outer shell. This applies to both the Rails backend and the React/TypeScript frontend.
+This project follows a **functional core, imperative shell** architecture. Keep domain logic (SRS calculations, session building, scoring, prerequisite graph traversal, IRT algorithms) as pure functions with no side effects in `@skillclimb/core`. Push all I/O, database access, API calls, and state mutations to the outer shell (backend services, frontend components).
 
 ## Architecture
 
@@ -34,16 +29,16 @@ Key subsystems:
 - **Confidence Calibration** — tracks self-rated confidence vs. actual performance
 - **Prerequisite Graph** — domains form a DAG; unlock at 60% mastery of prerequisites
 
+## Content Pack System
+
+Content packs live in `packages/backend/src/content/<pack-id>/`. Each pack has:
+- `index.ts` — exports a `ContentPack` object (manifest with tier bases, domain data, prerequisites, placeholder domains)
+- `domains/` — individual domain seed files with topic/node data
+
+The seed script (`npm run seed`) auto-discovers and loads all content packs. Use `npm run seed -- --pack <pack-id>` to seed a specific pack.
+
 ## Core Data Model
 
 `User` → `LearnerNode` (SRS state per user/node) → `Node` → `Topic` → `Domain` → `Tier`
 
 Supporting entities: `Review` (single assessment event), `Session` (study session grouping reviews)
-
-## Implementation Roadmap
-
-Phase 1 (Weeks 1–4): PostgreSQL schema, SM-2 algorithm, session builder, minimal React UI, seed 2 domains (~80 nodes)
-Phase 2 (Weeks 5–8): IRT placement test, skill tree map visualization, confidence calibration, expand to 7 domains
-Phase 3 (Weeks 9–14): Claude API integration, elaboration system, adaptive difficulty, expand to ~600 nodes
-Phase 4 (Weeks 15–20): Docker labs, analytics dashboard, offline-first SRS, red team challenges
-Phase 5 (Weeks 21–24): Gamification, notifications, performance optimization, beta testing, launch

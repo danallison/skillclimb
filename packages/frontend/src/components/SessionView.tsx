@@ -35,7 +35,7 @@ export default function SessionView({ onFinished }: Props) {
           marginBottom: "1.5rem",
         }}
       >
-        <h1 style={{ marginBottom: 0 }}>CyberClimb</h1>
+        <h1 style={{ marginBottom: 0 }}>SkillClimb</h1>
         <div style={{ color: colors.textMuted, fontSize: "0.9rem" }}>{progress}</div>
       </div>
 

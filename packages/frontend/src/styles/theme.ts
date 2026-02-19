@@ -20,6 +20,22 @@ export const colors = {
   textPrimary: "#e0e0e0",
   textMuted: "#888",
   textDim: "#555",
+
+  // Feedback backgrounds
+  successBg: "#0d2818",
+  errorBg: "#2d0f0f",
+  neutralBg: "#1a1a2e",
+  selectedBg: "#1a3a4a",
+
+  // Feedback text
+  successText: "#81c784",
+  errorText: "#ff8a80",
+
+  // Severity backgrounds (for insights)
+  warningBg: "#2d1f0a",
+
+  // Locked/disabled
+  lockedGray: "#333",
 } as const;
 
 export const buttonStyles = {

@@ -1,5 +1,6 @@
 import { memo } from "react";
 import { Handle, Position } from "@xyflow/react";
+import { MASTERY_THRESHOLD_PERCENT } from "@skillclimb/core";
 import { colors } from "../styles/theme.js";
 
 interface DomainNodeData {
@@ -21,8 +22,8 @@ const TIER_LABELS: Record<number, string> = {
 };
 
 function getNodeColor(hasContent: boolean, masteryPercentage: number): string {
-  if (!hasContent) return "#333"; // locked gray
-  if (masteryPercentage >= 60) return colors.green;
+  if (!hasContent) return colors.lockedGray;
+  if (masteryPercentage >= MASTERY_THRESHOLD_PERCENT) return colors.green;
   if (masteryPercentage >= 20) return colors.amber;
   return colors.red;
 }
@@ -51,7 +52,7 @@ function DomainNode({ data }: { data: DomainNodeData }) {
           style={{
             fontSize: "0.65rem",
             color: colors.textDim,
-            background: "#1a1a2e",
+            background: colors.neutralBg,
             padding: "0.1rem 0.4rem",
             borderRadius: "4px",
           }}

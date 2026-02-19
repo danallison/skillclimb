@@ -1,6 +1,7 @@
 import type { LearnerNodeState, CalibrationQuadrant } from "../types.js";
 import { isDue } from "../srs/sm2.js";
 import { getCalibrationQuadrant } from "../scoring/scoring.js";
+import { groupBy, createQuadrantCounts, countProgress } from "../utils.js";
 
 export interface DomainProgress {
   domainId: string;
@@ -94,26 +95,11 @@ export function computeNextSession(
  * Compute per-domain progress from learner node states.
  */
 export function computeDomainProgress(states: LearnerNodeState[]): DomainProgress[] {
-  const byDomain = new Map<string, LearnerNodeState[]>();
-
-  for (const state of states) {
-    const existing = byDomain.get(state.domainId) ?? [];
-    existing.push(state);
-    byDomain.set(state.domainId, existing);
-  }
+  const byDomain = groupBy(states, (s) => s.domainId);
 
   const results: DomainProgress[] = [];
   for (const [domainId, domainStates] of byDomain) {
-    let mastered = 0;
-    let inProgress = 0;
-    let notStarted = 0;
-
-    for (const s of domainStates) {
-      if (isMastered(s)) mastered++;
-      else if (isStarted(s)) inProgress++;
-      else notStarted++;
-    }
-
+    const { mastered, inProgress, notStarted } = countProgress(domainStates, isMastered, isStarted);
     const total = domainStates.length;
     results.push({
       domainId,
@@ -147,15 +133,7 @@ export function computeTopicProgress(
 
   const results: TopicProgress[] = [];
   for (const [topicId, { domainId, states: topicStates }] of byTopic) {
-    let mastered = 0;
-    let inProgress = 0;
-    let notStarted = 0;
-
-    for (const s of topicStates) {
-      if (isMastered(s)) mastered++;
-      else if (isStarted(s)) inProgress++;
-      else notStarted++;
-    }
+    const { mastered, inProgress, notStarted } = countProgress(topicStates, isMastered, isStarted);
 
     results.push({
       topicId,
@@ -191,12 +169,7 @@ export function computeSessionSummary(reviews: ReviewRecord[]): SessionSummary {
   const total = reviews.length;
   const correct = reviews.filter((r) => r.wasCorrect).length;
 
-  const calibrationCounts: Record<CalibrationQuadrant, number> = {
-    calibrated: 0,
-    illusion: 0,
-    undervalued: 0,
-    known_unknown: 0,
-  };
+  const calibrationCounts = createQuadrantCounts();
 
   for (const r of reviews) {
     const quadrant = getCalibrationQuadrant(r.confidence, r.wasCorrect);
@@ -265,16 +238,7 @@ export function computeOverallProgress(
   const domains = computeDomainProgress(states);
   const nextSession = computeNextSession(states, now);
 
-  let mastered = 0;
-  let inProgress = 0;
-  let notStarted = 0;
-
-  for (const s of states) {
-    if (isMastered(s)) mastered++;
-    else if (isStarted(s)) inProgress++;
-    else notStarted++;
-  }
-
+  const { mastered, inProgress, notStarted } = countProgress(states, isMastered, isStarted);
   const total = states.length;
 
   return {
@@ -286,4 +250,32 @@ export function computeOverallProgress(
     domains,
     nextSession,
   };
+}
+
+/**
+ * Format next session timing info into a human-readable string.
+ * Pure date math — no rendering.
+ */
+export function formatNextSession(nextSession: {
+  dueNow: number;
+  nextDueDate: Date | string | null;
+  dueTodayRemaining: number;
+  dueWithinWeek: number;
+}, now: Date = new Date()): string {
+  if (nextSession.dueNow > 0) {
+    return `${nextSession.dueNow} items ready for review`;
+  }
+  if (!nextSession.nextDueDate) {
+    return "No items scheduled";
+  }
+  const next = nextSession.nextDueDate instanceof Date
+    ? nextSession.nextDueDate
+    : new Date(nextSession.nextDueDate);
+  const diffMs = next.getTime() - now.getTime();
+  const diffHours = Math.round(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffHours < 1) return "Next review in less than an hour";
+  if (diffHours < 24) return `Next review in ${diffHours} hour${diffHours === 1 ? "" : "s"}`;
+  return `Next review in ${diffDays} day${diffDays === 1 ? "" : "s"}`;
 }

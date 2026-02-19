@@ -1,23 +1,24 @@
 import { create } from "zustand";
+import type { ReviewRecord as CoreReviewRecord } from "@skillclimb/core";
 import type { SessionResponse, ReviewResponse } from "../api/hooks.js";
 
 const STORAGE_KEYS = {
-  userId: "cyberclimb_userId",
-  sessionId: "cyberclimb_sessionId",
-  itemIndex: "cyberclimb_itemIndex",
-  reviewHistory: "cyberclimb_reviewHistory",
+  userId: "skillclimb_userId",
+  sessionId: "skillclimb_sessionId",
+  itemIndex: "skillclimb_itemIndex",
+  reviewHistory: "skillclimb_reviewHistory",
 } as const;
 
-interface ReviewRecord {
+interface ReviewRecord extends CoreReviewRecord {
   nodeId: string;
   score: number;
-  confidence: number;
-  wasCorrect: boolean;
   calibrationQuadrant: string;
 }
 
 interface SessionStore {
   userId: string | null;
+  savedSessionId: string | null;
+  savedItemIndex: number;
   session: SessionResponse | null;
   currentItemIndex: number;
   selectedAnswer: string | null;
@@ -38,10 +39,13 @@ interface SessionStore {
   nextItem: () => void;
   setPhase: (phase: SessionStore["phase"]) => void;
   reset: () => void;
+  logout: () => void;
 }
 
 export const useSessionStore = create<SessionStore>((set) => ({
   userId: localStorage.getItem(STORAGE_KEYS.userId),
+  savedSessionId: localStorage.getItem(STORAGE_KEYS.sessionId),
+  savedItemIndex: parseInt(localStorage.getItem(STORAGE_KEYS.itemIndex) ?? "0", 10),
   session: null,
   currentItemIndex: 0,
   selectedAnswer: null,
@@ -59,7 +63,7 @@ export const useSessionStore = create<SessionStore>((set) => ({
     localStorage.setItem(STORAGE_KEYS.sessionId, session.id);
     localStorage.setItem(STORAGE_KEYS.itemIndex, "0");
     localStorage.setItem(STORAGE_KEYS.reviewHistory, "[]");
-    set({ session, currentItemIndex: 0, reviewHistory: [], phase: "answering" });
+    set({ session, savedSessionId: null, savedItemIndex: 0, currentItemIndex: 0, reviewHistory: [], phase: "answering" });
   },
   resumeSession: (session, itemIndex) => {
     const isComplete = itemIndex >= session.items.length;
@@ -69,6 +73,8 @@ export const useSessionStore = create<SessionStore>((set) => ({
     } catch {}
     set({
       session,
+      savedSessionId: null,
+      savedItemIndex: 0,
       currentItemIndex: itemIndex,
       reviewHistory: savedHistory,
       phase: isComplete ? "summary" : "answering",
@@ -110,6 +116,27 @@ export const useSessionStore = create<SessionStore>((set) => ({
     localStorage.removeItem(STORAGE_KEYS.reviewHistory);
     set({
       session: null,
+      savedSessionId: null,
+      savedItemIndex: 0,
+      currentItemIndex: 0,
+      selectedAnswer: null,
+      didSelectDontKnow: false,
+      confidenceRating: null,
+      reviewResult: null,
+      reviewHistory: [],
+      phase: "answering",
+    });
+  },
+  logout: () => {
+    localStorage.removeItem(STORAGE_KEYS.userId);
+    localStorage.removeItem(STORAGE_KEYS.sessionId);
+    localStorage.removeItem(STORAGE_KEYS.itemIndex);
+    localStorage.removeItem(STORAGE_KEYS.reviewHistory);
+    set({
+      userId: null,
+      session: null,
+      savedSessionId: null,
+      savedItemIndex: 0,
       currentItemIndex: 0,
       selectedAnswer: null,
       didSelectDontKnow: false,

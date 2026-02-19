@@ -1,5 +1,5 @@
 {
-  "name": "cyberclimb",
+  "name": "skillclimb",
   "private": true,
   "workspaces": [
     "packages/*"
@@ -7,12 +7,12 @@
   "scripts": {
     "test": "vitest run --root .",
     "test:watch": "vitest --root .",
-    "build": "npm run build --workspace=@cyberclimb/core && npm run build --workspaces --if-present",
-    "dev:backend": "npm run dev --workspace=@cyberclimb/backend",
-    "dev:frontend": "npm run dev --workspace=@cyberclimb/frontend",
-    "dev": "npm run build --workspace=@cyberclimb/core && npm run dev:backend & npm run dev:frontend",
-    "seed": "npm run seed --workspace=@cyberclimb/backend",
-    "migrate": "npm run migrate --workspace=@cyberclimb/backend",
+    "build": "npm run build --workspace=@skillclimb/core && npm run build --workspaces --if-present",
+    "dev:backend": "npm run dev --workspace=@skillclimb/backend",
+    "dev:frontend": "npm run dev --workspace=@skillclimb/frontend",
+    "dev": "npm run build --workspace=@skillclimb/core && npm run dev:backend & npm run dev:frontend",
+    "seed": "npm run seed --workspace=@skillclimb/backend",
+    "migrate": "npm run migrate --workspace=@skillclimb/backend",
     "db:generate": "cd packages/backend && npx drizzle-kit generate",
     "db:push": "cd packages/backend && npx drizzle-kit push"
   },

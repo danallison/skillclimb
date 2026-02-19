@@ -1,4 +1,4 @@
-import type { LearnerNodeState, Node, SessionConfig, SessionItem, SessionResult, DEFAULT_SESSION_CONFIG } from "../types.js";
+import type { LearnerNodeState, Node, SessionConfig, SessionItem, SessionResult } from "../types.js";
 import { isDue, daysOverdue } from "../srs/sm2.js";
 
 /**

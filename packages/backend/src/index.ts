@@ -23,7 +23,7 @@ app.get("/api/health", (_req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`CyberClimb API running on http://localhost:${port}`);
+  console.log(`SkillClimb API running on http://localhost:${port}`);
 });
 
 export default app;
