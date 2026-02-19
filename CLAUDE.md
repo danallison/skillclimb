@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-SkillClimb is a generic test-driven learning platform built on spaced repetition, desirable difficulties, and adaptive assessment. It works with arbitrary skill trees via a content pack system. The cybersecurity content pack is the first and primary content pack. The full cybersecurity specification lives in `CYBERCLIMB.md`.
+SkillClimb is a generic test-driven learning platform built on spaced repetition, desirable difficulties, and adaptive assessment. It works with arbitrary skill trees via a content pack system. The cybersecurity content pack is the first and primary content pack. The full platform specification lives in `SKILLCLIMB.md`. The cybersecurity content pack specification lives in `CYBERCLIMB.md`.
 
 ## Tech Stack
 
