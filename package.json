@@ -1,0 +1,23 @@
+{
+  "name": "cyberclimb",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "test": "vitest run --root .",
+    "test:watch": "vitest --root .",
+    "build": "npm run build --workspace=@cyberclimb/core && npm run build --workspaces --if-present",
+    "dev:backend": "npm run dev --workspace=@cyberclimb/backend",
+    "dev:frontend": "npm run dev --workspace=@cyberclimb/frontend",
+    "dev": "npm run build --workspace=@cyberclimb/core && npm run dev:backend & npm run dev:frontend",
+    "seed": "npm run seed --workspace=@cyberclimb/backend",
+    "migrate": "npm run migrate --workspace=@cyberclimb/backend",
+    "db:generate": "cd packages/backend && npx drizzle-kit generate",
+    "db:push": "cd packages/backend && npx drizzle-kit push"
+  },
+  "devDependencies": {
+    "vitest": "^3.0.5",
+    "typescript": "^5.7.3"
+  }
+}

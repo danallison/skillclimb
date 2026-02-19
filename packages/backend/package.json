@@ -1,0 +1,29 @@
+{
+  "name": "@cyberclimb/backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "seed": "tsx src/db/seed.ts",
+    "migrate": "tsx src/db/migrate.ts"
+  },
+  "dependencies": {
+    "@cyberclimb/core": "*",
+    "express": "^5.0.1",
+    "drizzle-orm": "^0.38.4",
+    "postgres": "^3.4.5",
+    "cors": "^2.8.5",
+    "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/cors": "^2.8.17",
+    "@types/uuid": "^10.0.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3",
+    "drizzle-kit": "^0.30.4"
+  }
+}
