@@ -192,6 +192,53 @@ async function seedContentPack(pack: ContentPack) {
   console.log(`Created ${placeholderCount} new placeholder domains (${pack.placeholderDomains.length - placeholderCount} already existed)`);
 }
 
+/**
+ * Update question templates on existing nodes by matching on concept text.
+ * Merges new template types into the JSONB array without replacing existing ones.
+ */
+async function updateTemplatesForPack(pack: ContentPack) {
+  console.log(`Updating templates for content pack: ${pack.name}`);
+
+  let updatedCount = 0;
+
+  for (const { domain: domainData, nodes: seedNodes } of pack.domains) {
+    // Find the domain by name
+    const [domainRow] = await db.select().from(domains).where(eq(domains.name, domainData.name));
+    if (!domainRow) {
+      console.log(`  Domain "${domainData.name}" not found, skipping`);
+      continue;
+    }
+
+    // Get all existing nodes for this domain
+    const existingNodes = await db.select().from(nodes).where(eq(nodes.domainId, domainRow.id));
+    const nodesByConcept = new Map(existingNodes.map((n) => [n.concept, n]));
+
+    for (const seedNode of seedNodes) {
+      const existing = nodesByConcept.get(seedNode.concept);
+      if (!existing) continue;
+
+      const existingTemplates = existing.questionTemplates ?? [];
+      const existingTypes = new Set(existingTemplates.map((t) => t.type));
+
+      // Find new templates that don't exist yet
+      const newTemplates = seedNode.questionTemplates.filter((t) => !existingTypes.has(t.type));
+      if (newTemplates.length === 0) continue;
+
+      // Merge: append new templates to existing
+      const merged = [...existingTemplates, ...newTemplates] as typeof existingTemplates;
+      await db
+        .update(nodes)
+        .set({ questionTemplates: merged })
+        .where(eq(nodes.id, existing.id));
+      updatedCount++;
+    }
+
+    console.log(`  ${domainData.name}: checked ${seedNodes.length} nodes`);
+  }
+
+  console.log(`Updated templates on ${updatedCount} nodes`);
+}
+
 async function seed() {
   console.log("Seeding database...");
 
@@ -200,6 +247,7 @@ async function seed() {
   const args = process.argv.slice(2);
   const packArgIndex = args.indexOf("--pack");
   const requestedPack = packArgIndex >= 0 ? args[packArgIndex + 1] : null;
+  const updateTemplatesOnly = args.includes("--update-templates");
 
   // Discover available content packs
   const __filename = fileURLToPath(import.meta.url);
@@ -228,7 +276,12 @@ async function seed() {
     const packPath = pathToFileURL(join(contentDir, packDir, "index.ts")).href;
     const packModule = await import(packPath);
     const pack: ContentPack = packModule.default;
-    await seedContentPack(pack);
+
+    if (updateTemplatesOnly) {
+      await updateTemplatesForPack(pack);
+    } else {
+      await seedContentPack(pack);
+    }
   }
 
   console.log("Seeding complete!");

@@ -3,6 +3,7 @@ import { colors } from "../styles/theme.js";
 import QuestionCard from "./QuestionCard.js";
 import ConfidenceRating from "./ConfidenceRating.js";
 import FeedbackDisplay from "./FeedbackDisplay.js";
+import HintDisplay from "./HintDisplay.js";
 import SessionSummary from "./SessionSummary.js";
 
 interface Props {
@@ -58,10 +59,46 @@ export default function SessionView({ onFinished }: Props) {
         />
       </div>
 
-      <QuestionCard key={currentItemIndex} item={item} />
+      {/* Answering phase (first attempt) */}
+      {phase === "answering" && <QuestionCard key={`${currentItemIndex}-1`} item={item} />}
 
-      {phase === "confidence" && <ConfidenceRating />}
-      {phase === "feedback" && <FeedbackDisplay />}
+      {/* Confidence phase (first attempt) */}
+      {phase === "confidence" && (
+        <>
+          <QuestionCard key={`${currentItemIndex}-1`} item={item} />
+          <ConfidenceRating />
+        </>
+      )}
+
+      {/* Feedback phase (first attempt) */}
+      {phase === "feedback" && (
+        <>
+          <QuestionCard key={`${currentItemIndex}-1`} item={item} />
+          <FeedbackDisplay />
+        </>
+      )}
+
+      {/* Hint phase — shows hint + second attempt input */}
+      {phase === "hint" && <HintDisplay item={item} />}
+
+      {/* Second attempt — re-renders question card for second try */}
+      {phase === "second_attempt" && <QuestionCard key={`${currentItemIndex}-2`} item={item} />}
+
+      {/* Second confidence */}
+      {phase === "second_confidence" && (
+        <>
+          <QuestionCard key={`${currentItemIndex}-2`} item={item} />
+          <ConfidenceRating />
+        </>
+      )}
+
+      {/* Second feedback */}
+      {phase === "second_feedback" && (
+        <>
+          <QuestionCard key={`${currentItemIndex}-2`} item={item} />
+          <FeedbackDisplay />
+        </>
+      )}
     </div>
   );
 }

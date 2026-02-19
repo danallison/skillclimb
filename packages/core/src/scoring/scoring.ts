@@ -28,6 +28,42 @@ export function evaluateRecognition(selected: string | null, correct: string): n
 }
 
 /**
+ * Normalize an answer string for comparison: lowercase, trim, collapse whitespace.
+ */
+export function normalizeAnswer(answer: string): string {
+  return answer.toLowerCase().trim().replace(/\s+/g, " ");
+}
+
+/**
+ * Evaluate a cued recall answer against the correct answer and optional alternatives.
+ * Returns a score on the 0–5 scale.
+ * - Exact match (normalized) → 5
+ * - Match an acceptable answer → 4
+ * - No match → 0
+ */
+export function evaluateCuedRecall(
+  response: string,
+  correctAnswer: string,
+  acceptableAnswers?: string[],
+): number {
+  const normalized = normalizeAnswer(response);
+
+  if (normalized === normalizeAnswer(correctAnswer)) {
+    return 5;
+  }
+
+  if (acceptableAnswers) {
+    for (const acceptable of acceptableAnswers) {
+      if (normalized === normalizeAnswer(acceptable)) {
+        return 4;
+      }
+    }
+  }
+
+  return 0;
+}
+
+/**
  * Determine which calibration quadrant this review falls into.
  * Confidence 1–2 = low, 3–5 = high.
  */

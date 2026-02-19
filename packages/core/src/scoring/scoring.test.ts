@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
 import {
   evaluateRecognition,
+  evaluateCuedRecall,
+  normalizeAnswer,
   scoreFromSelfRating,
   getCalibrationQuadrant,
   updateCalibration,
@@ -19,6 +21,42 @@ describe("evaluateRecognition", () => {
 
   it("returns 1 for 'I don't know' (null selection)", () => {
     expect(evaluateRecognition(null, "AES")).toBe(1);
+  });
+});
+
+describe("normalizeAnswer", () => {
+  it("lowercases and trims", () => {
+    expect(normalizeAnswer("  AES  ")).toBe("aes");
+  });
+
+  it("collapses whitespace", () => {
+    expect(normalizeAnswer("transport  layer   security")).toBe("transport layer security");
+  });
+});
+
+describe("evaluateCuedRecall", () => {
+  it("returns 5 for exact match (normalized)", () => {
+    expect(evaluateCuedRecall("AES", "aes")).toBe(5);
+  });
+
+  it("returns 5 for match with extra whitespace", () => {
+    expect(evaluateCuedRecall("  Transport Layer Security  ", "transport layer security")).toBe(5);
+  });
+
+  it("returns 4 for an acceptable answer", () => {
+    expect(evaluateCuedRecall("TLS", "Transport Layer Security", ["TLS", "SSL/TLS"])).toBe(4);
+  });
+
+  it("returns 0 for no match", () => {
+    expect(evaluateCuedRecall("DES", "AES")).toBe(0);
+  });
+
+  it("returns 0 for no match even with acceptable answers", () => {
+    expect(evaluateCuedRecall("DES", "AES", ["Rijndael"])).toBe(0);
+  });
+
+  it("returns 5 for exact match even when acceptable answers exist", () => {
+    expect(evaluateCuedRecall("AES", "AES", ["Rijndael"])).toBe(5);
   });
 });
 

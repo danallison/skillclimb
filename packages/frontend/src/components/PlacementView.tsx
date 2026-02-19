@@ -168,7 +168,7 @@ export default function PlacementView({ onComplete, onSkip }: Props) {
             </p>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-              {template.choices.map((choice) => (
+              {template.choices?.map((choice) => (
                 <button
                   key={choice}
                   onClick={() => handleSelect(choice)}

@@ -20,9 +20,13 @@ export interface Topic {
 export interface QuestionTemplate {
   type: "recognition" | "cued_recall" | "free_recall" | "application" | "practical";
   prompt: string;
-  choices: string[];
-  correctAnswer: string;
+  choices?: string[];              // recognition
+  correctAnswer: string;          // recognition, cued_recall
   explanation: string;
+  acceptableAnswers?: string[];   // cued_recall: alternative correct answers
+  hints?: string[];               // all types: for second-attempt hint system
+  rubric?: string;                // free_recall: what a good answer covers
+  keyPoints?: string[];           // free_recall: key points for AI evaluation
 }
 
 export interface Node {

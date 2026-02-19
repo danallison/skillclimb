@@ -42,9 +42,13 @@ export const nodes = pgTable("nodes", {
       Array<{
         type: string;
         prompt: string;
-        choices: string[];
+        choices?: string[];
         correctAnswer: string;
         explanation: string;
+        acceptableAnswers?: string[];
+        hints?: string[];
+        rubric?: string;
+        keyPoints?: string[];
       }>
     >()
     .default([]),

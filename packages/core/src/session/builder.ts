@@ -1,5 +1,6 @@
 import type { LearnerNodeState, Node, SessionConfig, SessionItem, SessionResult } from "../types.js";
 import { isDue, daysOverdue } from "../srs/sm2.js";
+import { selectQuestionType } from "../question/questionType.js";
 
 /**
  * Calculate priority score for a single learner node.
@@ -89,9 +90,10 @@ export function buildSession(
     const priority = calculatePriority(state, node, now);
     if (priority === 0) continue; // not due, not new — skip
 
-    // Pick a question template (for Phase 1, just use the first recognition-type one)
+    // Pick a question template based on learner mastery level
+    const selectedType = selectQuestionType(state, node.questionTemplates.map((t) => t.type));
     const template =
-      node.questionTemplates.find((t) => t.type === "recognition") ?? node.questionTemplates[0];
+      node.questionTemplates.find((t) => t.type === selectedType) ?? node.questionTemplates[0];
 
     candidates.push({ node, learnerState: state, questionTemplate: template, priority });
   }

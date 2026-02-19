@@ -86,6 +86,41 @@ export const nodes: SeedNode[] = [
         explanation:
           "The forward slash (/) is the root of the entire Linux filesystem hierarchy. Every other file and directory is located beneath it. The /root directory is the home directory for the root user, which is different from the filesystem root.",
       },
+      {
+        type: "cued_recall",
+        prompt:
+          "What single character represents the top-level (root) directory of the entire Linux filesystem hierarchy?",
+        correctAnswer: "/",
+        acceptableAnswers: ["/", "forward slash", "slash"],
+        hints: [
+          "It is a single punctuation character also used as the path separator.",
+          "Every absolute path in Linux begins with this character.",
+        ],
+        explanation:
+          "The forward slash (/) is the root of the entire Linux filesystem hierarchy. Every other file and directory is located beneath it. The /root directory is the home directory for the root user, which is different from the filesystem root.",
+      },
+      {
+        type: "free_recall",
+        prompt:
+          "Explain the Linux Filesystem Hierarchy Standard (FHS). What is the root directory, and describe the purpose of at least four major top-level directories beneath it.",
+        correctAnswer:
+          "The Linux Filesystem Hierarchy Standard defines the directory structure of Linux systems. The root directory (/) is the top-level directory from which all other directories branch. Key directories include: /etc for system-wide configuration files, /home for user home directories, /var for variable data like logs and mail spools, /tmp for temporary files, /usr for read-only user programs and libraries, /bin for essential user commands, /sbin for system administration commands, /dev for device files, and /proc for virtual kernel/process information.",
+        rubric:
+          "A good answer should identify / as the root, explain that it is the top of the hierarchy, and correctly describe the purpose of at least four subdirectories such as /etc, /home, /var, /tmp, /usr, /bin, /sbin, /dev, or /proc.",
+        keyPoints: [
+          "/ (root) is the top-level directory containing all others",
+          "/etc stores system-wide configuration files",
+          "/home contains user home directories",
+          "/var holds variable data such as logs",
+          "/usr contains read-only user programs and libraries",
+        ],
+        hints: [
+          "Think about where configuration, user data, and logs are stored.",
+          "The standard is called the Filesystem Hierarchy Standard (FHS).",
+        ],
+        explanation:
+          "The forward slash (/) is the root of the entire Linux filesystem hierarchy. Every other file and directory is located beneath it. The /root directory is the home directory for the root user, which is different from the filesystem root.",
+      },
     ],
   },
   {
@@ -106,6 +141,41 @@ export const nodes: SeedNode[] = [
         explanation:
           "The /etc directory holds system-wide configuration files such as /etc/passwd, /etc/shadow, /etc/hosts, and /etc/fstab. Attackers often target this directory during post-exploitation to harvest credentials and understand system configuration.",
       },
+      {
+        type: "cued_recall",
+        prompt:
+          "What is the absolute path of the Linux directory that stores system-wide configuration files such as passwd, shadow, and hosts?",
+        correctAnswer: "/etc",
+        acceptableAnswers: ["/etc", "/etc/", "etc"],
+        hints: [
+          "This three-letter directory name is directly under the root (/).",
+          "Files like passwd, shadow, and fstab live here.",
+        ],
+        explanation:
+          "The /etc directory holds system-wide configuration files such as /etc/passwd, /etc/shadow, /etc/hosts, and /etc/fstab. Attackers often target this directory during post-exploitation to harvest credentials and understand system configuration.",
+      },
+      {
+        type: "free_recall",
+        prompt:
+          "Describe the /etc directory in Linux. What is its purpose, name several important files it contains, and explain why attackers often target this directory during post-exploitation.",
+        correctAnswer:
+          "The /etc directory stores system-wide configuration files that control how the operating system and services behave. Important files include /etc/passwd (user account information), /etc/shadow (hashed passwords), /etc/hosts (hostname-to-IP mappings), /etc/fstab (filesystem mount configuration), /etc/sudoers (sudo privilege rules), and /etc/ssh/sshd_config (SSH server settings). Attackers target /etc during post-exploitation because it contains credential data (passwd/shadow), network configuration, service configurations, and privilege escalation opportunities (sudoers).",
+        rubric:
+          "A good answer should explain that /etc holds system-wide configuration, name at least three important files with their purposes, and explain the security relevance of the directory.",
+        keyPoints: [
+          "/etc stores system-wide configuration files",
+          "/etc/passwd contains user account information",
+          "/etc/shadow contains hashed passwords and is a prime attacker target",
+          "/etc/hosts maps hostnames to IP addresses",
+          "Attackers target /etc for credential harvesting and understanding system configuration",
+        ],
+        hints: [
+          "Think about where Linux stores user account and password information.",
+          "Consider what an attacker would want to read after gaining access to a system.",
+        ],
+        explanation:
+          "The /etc directory holds system-wide configuration files such as /etc/passwd, /etc/shadow, /etc/hosts, and /etc/fstab. Attackers often target this directory during post-exploitation to harvest credentials and understand system configuration.",
+      },
     ],
   },
   {
@@ -123,6 +193,41 @@ export const nodes: SeedNode[] = [
           "/usr",
         ],
         correctAnswer: "/var",
+        explanation:
+          "The /var directory contains variable data files including system logs (/var/log), mail (/var/mail), and print spools. Security analysts frequently examine /var/log for evidence of intrusions and suspicious activity.",
+      },
+      {
+        type: "cued_recall",
+        prompt:
+          "What is the absolute path of the Linux directory that contains variable data such as system logs, mail spools, and print queues?",
+        correctAnswer: "/var",
+        acceptableAnswers: ["/var", "/var/", "var"],
+        hints: [
+          "The name is short for 'variable'.",
+          "System logs are stored under this directory at /___/log.",
+        ],
+        explanation:
+          "The /var directory contains variable data files including system logs (/var/log), mail (/var/mail), and print spools. Security analysts frequently examine /var/log for evidence of intrusions and suspicious activity.",
+      },
+      {
+        type: "free_recall",
+        prompt:
+          "Explain the purpose of the /var directory in Linux. What types of data does it store, what are some important subdirectories, and why is /var/log particularly important for security analysts?",
+        correctAnswer:
+          "The /var directory stores variable data that changes during normal system operation, as opposed to static data in /usr. Important subdirectories include /var/log (system and application logs), /var/mail (user mailboxes), /var/spool (print and mail queues), /var/tmp (temporary files preserved between reboots), and /var/lib (state information for applications). /var/log is critical for security analysts because it contains logs like auth.log or secure (authentication attempts), syslog (system events), kern.log (kernel messages), and application-specific logs. These logs provide evidence of intrusions, brute-force attacks, privilege escalation attempts, and other suspicious activity.",
+        rubric:
+          "A good answer should explain that /var holds variable/changing data, name at least three subdirectories with their purposes, and explain the security importance of /var/log with specific log file examples.",
+        keyPoints: [
+          "/var stores variable data that changes during system operation",
+          "/var/log contains system and application log files",
+          "/var/mail holds user mailboxes",
+          "/var/spool manages print and mail queues",
+          "Security analysts use /var/log to investigate intrusions and suspicious activity",
+        ],
+        hints: [
+          "Think about what data on a Linux system changes frequently during operation.",
+          "Consider what a security analyst would examine when investigating an incident.",
+        ],
         explanation:
           "The /var directory contains variable data files including system logs (/var/log), mail (/var/mail), and print spools. Security analysts frequently examine /var/log for evidence of intrusions and suspicious activity.",
       },
@@ -147,6 +252,41 @@ export const nodes: SeedNode[] = [
         explanation:
           "The /tmp directory is world-writable by default, meaning any user can create files in it. Attackers often use /tmp to drop malicious payloads, scripts, or tools after gaining initial access. Mounting /tmp with noexec can mitigate this risk.",
       },
+      {
+        type: "cued_recall",
+        prompt:
+          "What mount option can be applied to /tmp to prevent execution of binaries and scripts placed there by attackers?",
+        correctAnswer: "noexec",
+        acceptableAnswers: ["noexec", "the noexec mount option", "noexec flag", "noexec option"],
+        hints: [
+          "It is a mount option that prevents files from being run as programs.",
+          "The option name literally means 'no execution'.",
+        ],
+        explanation:
+          "The /tmp directory is world-writable by default, meaning any user can create files in it. Attackers often use /tmp to drop malicious payloads, scripts, or tools after gaining initial access. Mounting /tmp with noexec can mitigate this risk.",
+      },
+      {
+        type: "free_recall",
+        prompt:
+          "Explain why the /tmp directory is a security concern on Linux systems. Describe its default permissions, how attackers exploit it, and what hardening measures can be applied to mitigate the risk.",
+        correctAnswer:
+          "The /tmp directory is world-writable (permission 1777 with the sticky bit) by default, meaning any user on the system can create, read, and write files there. Attackers exploit this by dropping malicious payloads, reverse shells, scripts, and exploitation tools into /tmp after gaining initial access, since they know any user account can write there. Hardening measures include: mounting /tmp as a separate partition with the noexec option (prevents binary/script execution), nosuid (prevents SUID bit abuse), and nodev (prevents device file creation). The sticky bit ensures users can only delete their own files in /tmp. Additionally, administrators can use tmpwatch or systemd-tmpfiles to regularly clean old files from /tmp.",
+        rubric:
+          "A good answer should explain that /tmp is world-writable, describe how attackers use it as a staging area for malicious files, and mention at least two hardening measures such as noexec, nosuid, separate partition, or regular cleanup.",
+        keyPoints: [
+          "/tmp is world-writable by default, allowing any user to create files",
+          "Attackers use /tmp to drop malicious payloads and tools after initial access",
+          "The noexec mount option prevents execution of files in /tmp",
+          "Additional hardening includes nosuid and nodev mount options",
+          "The sticky bit (1777) ensures users can only delete their own files",
+        ],
+        hints: [
+          "Consider what permissions /tmp has by default and what that allows any user to do.",
+          "Think about mount options that restrict what can happen with files in a directory.",
+        ],
+        explanation:
+          "The /tmp directory is world-writable by default, meaning any user can create files in it. Attackers often use /tmp to drop malicious payloads, scripts, or tools after gaining initial access. Mounting /tmp with noexec can mitigate this risk.",
+      },
     ],
   },
   {
@@ -165,6 +305,41 @@ export const nodes: SeedNode[] = [
         ],
         correctAnswer:
           "A virtual filesystem that exposes kernel and process information",
+        explanation:
+          "The /proc filesystem is a virtual (pseudo) filesystem that does not exist on disk. It provides an interface to kernel data structures and per-process information. Analysts use files like /proc/[pid]/cmdline and /proc/[pid]/maps for live forensics.",
+      },
+      {
+        type: "cued_recall",
+        prompt:
+          "What is the name of the virtual filesystem in Linux that provides an interface to kernel data structures and per-process information, located at a top-level mount point?",
+        correctAnswer: "/proc",
+        acceptableAnswers: ["/proc", "/proc/", "proc", "procfs", "the proc filesystem"],
+        hints: [
+          "Its name is short for 'process'.",
+          "Each running process has a numbered subdirectory in this filesystem.",
+        ],
+        explanation:
+          "The /proc filesystem is a virtual (pseudo) filesystem that does not exist on disk. It provides an interface to kernel data structures and per-process information. Analysts use files like /proc/[pid]/cmdline and /proc/[pid]/maps for live forensics.",
+      },
+      {
+        type: "free_recall",
+        prompt:
+          "Describe the /proc filesystem in Linux. Explain what kind of filesystem it is, what information it exposes, give examples of useful files within it, and explain how security analysts use it for live forensics.",
+        correctAnswer:
+          "The /proc filesystem is a virtual (pseudo) filesystem that does not exist on disk — its contents are generated dynamically by the kernel. It exposes kernel data structures and per-process information. Each running process has a numbered directory (/proc/[pid]/) containing files like cmdline (the command that started the process), maps (memory mappings), fd/ (open file descriptors), environ (environment variables), and status (process state and memory usage). System-wide information is also available, such as /proc/cpuinfo, /proc/meminfo, /proc/version, and /proc/net/. Security analysts use /proc for live forensics: examining /proc/[pid]/cmdline reveals what commands processes are running, /proc/[pid]/exe shows the actual binary, /proc/[pid]/maps reveals loaded libraries (useful for detecting injection), and /proc/[pid]/fd/ shows open files and network connections.",
+        rubric:
+          "A good answer should explain that /proc is a virtual filesystem not stored on disk, describe the per-process directories, name at least three specific files and their contents, and explain at least one forensic use case.",
+        keyPoints: [
+          "/proc is a virtual (pseudo) filesystem not stored on disk",
+          "Each process has a /proc/[pid]/ directory with process details",
+          "/proc/[pid]/cmdline shows the command line of a process",
+          "/proc/[pid]/maps reveals memory mappings useful for detecting code injection",
+          "Security analysts use /proc for live forensics to examine running processes without specialized tools",
+        ],
+        hints: [
+          "Think about what makes this filesystem different from ext4 or XFS.",
+          "Consider what information about a running process would be useful for an investigator.",
+        ],
         explanation:
           "The /proc filesystem is a virtual (pseudo) filesystem that does not exist on disk. It provides an interface to kernel data structures and per-process information. Analysts use files like /proc/[pid]/cmdline and /proc/[pid]/maps for live forensics.",
       },

@@ -16,11 +16,15 @@ export interface SeedNode {
   topicName: string;
   concept: string;
   questionTemplates: Array<{
-    type: "recognition";
+    type: "recognition" | "cued_recall" | "free_recall" | "application" | "practical";
     prompt: string;
-    choices: string[];
+    choices?: string[];
     correctAnswer: string;
     explanation: string;
+    acceptableAnswers?: string[];
+    hints?: string[];
+    rubric?: string;
+    keyPoints?: string[];
   }>;
 }
 

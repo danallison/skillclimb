@@ -15,6 +15,16 @@ interface ReviewRecord extends CoreReviewRecord {
   calibrationQuadrant: string;
 }
 
+type SessionPhase =
+  | "answering"
+  | "confidence"
+  | "feedback"
+  | "hint"
+  | "second_attempt"
+  | "second_confidence"
+  | "second_feedback"
+  | "summary";
+
 interface SessionStore {
   userId: string | null;
   savedSessionId: string | null;
@@ -26,7 +36,9 @@ interface SessionStore {
   confidenceRating: number | null;
   reviewResult: ReviewResponse | null;
   reviewHistory: ReviewRecord[];
-  phase: "answering" | "confidence" | "feedback" | "summary";
+  phase: SessionPhase;
+  attemptNumber: 1 | 2;
+  hintText: string | null;
 
   setUserId: (id: string) => void;
   setSession: (session: SessionResponse) => void;
@@ -37,7 +49,9 @@ interface SessionStore {
   setReviewResult: (result: ReviewResponse) => void;
   recordReview: (record: ReviewRecord) => void;
   nextItem: () => void;
-  setPhase: (phase: SessionStore["phase"]) => void;
+  setPhase: (phase: SessionPhase) => void;
+  showHint: (hint: string) => void;
+  resetForSecondAttempt: () => void;
   reset: () => void;
   logout: () => void;
 }
@@ -54,6 +68,8 @@ export const useSessionStore = create<SessionStore>((set) => ({
   reviewResult: null,
   reviewHistory: [],
   phase: "answering",
+  attemptNumber: 1,
+  hintText: null,
 
   setUserId: (id) => {
     localStorage.setItem(STORAGE_KEYS.userId, id);
@@ -63,7 +79,7 @@ export const useSessionStore = create<SessionStore>((set) => ({
     localStorage.setItem(STORAGE_KEYS.sessionId, session.id);
     localStorage.setItem(STORAGE_KEYS.itemIndex, "0");
     localStorage.setItem(STORAGE_KEYS.reviewHistory, "[]");
-    set({ session, savedSessionId: null, savedItemIndex: 0, currentItemIndex: 0, reviewHistory: [], phase: "answering" });
+    set({ session, savedSessionId: null, savedItemIndex: 0, currentItemIndex: 0, reviewHistory: [], phase: "answering", attemptNumber: 1, hintText: null });
   },
   resumeSession: (session, itemIndex) => {
     const isComplete = itemIndex >= session.items.length;
@@ -78,6 +94,8 @@ export const useSessionStore = create<SessionStore>((set) => ({
       currentItemIndex: itemIndex,
       reviewHistory: savedHistory,
       phase: isComplete ? "summary" : "answering",
+      attemptNumber: 1,
+      hintText: null,
     });
   },
   selectAnswer: (answer) => set({ selectedAnswer: answer }),
@@ -107,9 +125,21 @@ export const useSessionStore = create<SessionStore>((set) => ({
         confidenceRating: null,
         reviewResult: null,
         phase: isComplete ? "summary" : "answering",
+        attemptNumber: 1,
+        hintText: null,
       };
     }),
   setPhase: (phase) => set({ phase }),
+  showHint: (hint) => set({ phase: "hint", hintText: hint }),
+  resetForSecondAttempt: () =>
+    set({
+      phase: "second_attempt",
+      attemptNumber: 2,
+      selectedAnswer: null,
+      selfRating: null,
+      confidenceRating: null,
+      reviewResult: null,
+    }),
   reset: () => {
     localStorage.removeItem(STORAGE_KEYS.sessionId);
     localStorage.removeItem(STORAGE_KEYS.itemIndex);
@@ -125,6 +155,8 @@ export const useSessionStore = create<SessionStore>((set) => ({
       reviewResult: null,
       reviewHistory: [],
       phase: "answering",
+      attemptNumber: 1,
+      hintText: null,
     });
   },
   logout: () => {
@@ -144,6 +176,8 @@ export const useSessionStore = create<SessionStore>((set) => ({
       reviewResult: null,
       reviewHistory: [],
       phase: "answering",
+      attemptNumber: 1,
+      hintText: null,
     });
   },
 }));

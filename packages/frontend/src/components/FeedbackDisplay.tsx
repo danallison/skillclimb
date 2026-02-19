@@ -1,9 +1,11 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSessionStore } from "../store/sessionStore.js";
-import { useSubmitReview } from "../api/hooks.js";
-import { scoreFromSelfRating } from "@skillclimb/core";
+import { useSubmitReview, useEvaluateAnswer, useRequestHint } from "../api/hooks.js";
+import type { AIFeedbackResponse } from "../api/hooks.js";
+import { scoreFromSelfRating, evaluateRecognition, evaluateCuedRecall } from "@skillclimb/core";
 import type { SelfRating } from "@skillclimb/core";
 import { colors, buttonStyles } from "../styles/theme.js";
+import AIFeedbackDisplay from "./AIFeedbackDisplay.js";
 
 export default function FeedbackDisplay() {
   const {
@@ -13,49 +15,159 @@ export default function FeedbackDisplay() {
     selectedAnswer,
     confidenceRating,
     reviewResult,
+    phase,
+    attemptNumber,
     setSelfRating,
     setReviewResult,
     recordReview,
     nextItem,
+    showHint,
   } = useSessionStore();
 
   const submitReview = useSubmitReview();
+  const evaluateAnswer = useEvaluateAnswer();
+  const requestHint = useRequestHint();
   const autoSubmitted = useRef(false);
+  const [aiFeedback, setAiFeedback] = useState<AIFeedbackResponse | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [showSelfRate, setShowSelfRate] = useState(false);
+  const [hintLoading, setHintLoading] = useState(false);
 
   const ready = !!(session && userId && selectedAnswer !== null && confidenceRating !== null);
   const isEmptyAnswer = selectedAnswer !== null && selectedAnswer.trim() === "";
+  const isIdkAnswer = selectedAnswer === "__idk__";
 
+  const item = session?.items[currentItemIndex];
+  const questionType = item?.questionTemplate?.type;
+  const isSecondFeedback = phase === "second_feedback";
+
+  // Reset state when item changes
   useEffect(() => {
-    if (!ready || !isEmptyAnswer || reviewResult || autoSubmitted.current) return;
-    autoSubmitted.current = true;
+    setAiFeedback(null);
+    setAiLoading(false);
+    setShowSelfRate(false);
+    setHintLoading(false);
+    autoSubmitted.current = false;
+  }, [currentItemIndex, attemptNumber]);
 
-    const item = session!.items[currentItemIndex];
-    setSelfRating("incorrect");
+  // Auto-score for recognition, cued_recall, empty, and idk answers
+  useEffect(() => {
+    if (!ready || reviewResult || autoSubmitted.current) return;
+    if (!item) return;
 
-    submitReview.mutateAsync({
-      userId: userId!,
-      nodeId: item.node.id,
-      score: 0,
-      confidence: confidenceRating!,
-      response: selectedAnswer!,
-    }).then((result) => {
-      setReviewResult(result);
-      recordReview({
+    // Auto-submit for empty/"I don't know" answers
+    if (isEmptyAnswer || isIdkAnswer) {
+      autoSubmitted.current = true;
+      const score = isIdkAnswer ? 1 : 0;
+      setSelfRating("incorrect");
+
+      submitReview.mutateAsync({
+        userId: userId!,
         nodeId: item.node.id,
-        score: 0,
+        score,
         confidence: confidenceRating!,
-        wasCorrect: result.wasCorrect,
-        calibrationQuadrant: result.calibrationQuadrant,
+        response: selectedAnswer!,
+      }).then((result) => {
+        setReviewResult(result);
+        recordReview({
+          nodeId: item.node.id,
+          score,
+          confidence: confidenceRating!,
+          wasCorrect: result.wasCorrect,
+          calibrationQuadrant: result.calibrationQuadrant,
+        });
+      }).catch((err) => {
+        console.error("Failed to submit review:", err);
       });
-    }).catch((err) => {
-      console.error("Failed to submit review:", err);
-    });
-  }, [ready, isEmptyAnswer, reviewResult]); // eslint-disable-line react-hooks/exhaustive-deps
+      return;
+    }
 
-  if (!ready) return null;
+    // Auto-score recognition questions
+    if (questionType === "recognition") {
+      autoSubmitted.current = true;
+      const score = evaluateRecognition(selectedAnswer, item.questionTemplate.correctAnswer);
+      const rating: SelfRating = score >= 3 ? "correct" : "incorrect";
+      setSelfRating(rating);
 
-  const item = session!.items[currentItemIndex];
+      submitReview.mutateAsync({
+        userId: userId!,
+        nodeId: item.node.id,
+        score,
+        confidence: confidenceRating!,
+        response: selectedAnswer!,
+      }).then((result) => {
+        setReviewResult(result);
+        recordReview({
+          nodeId: item.node.id,
+          score,
+          confidence: confidenceRating!,
+          wasCorrect: result.wasCorrect,
+          calibrationQuadrant: result.calibrationQuadrant,
+        });
+      }).catch((err) => {
+        console.error("Failed to submit review:", err);
+      });
+      return;
+    }
+
+    // Auto-score cued_recall questions
+    if (questionType === "cued_recall") {
+      autoSubmitted.current = true;
+      const score = evaluateCuedRecall(
+        selectedAnswer!,
+        item.questionTemplate.correctAnswer,
+        item.questionTemplate.acceptableAnswers,
+      );
+      const rating: SelfRating = score >= 4 ? "correct" : "incorrect";
+      setSelfRating(rating);
+
+      submitReview.mutateAsync({
+        userId: userId!,
+        nodeId: item.node.id,
+        score,
+        confidence: confidenceRating!,
+        response: selectedAnswer!,
+      }).then((result) => {
+        setReviewResult(result);
+        recordReview({
+          nodeId: item.node.id,
+          score,
+          confidence: confidenceRating!,
+          wasCorrect: result.wasCorrect,
+          calibrationQuadrant: result.calibrationQuadrant,
+        });
+      }).catch((err) => {
+        console.error("Failed to submit review:", err);
+      });
+      return;
+    }
+
+    // For free_recall: try AI evaluation
+    if (questionType === "free_recall" && !showSelfRate) {
+      setAiLoading(true);
+      evaluateAnswer.mutateAsync({
+        nodeId: item.node.id,
+        response: selectedAnswer!,
+      }).then((result) => {
+        setAiLoading(false);
+        if (result) {
+          setAiFeedback(result);
+        } else {
+          // AI unavailable, fall back to self-rating
+          setShowSelfRate(true);
+        }
+      }).catch(() => {
+        setAiLoading(false);
+        setShowSelfRate(true);
+      });
+    }
+  }, [ready, reviewResult]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (!ready || !item) return null;
+
   const { questionTemplate } = item;
+  const wasAutoScored = questionType === "recognition" || questionType === "cued_recall";
+  const autoScoreCorrect = reviewResult?.wasCorrect ?? false;
 
   const handleSelfRate = (rating: SelfRating) => {
     setSelfRating(rating);
@@ -81,14 +193,64 @@ export default function FeedbackDisplay() {
     });
   };
 
+  const handleAcceptAIScore = (score: number) => {
+    const rating: SelfRating = score >= 4 ? "correct" : score >= 2 ? "partially_correct" : "incorrect";
+    setSelfRating(rating);
+
+    submitReview.mutateAsync({
+      userId: userId!,
+      nodeId: item.node.id,
+      score,
+      confidence: confidenceRating!,
+      response: selectedAnswer!,
+    }).then((result) => {
+      recordReview({
+        nodeId: item.node.id,
+        score,
+        confidence: confidenceRating!,
+        wasCorrect: result.wasCorrect,
+        calibrationQuadrant: result.calibrationQuadrant,
+      });
+      nextItem();
+    }).catch((err) => {
+      console.error("Failed to submit review:", err);
+    });
+  };
+
+  // Check if hint flow is available (always offer on first wrong attempt)
+  const hints = questionTemplate.hints;
+  const hasStaticHints = hints && hints.length > 0;
+  const canOfferHint = attemptNumber === 1 && !isSecondFeedback;
+
+  const handleTryAgainWithHint = () => {
+    // Fast path: use static hints from the template
+    if (hasStaticHints) {
+      showHint(hints![0]);
+      return;
+    }
+    // Slow path: fetch hint from backend (AI or generic fallback)
+    setHintLoading(true);
+    requestHint.mutateAsync({ nodeId: item.node.id, questionType }).then((result) => {
+      setHintLoading(false);
+      showHint(result.hint);
+    }).catch(() => {
+      setHintLoading(false);
+      // Last resort: generic hint from explanation
+      showHint(`Think about: ${questionTemplate.explanation.split(".")[0]}.`);
+    });
+  };
+
   const ratingButtons: { label: string; value: SelfRating; color: string }[] = [
     { label: "Correct", value: "correct", color: colors.green },
     { label: "Partially Correct", value: "partially_correct", color: colors.amber },
     { label: "Incorrect", value: "incorrect", color: colors.red },
   ];
 
+  const needsSelfRate = questionType === "free_recall" || questionType === "application" || questionType === "practical";
+
   return (
     <div style={{ marginTop: "1.5rem" }}>
+      {/* Your answer */}
       <div
         style={{
           padding: "1rem",
@@ -101,41 +263,131 @@ export default function FeedbackDisplay() {
         <div style={{ fontSize: "0.85rem", color: colors.textMuted, marginBottom: "0.25rem" }}>
           Your answer
         </div>
-        <div style={{ color: isEmptyAnswer ? colors.textMuted : colors.textPrimary, whiteSpace: "pre-wrap" }}>
-          {isEmptyAnswer ? "(no answer)" : selectedAnswer}
+        <div style={{ color: (isEmptyAnswer || isIdkAnswer) ? colors.textMuted : colors.textPrimary, whiteSpace: "pre-wrap" }}>
+          {isEmptyAnswer ? "(no answer)" : isIdkAnswer ? "(I don't know)" : selectedAnswer}
         </div>
       </div>
 
-      <div
-        style={{
-          padding: "1rem",
-          borderRadius: "8px",
-          marginBottom: "1rem",
-          background: colors.successBg,
-          border: `2px solid ${colors.green}`,
-        }}
-      >
-        <div style={{ fontSize: "0.85rem", color: colors.textMuted, marginBottom: "0.25rem" }}>
-          Correct answer
+      {/* Auto-scored result for recognition/cued_recall */}
+      {wasAutoScored && reviewResult && (
+        <div
+          style={{
+            padding: "1rem",
+            borderRadius: "8px",
+            marginBottom: "1rem",
+            background: autoScoreCorrect ? colors.successBg : colors.errorBg,
+            border: `2px solid ${autoScoreCorrect ? colors.green : colors.red}`,
+          }}
+        >
+          <div style={{
+            fontWeight: 600,
+            color: autoScoreCorrect ? colors.successText : colors.errorText,
+            marginBottom: "0.5rem",
+          }}>
+            {autoScoreCorrect ? "Correct!" : "Incorrect"}
+          </div>
+          <div style={{ fontSize: "0.85rem", color: colors.textMuted, marginBottom: "0.25rem" }}>
+            Correct answer
+          </div>
+          <div style={{ color: colors.successText }}>{questionTemplate.correctAnswer}</div>
         </div>
-        <div style={{ color: colors.successText }}>{questionTemplate.correctAnswer}</div>
-      </div>
+      )}
 
-      <div
-        style={{
-          padding: "1rem",
-          borderRadius: "8px",
-          background: colors.cardBg,
-          marginBottom: "1.5rem",
-        }}
-      >
-        <div style={{ fontSize: "0.85rem", color: colors.textMuted, marginBottom: "0.25rem" }}>
-          Explanation
+      {/* Correct answer (for free recall / self-rated) */}
+      {needsSelfRate && !aiFeedback && (
+        <div
+          style={{
+            padding: "1rem",
+            borderRadius: "8px",
+            marginBottom: "1rem",
+            background: colors.successBg,
+            border: `2px solid ${colors.green}`,
+          }}
+        >
+          <div style={{ fontSize: "0.85rem", color: colors.textMuted, marginBottom: "0.25rem" }}>
+            Correct answer
+          </div>
+          <div style={{ color: colors.successText }}>{questionTemplate.correctAnswer}</div>
         </div>
-        <div>{questionTemplate.explanation}</div>
-      </div>
+      )}
 
-      {!isEmptyAnswer && !reviewResult && (
+      {/* Explanation (shown for auto-scored and self-rated, not for AI feedback) */}
+      {!aiFeedback && (
+        <div
+          style={{
+            padding: "1rem",
+            borderRadius: "8px",
+            background: colors.cardBg,
+            marginBottom: "1.5rem",
+          }}
+        >
+          <div style={{ fontSize: "0.85rem", color: colors.textMuted, marginBottom: "0.25rem" }}>
+            Explanation
+          </div>
+          <div>{questionTemplate.explanation}</div>
+        </div>
+      )}
+
+      {/* Auto-scored: show hint option or continue */}
+      {wasAutoScored && reviewResult && (
+        <>
+          {!autoScoreCorrect && canOfferHint && (
+            <div style={{ display: "flex", gap: "0.75rem", marginBottom: "1rem" }}>
+              <button
+                onClick={handleTryAgainWithHint}
+                disabled={hintLoading}
+                style={{
+                  ...buttonStyles.primary,
+                  flex: 1,
+                  background: colors.amber,
+                  color: "#1a1a2e",
+                  opacity: hintLoading ? 0.7 : 1,
+                }}
+              >
+                {hintLoading ? "Loading hint..." : "Try Again with Hint"}
+              </button>
+              <button
+                onClick={nextItem}
+                disabled={hintLoading}
+                style={{
+                  ...buttonStyles.secondary,
+                  flex: 1,
+                }}
+              >
+                Continue
+              </button>
+            </div>
+          )}
+          {(autoScoreCorrect || !canOfferHint) && (
+            <button
+              onClick={nextItem}
+              style={buttonStyles.primary}
+            >
+              Continue
+            </button>
+          )}
+        </>
+      )}
+
+      {/* Free recall: AI loading spinner */}
+      {needsSelfRate && aiLoading && !isEmptyAnswer && !isIdkAnswer && (
+        <div style={{ textAlign: "center", padding: "2rem 0", color: colors.textMuted }}>
+          <div style={{ marginBottom: "0.5rem" }}>Evaluating your answer...</div>
+          <div style={{ fontSize: "0.8rem" }}>AI tutor is reviewing</div>
+        </div>
+      )}
+
+      {/* Free recall: AI feedback */}
+      {needsSelfRate && aiFeedback && !reviewResult && (
+        <AIFeedbackDisplay
+          feedback={aiFeedback}
+          onAccept={handleAcceptAIScore}
+          onSelfRate={() => { setAiFeedback(null); setShowSelfRate(true); }}
+        />
+      )}
+
+      {/* Free recall: self-rating buttons (fallback when AI unavailable) */}
+      {needsSelfRate && (showSelfRate || (!aiLoading && !aiFeedback)) && !isEmptyAnswer && !isIdkAnswer && !reviewResult && (
         <>
           <h3 style={{ marginBottom: "0.75rem", color: "#b0b0b0" }}>
             How did you do?
@@ -161,10 +413,27 @@ export default function FeedbackDisplay() {
               </button>
             ))}
           </div>
+          {/* Offer hint for wrong free recall answers */}
+          {canOfferHint && (
+            <button
+              onClick={handleTryAgainWithHint}
+              disabled={hintLoading}
+              style={{
+                ...buttonStyles.secondary,
+                width: "100%",
+                marginTop: "0.75rem",
+                textAlign: "center",
+                opacity: hintLoading ? 0.7 : 1,
+              }}
+            >
+              {hintLoading ? "Loading hint..." : "Not sure? Try again with a hint"}
+            </button>
+          )}
         </>
       )}
 
-      {isEmptyAnswer && reviewResult && (
+      {/* Empty answer: continue */}
+      {(isEmptyAnswer || isIdkAnswer) && reviewResult && (
         <button
           onClick={nextItem}
           style={buttonStyles.primary}

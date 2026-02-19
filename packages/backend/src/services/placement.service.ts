@@ -19,7 +19,7 @@ interface PlacementQuestion {
   questionTemplate: {
     type: string;
     prompt: string;
-    choices: string[];
+    choices?: string[];
     correctAnswer: string;
     explanation: string;
   };

@@ -73,6 +73,46 @@ export const nodes: SeedNode[] = [
         explanation:
           "Nation-state actors are government-sponsored groups that conduct sophisticated cyber operations including espionage, intellectual property theft, and critical infrastructure disruption. They are among the most well-resourced and persistent threat actors.",
       },
+      {
+        type: "cued_recall",
+        prompt:
+          "What type of threat actor is sponsored by a government to conduct cyber espionage, sabotage, or intelligence gathering against other nations?",
+        correctAnswer: "Nation-state actor",
+        acceptableAnswers: [
+          "Nation-state",
+          "State-sponsored actor",
+          "Government-sponsored threat actor",
+          "State-sponsored hacker",
+        ],
+        hints: [
+          "Think about who has the resources of an entire country behind them.",
+          "These actors pursue geopolitical objectives, not personal profit.",
+        ],
+        explanation:
+          "Nation-state actors are government-sponsored groups that conduct sophisticated cyber operations including espionage, intellectual property theft, and critical infrastructure disruption. They are among the most well-resourced and persistent threat actors.",
+      },
+      {
+        type: "free_recall",
+        prompt:
+          "Explain what makes nation-state actors unique among threat actor categories. What are their typical goals, resources, and tactics?",
+        correctAnswer:
+          "Nation-state actors are government-sponsored cyber threat groups distinguished by their access to substantial funding, dedicated research teams, and intelligence agency support. Their goals typically include espionage (stealing state secrets and intellectual property), sabotage of critical infrastructure, and gaining strategic geopolitical advantage. They employ advanced tactics such as custom malware development, zero-day exploit discovery, spear-phishing campaigns, and supply chain compromises. They are known for maintaining long-term persistent access to targets, often remaining undetected for months or years.",
+        rubric:
+          "A strong answer should identify government sponsorship as the defining trait, mention at least two typical objectives (espionage, sabotage, IP theft), note their high level of resources and sophistication, and reference at least one common tactic or characteristic such as persistence or use of advanced tools.",
+        keyPoints: [
+          "Government-sponsored with significant funding and resources",
+          "Goals include espionage, IP theft, sabotage, and geopolitical advantage",
+          "Use sophisticated tactics: custom malware, zero-days, supply chain attacks",
+          "Known for long-term persistent access (APT-level operations)",
+          "Examples include groups like APT28 (Russia), APT41 (China), Lazarus Group (North Korea)",
+        ],
+        hints: [
+          "Consider what distinguishes these actors in terms of who backs them and what they are after.",
+          "Think about the level of sophistication and patience they demonstrate.",
+        ],
+        explanation:
+          "Nation-state actors are government-sponsored groups that conduct sophisticated cyber operations including espionage, intellectual property theft, and critical infrastructure disruption. They are among the most well-resourced and persistent threat actors.",
+      },
     ],
   },
   {
@@ -90,6 +130,45 @@ export const nodes: SeedNode[] = [
           "Insider threat",
         ],
         correctAnswer: "Hacktivist",
+        explanation:
+          "Hacktivists are individuals or groups who use hacking techniques to promote a political or social agenda. Common tactics include website defacement, DDoS attacks, and data leaks intended to embarrass or pressure their targets.",
+      },
+      {
+        type: "cued_recall",
+        prompt:
+          "What term describes threat actors who use hacking techniques to promote a political or social cause?",
+        correctAnswer: "Hacktivist",
+        acceptableAnswers: [
+          "Hacktivists",
+          "Hacktivist group",
+          "Hacktivism actor",
+        ],
+        hints: [
+          "The term combines two words: one related to computers and one related to political action.",
+          "Think of groups like Anonymous who hack for ideological reasons.",
+        ],
+        explanation:
+          "Hacktivists are individuals or groups who use hacking techniques to promote a political or social agenda. Common tactics include website defacement, DDoS attacks, and data leaks intended to embarrass or pressure their targets.",
+      },
+      {
+        type: "free_recall",
+        prompt:
+          "Describe hacktivists as a threat actor category. What motivates them, what tactics do they commonly use, and how do they differ from cybercriminals?",
+        correctAnswer:
+          "Hacktivists are threat actors motivated by political, social, or ideological causes rather than financial gain. They use cyber attacks as a form of protest or to draw attention to issues they care about. Common tactics include website defacement to spread their message, distributed denial-of-service (DDoS) attacks to disrupt targeted organizations, data leaks to embarrass or expose perceived wrongdoing, and social media hijacking. Unlike cybercriminals who seek profit, hacktivists aim to create public awareness, embarrass their targets, or force policy changes. Well-known examples include the Anonymous collective and LulzSec.",
+        rubric:
+          "A strong answer should identify ideological or political motivation as the key differentiator, list at least two common tactics (defacement, DDoS, data leaks), and contrast hacktivists with financially motivated cybercriminals.",
+        keyPoints: [
+          "Motivated by political, social, or ideological causes — not profit",
+          "Common tactics: website defacement, DDoS attacks, data leaks",
+          "Goal is to embarrass targets, raise awareness, or force change",
+          "Differ from cybercriminals in motivation (ideology vs. money)",
+          "Examples include Anonymous, LulzSec",
+        ],
+        hints: [
+          "Think about what drives these attackers — it is not money.",
+          "Consider what kinds of visible, disruptive attacks serve a protest purpose.",
+        ],
         explanation:
           "Hacktivists are individuals or groups who use hacking techniques to promote a political or social agenda. Common tactics include website defacement, DDoS attacks, and data leaks intended to embarrass or pressure their targets.",
       },
@@ -113,6 +192,46 @@ export const nodes: SeedNode[] = [
         explanation:
           "Organized cybercrime groups operate like businesses, motivated primarily by financial gain. They use sophisticated tools and services (ransomware-as-a-service, bulletproof hosting) and often target high-value sectors like healthcare and finance.",
       },
+      {
+        type: "cued_recall",
+        prompt:
+          "What is the primary motivation that drives organized cybercrime groups?",
+        correctAnswer: "Financial gain",
+        acceptableAnswers: [
+          "Money",
+          "Profit",
+          "Financial profit",
+          "Monetary gain",
+        ],
+        hints: [
+          "Think about why criminal syndicates operate — what do businesses ultimately want?",
+          "Ransomware payments, stolen credit cards, and fraud all share a common goal.",
+        ],
+        explanation:
+          "Organized cybercrime groups operate like businesses, motivated primarily by financial gain. They use sophisticated tools and services (ransomware-as-a-service, bulletproof hosting) and often target high-value sectors like healthcare and finance.",
+      },
+      {
+        type: "free_recall",
+        prompt:
+          "Explain how organized cybercrime groups operate. What are their motivations, business models, common tools/services, and typical targets?",
+        correctAnswer:
+          "Organized cybercrime groups are professionally structured criminal enterprises motivated primarily by financial gain. They operate much like legitimate businesses, with specialized roles (developers, operators, money launderers) and revenue-sharing models. They leverage the cybercrime-as-a-service ecosystem, using tools like ransomware-as-a-service (RaaS), initial access brokers, bulletproof hosting, and underground marketplaces to sell stolen data. Common revenue streams include ransomware extortion, business email compromise (BEC), credit card fraud, banking trojans, and selling credentials on dark web markets. They typically target high-value sectors such as healthcare, finance, and critical infrastructure where victims are more likely to pay.",
+        rubric:
+          "A strong answer should mention financial motivation, describe the business-like operational structure, reference at least two tools or services from the cybercrime ecosystem (e.g., RaaS, bulletproof hosting), and identify common targets or revenue streams.",
+        keyPoints: [
+          "Primarily motivated by financial gain",
+          "Operate with business-like structure and specialized roles",
+          "Use cybercrime-as-a-service tools: RaaS, bulletproof hosting, initial access brokers",
+          "Revenue streams: ransomware, BEC, credit card fraud, selling stolen data",
+          "Target high-value sectors: healthcare, finance, critical infrastructure",
+        ],
+        hints: [
+          "Think of these groups as illegal businesses — what does their operation look like?",
+          "Consider the ecosystem of services that support their activities.",
+        ],
+        explanation:
+          "Organized cybercrime groups operate like businesses, motivated primarily by financial gain. They use sophisticated tools and services (ransomware-as-a-service, bulletproof hosting) and often target high-value sectors like healthcare and finance.",
+      },
     ],
   },
   {
@@ -133,6 +252,46 @@ export const nodes: SeedNode[] = [
         explanation:
           "Script kiddies are inexperienced attackers who rely on existing tools and scripts created by others. While they lack technical sophistication, they can still cause damage due to the availability of powerful automated attack tools.",
       },
+      {
+        type: "cued_recall",
+        prompt:
+          "What term describes an inexperienced attacker who uses pre-built tools and scripts without understanding how they work?",
+        correctAnswer: "Script kiddie",
+        acceptableAnswers: [
+          "Script kiddy",
+          "Skiddie",
+          "Script bunny",
+          "Skid",
+        ],
+        hints: [
+          "The term refers to someone who runs other people's code (scripts) without real skill.",
+          "It is a somewhat dismissive term implying immaturity and lack of expertise.",
+        ],
+        explanation:
+          "Script kiddies are inexperienced attackers who rely on existing tools and scripts created by others. While they lack technical sophistication, they can still cause damage due to the availability of powerful automated attack tools.",
+      },
+      {
+        type: "free_recall",
+        prompt:
+          "Describe script kiddies as a threat actor category. Why are they considered a threat despite their lack of skill, and how do they compare to more sophisticated attackers?",
+        correctAnswer:
+          "Script kiddies are unskilled or inexperienced individuals who conduct cyber attacks using pre-built tools, scripts, and exploits developed by others. They typically lack deep understanding of the underlying technology or attack mechanisms. Despite their low skill level, they remain a genuine threat because powerful automated tools are freely available online — vulnerability scanners, exploit frameworks, DDoS tools, and password crackers can cause real damage even when wielded without expertise. They are often motivated by curiosity, desire for notoriety, or peer recognition rather than financial gain or ideology. Compared to sophisticated actors like nation-states or organized crime groups, script kiddies are opportunistic rather than targeted, lack persistence, and cannot develop custom exploits or evade advanced defenses. However, their sheer volume and the accessibility of tools mean organizations cannot ignore them.",
+        rubric:
+          "A strong answer should define script kiddies as unskilled users of others' tools, explain why they are still dangerous (availability of powerful automated tools), mention their typical motivations (curiosity, notoriety), and contrast them with more sophisticated threat actors.",
+        keyPoints: [
+          "Use pre-built tools and scripts without understanding the underlying technology",
+          "Still dangerous because powerful automated attack tools are freely available",
+          "Motivated by curiosity, notoriety, or peer recognition — not typically profit",
+          "Opportunistic and untargeted compared to APTs or organized crime",
+          "High volume of attacks compensates for low individual sophistication",
+        ],
+        hints: [
+          "Consider why having no skill does not mean posing no threat.",
+          "Think about what motivates someone who attacks systems for fun rather than profit.",
+        ],
+        explanation:
+          "Script kiddies are inexperienced attackers who rely on existing tools and scripts created by others. While they lack technical sophistication, they can still cause damage due to the availability of powerful automated attack tools.",
+      },
     ],
   },
   {
@@ -150,6 +309,46 @@ export const nodes: SeedNode[] = [
           "Script kiddie",
         ],
         correctAnswer: "Insider threat",
+        explanation:
+          "Insider threats come from individuals within the organization — employees, contractors, or partners — who misuse their authorized access. They can be malicious (intentional) or negligent (accidental) and are especially dangerous because they bypass many external security controls.",
+      },
+      {
+        type: "cued_recall",
+        prompt:
+          "What type of threat originates from individuals within an organization — such as employees, contractors, or partners — who misuse their authorized access?",
+        correctAnswer: "Insider threat",
+        acceptableAnswers: [
+          "Insider threats",
+          "Insider",
+          "Internal threat",
+          "Insider risk",
+        ],
+        hints: [
+          "The attacker already has legitimate access to the organization's systems.",
+          "The threat comes from within, not from an external attacker.",
+        ],
+        explanation:
+          "Insider threats come from individuals within the organization — employees, contractors, or partners — who misuse their authorized access. They can be malicious (intentional) or negligent (accidental) and are especially dangerous because they bypass many external security controls.",
+      },
+      {
+        type: "free_recall",
+        prompt:
+          "Explain insider threats in cybersecurity. What are the different types, why are they particularly dangerous, and what makes them hard to detect?",
+        correctAnswer:
+          "Insider threats originate from individuals who have authorized access to an organization's systems, data, or facilities — including employees, contractors, business partners, and former staff with lingering access. There are two main categories: malicious insiders who intentionally steal data, sabotage systems, or commit fraud (often motivated by financial gain, revenge, or ideology), and negligent insiders who accidentally cause security incidents through carelessness, such as falling for phishing, misconfiguring systems, or losing devices. Insider threats are particularly dangerous because these individuals already have legitimate credentials, know where valuable data resides, and understand internal processes. They bypass perimeter defenses like firewalls and intrusion detection systems that focus on external threats. Detection is difficult because their actions often resemble normal work activity. Organizations mitigate insider threats through the principle of least privilege, user behavior analytics (UBA), data loss prevention (DLP), access logging, and security awareness training.",
+        rubric:
+          "A strong answer should distinguish between malicious and negligent insiders, explain why insider threats are especially dangerous (authorized access, bypass perimeter defenses), mention the difficulty of detection, and reference at least one mitigation strategy.",
+        keyPoints: [
+          "Includes employees, contractors, partners, and former staff with access",
+          "Two main types: malicious (intentional) and negligent (accidental)",
+          "Dangerous because they have legitimate credentials and bypass external defenses",
+          "Hard to detect since their activity resembles normal work behavior",
+          "Mitigations include least privilege, UBA, DLP, and security awareness training",
+        ],
+        hints: [
+          "Think about why someone who already has a badge and password is harder to defend against than an outside hacker.",
+          "Consider that not all insider threats are intentional — accidents count too.",
+        ],
         explanation:
           "Insider threats come from individuals within the organization — employees, contractors, or partners — who misuse their authorized access. They can be malicious (intentional) or negligent (accidental) and are especially dangerous because they bypass many external security controls.",
       },

@@ -73,6 +73,41 @@ export const nodes: SeedNode[] = [
         explanation:
           "Plaintext is the original, readable message before encryption. Ciphertext is the scrambled, unreadable output after encryption. The goal of encryption is to transform plaintext into ciphertext that cannot be understood without the correct key.",
       },
+      {
+        type: "cued_recall",
+        prompt:
+          "What is the term for the unreadable, scrambled output produced after encrypting a message?",
+        correctAnswer: "Ciphertext",
+        acceptableAnswers: ["cipher text", "cipher-text", "encrypted text"],
+        hints: [
+          "It is the opposite of plaintext.",
+          "The term starts with 'cipher'.",
+        ],
+        explanation:
+          "Plaintext is the original, readable message before encryption. Ciphertext is the scrambled, unreadable output after encryption. The goal of encryption is to transform plaintext into ciphertext that cannot be understood without the correct key.",
+      },
+      {
+        type: "free_recall",
+        prompt:
+          "Explain the relationship between plaintext, ciphertext, and encryption keys. How do these three concepts work together?",
+        correctAnswer:
+          "Plaintext is the original readable message. An encryption algorithm uses an encryption key to transform plaintext into ciphertext, which is unreadable and scrambled. To reverse the process, a decryption key is used to convert ciphertext back into plaintext. Without the correct key, the ciphertext should be computationally infeasible to convert back to plaintext.",
+        rubric:
+          "A good answer should define plaintext and ciphertext, explain the role of the key in both encryption and decryption, and convey that security depends on key secrecy.",
+        keyPoints: [
+          "Plaintext is the original readable data before encryption",
+          "Ciphertext is the scrambled, unreadable output after encryption",
+          "An encryption key is required to transform plaintext into ciphertext",
+          "A decryption key is required to reverse ciphertext back to plaintext",
+          "Without the correct key, ciphertext should be infeasible to decrypt",
+        ],
+        hints: [
+          "Think about what goes in and what comes out of the encryption process.",
+          "Consider what role the key plays in both directions.",
+        ],
+        explanation:
+          "Plaintext is the original, readable message before encryption. Ciphertext is the scrambled, unreadable output after encryption. The goal of encryption is to transform plaintext into ciphertext that cannot be understood without the correct key.",
+      },
     ],
   },
   {
@@ -91,6 +126,46 @@ export const nodes: SeedNode[] = [
         ],
         correctAnswer:
           "Encryption requires a secret key to reverse; encoding does not",
+        explanation:
+          "Encoding (e.g., Base64, URL encoding) transforms data into a different format for compatibility or transport and is freely reversible. Encryption transforms data to protect confidentiality and requires a secret key to reverse. Encoding provides no security.",
+      },
+      {
+        type: "cued_recall",
+        prompt:
+          "Does Base64 provide confidentiality? Why or why not?",
+        correctAnswer:
+          "No, Base64 is encoding, not encryption. It is freely reversible without any secret key.",
+        acceptableAnswers: [
+          "No, Base64 is encoding not encryption",
+          "No, it is just encoding",
+          "No, anyone can decode Base64 without a key",
+        ],
+        hints: [
+          "Think about whether a secret key is needed to reverse Base64.",
+          "Consider whether Base64 was designed for security or data formatting.",
+        ],
+        explanation:
+          "Encoding (e.g., Base64, URL encoding) transforms data into a different format for compatibility or transport and is freely reversible. Encryption transforms data to protect confidentiality and requires a secret key to reverse. Encoding provides no security.",
+      },
+      {
+        type: "free_recall",
+        prompt:
+          "Compare and contrast encryption and encoding. Explain their purposes, how they differ in reversibility, and give an example of each.",
+        correctAnswer:
+          "Encryption transforms data to protect confidentiality and requires a secret key to reverse. Examples include AES and RSA. Encoding transforms data into a different format for compatibility or transport purposes and is freely reversible by anyone without a secret. Examples include Base64 and URL encoding. The critical distinction is that encryption provides security through key-based confidentiality, while encoding provides no security at all.",
+        rubric:
+          "A good answer should clearly distinguish the purpose of each (confidentiality vs. formatting), explain that encryption requires a key to reverse while encoding does not, and provide at least one concrete example of each.",
+        keyPoints: [
+          "Encryption is designed to provide confidentiality",
+          "Encoding is designed for data format compatibility or transport",
+          "Encryption requires a secret key to reverse",
+          "Encoding is freely reversible without any secret",
+          "Common encoding examples: Base64, URL encoding; common encryption examples: AES, RSA",
+        ],
+        hints: [
+          "Think about who can reverse each process — anyone, or only someone with a key?",
+          "Consider the original purpose each was designed to serve.",
+        ],
         explanation:
           "Encoding (e.g., Base64, URL encoding) transforms data into a different format for compatibility or transport and is freely reversible. Encryption transforms data to protect confidentiality and requires a secret key to reverse. Encoding provides no security.",
       },
@@ -115,6 +190,46 @@ export const nodes: SeedNode[] = [
         explanation:
           "Kerckhoffs's principle holds that a cryptosystem's security should depend solely on the secrecy of the key, not on the secrecy of the algorithm. This is why modern algorithms like AES and RSA are publicly documented and extensively peer-reviewed.",
       },
+      {
+        type: "cued_recall",
+        prompt:
+          "According to Kerckhoffs's principle, what is the only thing that needs to remain secret for a cryptosystem to be secure?",
+        correctAnswer: "The key",
+        acceptableAnswers: [
+          "the secret key",
+          "the encryption key",
+          "key",
+          "the cryptographic key",
+        ],
+        hints: [
+          "The principle says the algorithm itself can be public.",
+          "Think about what the attacker should NOT be able to obtain.",
+        ],
+        explanation:
+          "Kerckhoffs's principle holds that a cryptosystem's security should depend solely on the secrecy of the key, not on the secrecy of the algorithm. This is why modern algorithms like AES and RSA are publicly documented and extensively peer-reviewed.",
+      },
+      {
+        type: "free_recall",
+        prompt:
+          "Explain Kerckhoffs's principle and why it is important for modern cryptographic design. How does it relate to the design of algorithms like AES?",
+        correctAnswer:
+          "Kerckhoffs's principle states that a cryptographic system should remain secure even if everything about the system, except the key, is publicly known. This means security should depend on the secrecy of the key, not the secrecy of the algorithm. This principle is fundamental to modern cryptography because it encourages open peer review of algorithms. AES, for example, is a publicly documented algorithm that has been extensively analyzed by researchers worldwide. Its security relies entirely on the secrecy and strength of the key, not on obscuring how the algorithm works.",
+        rubric:
+          "A good answer should state the principle clearly, explain why relying on algorithm secrecy is weak, and connect it to real-world open algorithm design such as AES.",
+        keyPoints: [
+          "Security should depend solely on key secrecy, not algorithm secrecy",
+          "The algorithm can and should be publicly known",
+          "Public algorithms benefit from peer review and analysis",
+          "Security through obscurity (hiding the algorithm) is considered weak",
+          "AES and RSA are examples of publicly documented, peer-reviewed algorithms",
+        ],
+        hints: [
+          "Think about what happens when a secret algorithm is eventually reverse-engineered.",
+          "Consider why open peer review strengthens cryptographic algorithms.",
+        ],
+        explanation:
+          "Kerckhoffs's principle holds that a cryptosystem's security should depend solely on the secrecy of the key, not on the secrecy of the algorithm. This is why modern algorithms like AES and RSA are publicly documented and extensively peer-reviewed.",
+      },
     ],
   },
   {
@@ -136,6 +251,47 @@ export const nodes: SeedNode[] = [
         explanation:
           "Symmetric encryption uses a single secret key shared between parties for both encryption and decryption. Asymmetric encryption uses a mathematically related key pair: a public key (shared openly) and a private key (kept secret). Each approach has distinct trade-offs in speed and key management.",
       },
+      {
+        type: "cued_recall",
+        prompt:
+          "In asymmetric encryption, how many keys are involved and what are they called?",
+        correctAnswer:
+          "Two keys: a public key and a private key",
+        acceptableAnswers: [
+          "2 keys: public key and private key",
+          "a public key and a private key",
+          "two: public and private",
+          "public/private key pair",
+        ],
+        hints: [
+          "One of the keys is shared openly with anyone.",
+          "The other key must be kept secret by the owner.",
+        ],
+        explanation:
+          "Symmetric encryption uses a single secret key shared between parties for both encryption and decryption. Asymmetric encryption uses a mathematically related key pair: a public key (shared openly) and a private key (kept secret). Each approach has distinct trade-offs in speed and key management.",
+      },
+      {
+        type: "free_recall",
+        prompt:
+          "Compare symmetric and asymmetric encryption. Discuss how many keys each uses, their relative speed, and the key distribution challenge each faces.",
+        correctAnswer:
+          "Symmetric encryption uses a single shared secret key for both encryption and decryption. It is fast and efficient for bulk data encryption, but the key distribution problem is significant: both parties must securely share the same secret key. Asymmetric encryption uses a pair of mathematically related keys — a public key and a private key. It solves the key distribution problem because the public key can be shared openly, but it is much slower than symmetric encryption. In practice, the two are often combined in hybrid schemes: asymmetric encryption secures the exchange of a symmetric session key, which then encrypts the actual data.",
+        rubric:
+          "A good answer should cover the number of keys for each type, address speed differences, explain the key distribution challenge, and ideally mention hybrid approaches.",
+        keyPoints: [
+          "Symmetric uses one shared secret key for both encryption and decryption",
+          "Asymmetric uses a public/private key pair",
+          "Symmetric encryption is significantly faster than asymmetric",
+          "Symmetric encryption has a key distribution problem — both parties need the same secret key",
+          "Asymmetric encryption solves key distribution but is slower; hybrid schemes combine both",
+        ],
+        hints: [
+          "Think about what happens when two strangers need to communicate securely — how do they share a secret key?",
+          "Consider why protocols like TLS use both types of encryption.",
+        ],
+        explanation:
+          "Symmetric encryption uses a single secret key shared between parties for both encryption and decryption. Asymmetric encryption uses a mathematically related key pair: a public key (shared openly) and a private key (kept secret). Each approach has distinct trade-offs in speed and key management.",
+      },
     ],
   },
   {
@@ -154,6 +310,45 @@ export const nodes: SeedNode[] = [
         ],
         correctAnswer:
           "Predictable random numbers allow attackers to guess keys",
+        explanation:
+          "If an attacker can predict the random number generator's output, they can reproduce the generated key. CSPRNGs like /dev/urandom on Linux or CryptGenRandom on Windows are designed to produce output that is computationally indistinguishable from true randomness.",
+      },
+      {
+        type: "cued_recall",
+        prompt:
+          "What does CSPRNG stand for?",
+        correctAnswer:
+          "Cryptographically Secure Pseudorandom Number Generator",
+        acceptableAnswers: [
+          "cryptographically secure pseudo-random number generator",
+          "cryptographically secure PRNG",
+        ],
+        hints: [
+          "The 'CS' stands for a type of security guarantee.",
+          "The 'PRNG' part refers to a pseudorandom number generator.",
+        ],
+        explanation:
+          "If an attacker can predict the random number generator's output, they can reproduce the generated key. CSPRNGs like /dev/urandom on Linux or CryptGenRandom on Windows are designed to produce output that is computationally indistinguishable from true randomness.",
+      },
+      {
+        type: "free_recall",
+        prompt:
+          "Explain why cryptographic randomness is critical for key generation and what can go wrong if a weak random number generator is used. Include an example of a CSPRNG.",
+        correctAnswer:
+          "Cryptographic key generation requires unpredictable random numbers. If a weak or predictable random number generator is used, an attacker who knows or can guess the generator's internal state can reproduce the generated keys and break the encryption entirely. A CSPRNG (Cryptographically Secure Pseudorandom Number Generator) is designed so that its output is computationally indistinguishable from true randomness, meaning even an attacker who sees previous outputs cannot predict future ones. Examples include /dev/urandom on Linux and CryptGenRandom on Windows. Real-world failures like the Debian OpenSSL bug (2008) demonstrate the catastrophic consequences of weak randomness.",
+        rubric:
+          "A good answer should explain why unpredictability matters for key generation, describe what happens when randomness is weak, define what a CSPRNG provides, and ideally give an example of a CSPRNG or a real-world randomness failure.",
+        keyPoints: [
+          "Keys must be generated from unpredictable random sources",
+          "Predictable randomness lets attackers reproduce generated keys",
+          "A CSPRNG produces output computationally indistinguishable from true randomness",
+          "Examples of CSPRNGs: /dev/urandom (Linux), CryptGenRandom (Windows)",
+          "Historical failures (e.g., Debian OpenSSL bug) show real-world impact of weak randomness",
+        ],
+        hints: [
+          "Think about what an attacker could do if they could predict the output of the random number generator.",
+          "Consider what properties a random number generator needs to be safe for cryptographic use.",
+        ],
         explanation:
           "If an attacker can predict the random number generator's output, they can reproduce the generated key. CSPRNGs like /dev/urandom on Linux or CryptGenRandom on Windows are designed to produce output that is computationally indistinguishable from true randomness.",
       },

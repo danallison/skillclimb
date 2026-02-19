@@ -87,6 +87,46 @@ export const nodes: SeedNode[] = [
         explanation:
           "Packet-filtering firewalls operate at Layers 3 and 4 of the OSI model, examining packet headers (source/destination IP, port numbers, and protocol) against an ordered rule set to allow or deny traffic.",
       },
+      {
+        type: "cued_recall",
+        prompt:
+          "At which layers of the OSI model does a packet-filtering firewall operate?",
+        correctAnswer: "Layers 3 and 4 (Network and Transport)",
+        acceptableAnswers: [
+          "Layer 3 and Layer 4",
+          "Network and Transport layers",
+          "L3 and L4",
+          "Layers 3-4",
+        ],
+        hints: [
+          "Think about what information is in a packet header: IP addresses and port numbers.",
+          "These layers handle addressing/routing and connection management respectively.",
+        ],
+        explanation:
+          "Packet-filtering firewalls operate at Layers 3 and 4 of the OSI model, examining packet headers (source/destination IP, port numbers, and protocol) against an ordered rule set to allow or deny traffic.",
+      },
+      {
+        type: "free_recall",
+        prompt:
+          "Explain how a packet-filtering firewall works, including what information it examines and how it decides whether to allow or deny traffic.",
+        correctAnswer:
+          "A packet-filtering firewall inspects the headers of each network packet at OSI Layers 3 and 4. It examines fields such as source and destination IP addresses, source and destination port numbers, and the protocol type (TCP, UDP, ICMP). The firewall compares these header fields against an ordered set of rules (access control list). Rules are evaluated top-down, and the first matching rule determines whether the packet is allowed or denied. Packets that do not match any rule are handled by a default policy, which in best practice is set to deny.",
+        rubric:
+          "A good answer should identify the OSI layers involved, list the specific header fields examined, explain the rule-matching process, and mention the default policy.",
+        keyPoints: [
+          "Operates at OSI Layers 3 (Network) and 4 (Transport)",
+          "Examines source/destination IP addresses, port numbers, and protocol type",
+          "Compares packet headers against an ordered rule set (ACL)",
+          "First matching rule determines the action (allow or deny)",
+          "Default policy (ideally deny) handles unmatched packets",
+        ],
+        hints: [
+          "Think about what information exists in a packet header versus the payload.",
+          "Consider how the firewall processes its rules in sequence.",
+        ],
+        explanation:
+          "Packet-filtering firewalls operate at Layers 3 and 4 of the OSI model, examining packet headers (source/destination IP, port numbers, and protocol) against an ordered rule set to allow or deny traffic.",
+      },
     ],
   },
   {
@@ -105,6 +145,46 @@ export const nodes: SeedNode[] = [
         ],
         correctAnswer:
           "It tracks the state of active connections and makes decisions based on connection context",
+        explanation:
+          "Stateful inspection firewalls maintain a state table of active connections. They can determine whether an incoming packet belongs to an established session, automatically allowing legitimate return traffic without requiring explicit rules for each direction.",
+      },
+      {
+        type: "cued_recall",
+        prompt:
+          "What data structure does a stateful inspection firewall maintain to track active connections?",
+        correctAnswer: "A state table (also called a connection table or session table)",
+        acceptableAnswers: [
+          "State table",
+          "Connection table",
+          "Session table",
+          "State/connection table",
+        ],
+        hints: [
+          "It needs to remember which connections are currently active.",
+          "The name describes a structured record of the current 'state' of each connection.",
+        ],
+        explanation:
+          "Stateful inspection firewalls maintain a state table of active connections. They can determine whether an incoming packet belongs to an established session, automatically allowing legitimate return traffic without requiring explicit rules for each direction.",
+      },
+      {
+        type: "free_recall",
+        prompt:
+          "Describe how a stateful inspection firewall improves upon a simple packet-filtering firewall. Include how it handles return traffic and connection tracking.",
+        correctAnswer:
+          "A stateful inspection firewall improves on simple packet filtering by maintaining a state table that tracks the state of every active network connection. When an outbound connection is initiated and permitted, the firewall records the connection details (source/destination IPs, ports, protocol, TCP sequence numbers, and connection state). When return traffic arrives, the firewall checks whether it belongs to an existing, legitimate connection in the state table. If it does, the traffic is automatically allowed without needing a separate inbound rule. This reduces the number of rules needed, prevents certain attacks like spoofed packets that don't match any known session, and provides better security than stateless packet filtering.",
+        rubric:
+          "A good answer should explain the state table concept, how return traffic is handled automatically, the advantage over stateless filtering, and the security benefits of connection tracking.",
+        keyPoints: [
+          "Maintains a state table tracking all active connections",
+          "Records connection details including IPs, ports, protocol, and TCP state",
+          "Return traffic is automatically permitted if it matches an established session",
+          "Reduces the number of explicit firewall rules needed",
+          "Prevents spoofed packets that do not match known sessions",
+        ],
+        hints: [
+          "Think about why you might not need separate rules for inbound return traffic.",
+          "Consider what information the firewall remembers about each connection.",
+        ],
         explanation:
           "Stateful inspection firewalls maintain a state table of active connections. They can determine whether an incoming packet belongs to an established session, automatically allowing legitimate return traffic without requiring explicit rules for each direction.",
       },
@@ -129,6 +209,44 @@ export const nodes: SeedNode[] = [
         explanation:
           "NGFWs combine traditional stateful inspection with application-level awareness, integrated intrusion prevention, and often threat intelligence feeds. They can identify and control applications regardless of the port or protocol used.",
       },
+      {
+        type: "cued_recall",
+        prompt:
+          "What does the abbreviation NGFW stand for?",
+        correctAnswer: "Next-Generation Firewall",
+        acceptableAnswers: [
+          "Next Generation Firewall",
+          "Next-gen firewall",
+        ],
+        hints: [
+          "It describes a firewall that goes beyond traditional stateful inspection.",
+          "The 'NG' part refers to an evolution or advancement beyond current technology.",
+        ],
+        explanation:
+          "NGFWs combine traditional stateful inspection with application-level awareness, integrated intrusion prevention, and often threat intelligence feeds. They can identify and control applications regardless of the port or protocol used.",
+      },
+      {
+        type: "free_recall",
+        prompt:
+          "Explain what makes a next-generation firewall (NGFW) different from a traditional stateful firewall. Describe its key capabilities and why they matter.",
+        correctAnswer:
+          "A next-generation firewall (NGFW) extends traditional stateful inspection with several advanced capabilities. First, it performs deep packet inspection (DPI) to analyze the actual content of traffic, not just headers. Second, it provides application awareness, meaning it can identify and control specific applications (like Skype, BitTorrent, or Facebook) regardless of the port or protocol they use. Third, NGFWs integrate intrusion prevention system (IPS) functionality directly into the firewall, allowing it to detect and block known attack signatures and anomalous behavior in real time. Many NGFWs also incorporate threat intelligence feeds for up-to-date information on emerging threats, SSL/TLS inspection to examine encrypted traffic, and user identity awareness to apply policies based on who the user is rather than just their IP address.",
+        rubric:
+          "A good answer should cover deep packet inspection, application awareness independent of port/protocol, integrated IPS, and at least one additional advanced feature such as threat intelligence or SSL inspection.",
+        keyPoints: [
+          "Performs deep packet inspection (DPI) beyond header analysis",
+          "Application awareness identifies apps regardless of port or protocol",
+          "Integrated intrusion prevention system (IPS) for real-time threat blocking",
+          "Often includes threat intelligence feeds for emerging threats",
+          "May provide SSL/TLS inspection and user identity awareness",
+        ],
+        hints: [
+          "Think about what a traditional firewall cannot see that an NGFW can.",
+          "Consider how applications today often use non-standard ports to evade detection.",
+        ],
+        explanation:
+          "NGFWs combine traditional stateful inspection with application-level awareness, integrated intrusion prevention, and often threat intelligence feeds. They can identify and control applications regardless of the port or protocol used.",
+      },
     ],
   },
   {
@@ -150,6 +268,46 @@ export const nodes: SeedNode[] = [
         explanation:
           "A WAF operates at Layer 7 and is specifically designed to protect web applications. It inspects HTTP/HTTPS traffic and can detect and block attacks such as SQL injection, cross-site scripting (XSS), and other OWASP Top 10 threats.",
       },
+      {
+        type: "cued_recall",
+        prompt:
+          "At which OSI layer does a Web Application Firewall (WAF) operate?",
+        correctAnswer: "Layer 7 (Application layer)",
+        acceptableAnswers: [
+          "Layer 7",
+          "Application layer",
+          "L7",
+          "OSI Layer 7",
+        ],
+        hints: [
+          "A WAF inspects HTTP/HTTPS traffic, which is a high-level protocol.",
+          "This is the topmost layer of the OSI model, where end-user applications communicate.",
+        ],
+        explanation:
+          "A WAF operates at Layer 7 and is specifically designed to protect web applications. It inspects HTTP/HTTPS traffic and can detect and block attacks such as SQL injection, cross-site scripting (XSS), and other OWASP Top 10 threats.",
+      },
+      {
+        type: "free_recall",
+        prompt:
+          "Explain the purpose and functionality of a Web Application Firewall (WAF). Include what types of attacks it defends against and how it differs from a traditional network firewall.",
+        correctAnswer:
+          "A Web Application Firewall (WAF) is a security device that operates at OSI Layer 7 (Application layer) to protect web applications from attacks targeting the application logic. Unlike traditional network firewalls that inspect packets at Layers 3-4 based on IP addresses and ports, a WAF inspects the content of HTTP and HTTPS requests and responses. It can detect and block attacks such as SQL injection (inserting malicious SQL into input fields), cross-site scripting (XSS, injecting malicious scripts into web pages), cross-site request forgery (CSRF), file inclusion attacks, and other OWASP Top 10 vulnerabilities. WAFs typically operate in one of two modes: negative security model (blocklist of known attack signatures) or positive security model (allowlist of expected valid input patterns). They can be deployed as hardware appliances, software solutions, or cloud-based services.",
+        rubric:
+          "A good answer should explain that WAFs operate at Layer 7, list specific attack types they defend against (at least SQL injection and XSS), contrast with traditional firewalls, and mention how they inspect HTTP/HTTPS traffic.",
+        keyPoints: [
+          "Operates at OSI Layer 7 (Application layer) on HTTP/HTTPS traffic",
+          "Defends against SQL injection, XSS, CSRF, and other web-based attacks",
+          "Differs from network firewalls by inspecting application-layer content, not just headers",
+          "Can use negative (blocklist) or positive (allowlist) security models",
+          "Protects against OWASP Top 10 vulnerabilities",
+        ],
+        hints: [
+          "Think about attacks that target web forms and URLs rather than network protocols.",
+          "Consider what kind of traffic a traditional firewall cannot deeply inspect.",
+        ],
+        explanation:
+          "A WAF operates at Layer 7 and is specifically designed to protect web applications. It inspects HTTP/HTTPS traffic and can detect and block attacks such as SQL injection, cross-site scripting (XSS), and other OWASP Top 10 threats.",
+      },
     ],
   },
   {
@@ -168,6 +326,47 @@ export const nodes: SeedNode[] = [
         ],
         correctAnswer:
           "Rules are evaluated top-down, and the first matching rule is applied to the packet",
+        explanation:
+          "Firewall rules are processed sequentially from top to bottom. The first rule that matches a packet is applied, and no further rules are evaluated. Placing more specific rules before broader ones ensures correct traffic handling.",
+      },
+      {
+        type: "cued_recall",
+        prompt:
+          "In what order are firewall ACL rules evaluated when a packet arrives?",
+        correctAnswer: "Top-down (sequentially from the first rule to the last)",
+        acceptableAnswers: [
+          "Top to bottom",
+          "Top-down",
+          "Sequential order",
+          "First to last",
+          "In order from top to bottom",
+        ],
+        hints: [
+          "Think about how a list of rules would be read if you started from the beginning.",
+          "Only one rule is applied per packet -- the one encountered first.",
+        ],
+        explanation:
+          "Firewall rules are processed sequentially from top to bottom. The first rule that matches a packet is applied, and no further rules are evaluated. Placing more specific rules before broader ones ensures correct traffic handling.",
+      },
+      {
+        type: "free_recall",
+        prompt:
+          "Explain why the order of rules in a firewall access control list (ACL) matters. Describe what can go wrong if rules are ordered incorrectly and what best practices should be followed.",
+        correctAnswer:
+          "Firewall ACL rules are evaluated sequentially from top to bottom, and the first rule that matches an incoming packet is applied -- no further rules are checked after a match is found. This means rule order is critical to correct operation. If a broad 'allow all' rule is placed before a more specific 'deny' rule, the deny rule will never be reached, creating an unintended security gap. Conversely, if an overly broad 'deny' rule is placed too high, it may block legitimate traffic. Best practices include: placing more specific rules before broader ones, putting frequently matched rules near the top for performance, ending the ACL with an explicit default deny rule, regularly reviewing and auditing rule order, and documenting the purpose of each rule.",
+        rubric:
+          "A good answer should explain top-down evaluation with first-match semantics, give an example of what can go wrong with incorrect ordering, and describe at least two best practices for rule ordering.",
+        keyPoints: [
+          "Rules are evaluated top-down with first-match-wins semantics",
+          "More specific rules must be placed before broader rules",
+          "Incorrect ordering can create security gaps or block legitimate traffic",
+          "The ACL should end with an explicit default deny rule",
+          "Regular review and documentation of rules is important for maintenance",
+        ],
+        hints: [
+          "Consider what happens if a very broad 'permit any' rule appears before a specific deny rule.",
+          "Think about both security and performance implications of rule ordering.",
+        ],
         explanation:
           "Firewall rules are processed sequentially from top to bottom. The first rule that matches a packet is applied, and no further rules are evaluated. Placing more specific rules before broader ones ensures correct traffic handling.",
       },

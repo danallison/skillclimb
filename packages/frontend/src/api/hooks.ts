@@ -23,32 +23,32 @@ export interface SessionResponse {
   items: SessionItemResponse[];
 }
 
+export interface QuestionTemplateResponse {
+  type: string;
+  prompt: string;
+  choices?: string[];
+  correctAnswer: string;
+  explanation: string;
+  acceptableAnswers?: string[];
+  hints?: string[];
+  rubric?: string;
+  keyPoints?: string[];
+}
+
 export interface SessionItemResponse {
   node: {
     id: string;
     topicId: string;
     domainId: string;
     concept: string;
-    questionTemplates: Array<{
-      type: string;
-      prompt: string;
-      choices: string[];
-      correctAnswer: string;
-      explanation: string;
-    }>;
+    questionTemplates: QuestionTemplateResponse[];
   };
   learnerState: {
     easiness: number;
     interval: number;
     repetitions: number;
   };
-  questionTemplate: {
-    type: string;
-    prompt: string;
-    choices: string[];
-    correctAnswer: string;
-    explanation: string;
-  };
+  questionTemplate: QuestionTemplateResponse;
   priority: number;
 }
 
@@ -169,7 +169,7 @@ export interface PlacementQuestion {
   questionTemplate: {
     type: string;
     prompt: string;
-    choices: string[];
+    choices?: string[];
     correctAnswer: string;
     explanation: string;
   };
@@ -273,6 +273,39 @@ export function useCalibration(userId: string | null) {
     queryKey: ["calibration", userId],
     queryFn: () => fetchJson<CalibrationResponse>(`/users/${userId}/calibration`),
     enabled: !!userId,
+  });
+}
+
+export interface HintResponse {
+  hint: string;
+  source: "static" | "ai" | "generic";
+}
+
+export interface AIFeedbackResponse {
+  score: number;
+  feedback: string;
+  keyPointsCovered: string[];
+  keyPointsMissed: string[];
+  misconceptions: string[];
+}
+
+export function useEvaluateAnswer() {
+  return useMutation({
+    mutationFn: (data: { nodeId: string; response: string }) =>
+      fetchJson<AIFeedbackResponse | null>("/reviews/evaluate", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+  });
+}
+
+export function useRequestHint() {
+  return useMutation({
+    mutationFn: (data: { nodeId: string; questionType?: string }) =>
+      fetchJson<HintResponse>("/hints", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
   });
 }
 

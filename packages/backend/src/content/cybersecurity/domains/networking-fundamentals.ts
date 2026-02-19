@@ -86,6 +86,47 @@ export const nodes: SeedNode[] = [
         explanation:
           "The Transport Layer (Layer 4) provides end-to-end communication, flow control, and error recovery between applications. TCP and UDP operate at this layer.",
       },
+      {
+        type: "cued_recall",
+        prompt:
+          "Which OSI layer (by name and number) is responsible for end-to-end communication and flow control between hosts?",
+        correctAnswer: "Transport Layer (Layer 4)",
+        acceptableAnswers: [
+          "Transport Layer",
+          "Layer 4",
+          "L4",
+          "Transport",
+          "the transport layer",
+        ],
+        hints: [
+          "This layer sits between the Network Layer and the Session Layer.",
+          "TCP and UDP are the two most well-known protocols at this layer.",
+        ],
+        explanation:
+          "The Transport Layer (Layer 4) provides end-to-end communication, flow control, and error recovery between applications. TCP and UDP operate at this layer.",
+      },
+      {
+        type: "free_recall",
+        prompt:
+          "List the seven layers of the OSI model in order from Layer 1 to Layer 7, and briefly describe the primary responsibility of each layer.",
+        correctAnswer:
+          "Layer 1 - Physical: Transmits raw bit streams over physical media. Layer 2 - Data Link: Frames data and handles MAC addressing for local delivery. Layer 3 - Network: Provides logical addressing (IP) and routes packets across networks. Layer 4 - Transport: Ensures end-to-end communication, flow control, and error recovery (TCP/UDP). Layer 5 - Session: Establishes, manages, and terminates sessions between applications. Layer 6 - Presentation: Translates data formats, handles encryption, and compression. Layer 7 - Application: Provides network services directly to end-user applications (HTTP, SMTP, FTP).",
+        rubric:
+          "A good answer should name all seven layers in the correct order and provide at least a brief description of what each layer does. Partial credit for correctly ordering most layers or describing most accurately.",
+        keyPoints: [
+          "All seven layers named in correct order from Physical (1) to Application (7)",
+          "Physical Layer deals with raw bits and physical media",
+          "Data Link Layer handles framing and MAC addresses",
+          "Network Layer handles logical addressing (IP) and routing",
+          "Transport Layer provides end-to-end communication via TCP/UDP",
+        ],
+        hints: [
+          "A common mnemonic is 'Please Do Not Throw Sausage Pizza Away' (Physical, Data Link, Network, Transport, Session, Presentation, Application).",
+          "The lower layers (1-4) handle data transport; the upper layers (5-7) handle application-level concerns.",
+        ],
+        explanation:
+          "The Transport Layer (Layer 4) provides end-to-end communication, flow control, and error recovery between applications. TCP and UDP operate at this layer.",
+      },
     ],
   },
   {
@@ -103,6 +144,47 @@ export const nodes: SeedNode[] = [
           "Data encryption and compression",
         ],
         correctAnswer: "Transmission of raw bit streams over physical media",
+        explanation:
+          "The Physical Layer is concerned with the transmission of raw, unstructured bit streams over a physical medium such as copper cables, fiber optics, or wireless radio frequencies.",
+      },
+      {
+        type: "cued_recall",
+        prompt:
+          "What type of data does the Physical Layer (Layer 1) of the OSI model transmit, and over what kind of medium?",
+        correctAnswer: "Raw bit streams over physical media",
+        acceptableAnswers: [
+          "Raw bits over physical media",
+          "Bits over physical medium",
+          "Bit streams over cables, fiber, or wireless",
+          "Binary data over physical connections",
+          "Raw bits",
+        ],
+        hints: [
+          "Think about the most basic unit of digital data.",
+          "This layer is concerned with hardware: cables, connectors, and signal voltages.",
+        ],
+        explanation:
+          "The Physical Layer is concerned with the transmission of raw, unstructured bit streams over a physical medium such as copper cables, fiber optics, or wireless radio frequencies.",
+      },
+      {
+        type: "free_recall",
+        prompt:
+          "Explain the role of the Physical Layer (Layer 1) in the OSI model. What does it handle, and what are some examples of Physical Layer components and standards?",
+        correctAnswer:
+          "The Physical Layer is the lowest layer of the OSI model. It handles the transmission of raw, unstructured bit streams over a physical medium. It defines electrical signals, voltages, pin layouts, data rates, and physical connectors. Examples include Ethernet cables (Cat5e, Cat6), fiber optic cables, Wi-Fi radio frequencies, USB connectors, and standards like IEEE 802.3 (Ethernet) and IEEE 802.11 (Wi-Fi). It does not interpret the meaning of the bits; it simply moves them from one device to another.",
+        rubric:
+          "A good answer should explain that Layer 1 deals with raw bit transmission over physical media, mention specific examples of physical media or standards, and note that this layer does not interpret data meaning.",
+        keyPoints: [
+          "Transmits raw bit streams without interpreting their meaning",
+          "Defines electrical/optical signal characteristics and timing",
+          "Includes physical media like copper cables, fiber optics, and wireless",
+          "Covers connectors, pin layouts, voltages, and data rates",
+          "Examples include Ethernet (IEEE 802.3) and Wi-Fi (IEEE 802.11)",
+        ],
+        hints: [
+          "Think about what you can physically touch in a network: cables, ports, connectors.",
+          "This layer converts digital bits into signals (electrical, optical, or radio).",
+        ],
         explanation:
           "The Physical Layer is concerned with the transmission of raw, unstructured bit streams over a physical medium such as copper cables, fiber optics, or wireless radio frequencies.",
       },
@@ -127,6 +209,48 @@ export const nodes: SeedNode[] = [
         explanation:
           "The Data Link Layer packages raw bits into frames, handles MAC addressing, and manages access to the physical medium within a single network segment.",
       },
+      {
+        type: "cued_recall",
+        prompt:
+          "What type of address does the Data Link Layer (Layer 2) use to deliver frames within a local network segment?",
+        correctAnswer: "MAC address",
+        acceptableAnswers: [
+          "MAC addresses",
+          "Media Access Control address",
+          "Hardware address",
+          "Physical address",
+          "Ethernet address",
+          "Layer 2 address",
+        ],
+        hints: [
+          "This is a 48-bit address typically written as six pairs of hexadecimal digits (e.g., AA:BB:CC:DD:EE:FF).",
+          "It is burned into a network interface card (NIC) by the manufacturer.",
+        ],
+        explanation:
+          "The Data Link Layer packages raw bits into frames, handles MAC addressing, and manages access to the physical medium within a single network segment.",
+      },
+      {
+        type: "free_recall",
+        prompt:
+          "Describe the responsibilities of the Data Link Layer (Layer 2) in the OSI model. What are its key functions, and how does it relate to the layers above and below it?",
+        correctAnswer:
+          "The Data Link Layer sits between the Physical Layer (Layer 1) and the Network Layer (Layer 3). Its key responsibilities include: (1) Framing - packaging raw bits from the Physical Layer into structured frames with headers and trailers. (2) MAC Addressing - using 48-bit hardware addresses to identify source and destination devices on the local segment. (3) Media Access Control - managing how devices share access to the physical medium (e.g., CSMA/CD for Ethernet). (4) Error Detection - using mechanisms like CRC (Cyclic Redundancy Check) in the frame trailer to detect transmission errors. It is divided into two sublayers: LLC (Logical Link Control) and MAC (Media Access Control). Switches operate at this layer.",
+        rubric:
+          "A good answer should cover framing, MAC addressing, media access control, and error detection. Bonus for mentioning sublayers (LLC/MAC) or that switches operate at Layer 2.",
+        keyPoints: [
+          "Packages raw bits into structured frames with headers and trailers",
+          "Uses MAC addresses (48-bit hardware addresses) for local delivery",
+          "Manages shared access to the physical medium (media access control)",
+          "Provides error detection via CRC or similar mechanisms",
+          "Network switches are Layer 2 devices",
+        ],
+        hints: [
+          "Think about what needs to happen between raw electrical signals and IP-level routing.",
+          "This layer is where switches operate, forwarding frames based on hardware addresses.",
+        ],
+        explanation:
+          "The Data Link Layer packages raw bits into frames, handles MAC addressing, and manages access to the physical medium within a single network segment.",
+      },
     ],
   },
   {
@@ -147,6 +271,48 @@ export const nodes: SeedNode[] = [
         explanation:
           "The Network Layer handles logical addressing (IP addresses) and determines the best path for routing packets from source to destination across interconnected networks.",
       },
+      {
+        type: "cued_recall",
+        prompt:
+          "What type of addressing does the Network Layer (Layer 3) use to identify devices across different networks?",
+        correctAnswer: "IP addresses (logical addressing)",
+        acceptableAnswers: [
+          "IP addresses",
+          "Logical addresses",
+          "IP addressing",
+          "Internet Protocol addresses",
+          "logical addressing",
+          "IPv4/IPv6 addresses",
+        ],
+        hints: [
+          "Unlike MAC addresses which are hardware-based, these addresses are assigned by software and can change.",
+          "The most common version uses 32-bit addresses written in dotted-decimal notation (e.g., 192.168.1.1).",
+        ],
+        explanation:
+          "The Network Layer handles logical addressing (IP addresses) and determines the best path for routing packets from source to destination across interconnected networks.",
+      },
+      {
+        type: "free_recall",
+        prompt:
+          "Explain the role of the Network Layer (Layer 3) in the OSI model. What are its main functions, and what devices and protocols operate at this layer?",
+        correctAnswer:
+          "The Network Layer is responsible for logical addressing and routing. It assigns logical addresses (IP addresses) to devices so they can be identified across different networks. Its main functions include: (1) Logical Addressing - assigning IP addresses (IPv4 or IPv6) to uniquely identify devices. (2) Routing - determining the best path for packets to travel from source to destination across multiple networks using routing tables and algorithms. (3) Packet Forwarding - moving packets hop-by-hop through intermediate routers. (4) Fragmentation and Reassembly - breaking large packets into smaller fragments when they exceed a link's MTU, and reassembling them at the destination. Routers are the primary Layer 3 devices. Key protocols include IP (IPv4/IPv6), ICMP, OSPF, BGP, and RIP.",
+        rubric:
+          "A good answer should explain logical addressing (IP), routing/path determination, and mention that routers operate at this layer. Bonus for mentioning fragmentation, specific routing protocols, or the distinction from Layer 2 MAC addressing.",
+        keyPoints: [
+          "Uses logical (IP) addresses to identify devices across networks",
+          "Determines the best path (routing) for packets from source to destination",
+          "Routers are the primary Layer 3 devices",
+          "Key protocols include IP, ICMP, OSPF, and BGP",
+          "Handles packet fragmentation and reassembly across different MTU links",
+        ],
+        hints: [
+          "Think about what happens when data needs to travel beyond the local network segment.",
+          "Routers are the key networking device at this layer.",
+        ],
+        explanation:
+          "The Network Layer handles logical addressing (IP addresses) and determines the best path for routing packets from source to destination across interconnected networks.",
+      },
     ],
   },
   {
@@ -164,6 +330,52 @@ export const nodes: SeedNode[] = [
           "Application Layer (Layer 7)",
         ],
         correctAnswer: "Application Layer (Layer 7)",
+        explanation:
+          "The Application Layer (Layer 7) is the topmost OSI layer and provides network services directly to end-user applications, including protocols like HTTP, SMTP, FTP, and DNS.",
+      },
+      {
+        type: "cued_recall",
+        prompt:
+          "Name three protocols that operate at the Application Layer (Layer 7) of the OSI model.",
+        correctAnswer: "HTTP, SMTP, and FTP",
+        acceptableAnswers: [
+          "HTTP, SMTP, FTP",
+          "HTTP, DNS, FTP",
+          "HTTP, SMTP, DNS",
+          "SMTP, FTP, DNS",
+          "HTTP, FTP, SSH",
+          "HTTP, HTTPS, DNS",
+          "HTTP, SMTP, SNMP",
+          "DNS, DHCP, HTTP",
+          "FTP, SMTP, POP3",
+          "HTTP, FTP, Telnet",
+        ],
+        hints: [
+          "Think about the protocols you use every day for web browsing, sending email, or transferring files.",
+          "These protocols provide services that applications interact with directly.",
+        ],
+        explanation:
+          "The Application Layer (Layer 7) is the topmost OSI layer and provides network services directly to end-user applications, including protocols like HTTP, SMTP, FTP, and DNS.",
+      },
+      {
+        type: "free_recall",
+        prompt:
+          "Explain the role of the Application Layer (Layer 7) in the OSI model. What does it do, how does it differ from the layers below it, and what are some common protocols that operate at this layer?",
+        correctAnswer:
+          "The Application Layer is the topmost layer (Layer 7) of the OSI model. It provides network services directly to end-user applications, serving as the interface between the user's software and the underlying network. Unlike the lower layers which handle data transport, addressing, and signal transmission, the Application Layer is concerned with application-level functionality such as web browsing, email, file transfer, and name resolution. Common protocols include: HTTP/HTTPS (web), SMTP (sending email), POP3/IMAP (receiving email), FTP (file transfer), DNS (domain name resolution), SSH (secure remote access), SNMP (network management), and DHCP (dynamic configuration). The Application Layer does not refer to the applications themselves but rather to the protocols and services that applications use to communicate over the network.",
+        rubric:
+          "A good answer should explain that Layer 7 provides network services to end-user applications, list several common protocols with their purposes, and distinguish it from lower layers. Bonus for clarifying that it refers to protocols/services rather than the applications themselves.",
+        keyPoints: [
+          "Topmost layer that provides network services directly to end-user applications",
+          "Serves as the interface between user software and the network stack",
+          "Common protocols include HTTP, SMTP, FTP, DNS, and SSH",
+          "Differs from lower layers which handle transport, routing, and physical transmission",
+          "Refers to network protocols and services, not the applications themselves",
+        ],
+        hints: [
+          "Think about what protocols your web browser, email client, and file transfer tools rely on.",
+          "This layer is closest to the end user and farthest from the physical wire.",
+        ],
         explanation:
           "The Application Layer (Layer 7) is the topmost OSI layer and provides network services directly to end-user applications, including protocols like HTTP, SMTP, FTP, and DNS.",
       },

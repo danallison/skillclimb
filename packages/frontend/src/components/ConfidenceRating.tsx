@@ -2,13 +2,13 @@ import { useSessionStore } from "../store/sessionStore.js";
 import { colors } from "../styles/theme.js";
 
 export default function ConfidenceRating() {
-  const { selectedAnswer, setConfidenceRating, setPhase } = useSessionStore();
+  const { selectedAnswer, attemptNumber, setConfidenceRating, setPhase } = useSessionStore();
 
   if (selectedAnswer === null) return null;
 
   const handleSelect = (rating: number) => {
     setConfidenceRating(rating);
-    setPhase("feedback");
+    setPhase(attemptNumber === 2 ? "second_feedback" : "feedback");
   };
 
   const labels = ["Very unsure", "Unsure", "Somewhat sure", "Sure", "Very sure"];

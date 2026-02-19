@@ -73,6 +73,41 @@ export const nodes: SeedNode[] = [
         explanation:
           "Confidentiality ensures that sensitive information is accessed only by authorized individuals. Encryption, access controls, and data classification are common mechanisms for enforcing confidentiality.",
       },
+      {
+        type: "cued_recall",
+        prompt:
+          "Which element of the CIA triad is concerned with preventing unauthorized disclosure of information?",
+        correctAnswer: "Confidentiality",
+        acceptableAnswers: ["confidentiality", "Confidentiality"],
+        hints: [
+          "Think about what it means to keep a secret.",
+          "This principle is enforced through encryption and access controls.",
+        ],
+        explanation:
+          "Confidentiality ensures that sensitive information is accessed only by authorized individuals. Encryption, access controls, and data classification are common mechanisms for enforcing confidentiality.",
+      },
+      {
+        type: "free_recall",
+        prompt:
+          "Explain what confidentiality means in the context of the CIA triad and describe at least two mechanisms used to enforce it.",
+        correctAnswer:
+          "Confidentiality is the principle that information should only be accessible to those who are authorized to view it. It prevents unauthorized disclosure of sensitive data. Common mechanisms for enforcing confidentiality include encryption (converting data into an unreadable format without the proper key), access controls (restricting who can access resources based on roles or permissions), and data classification (labeling data by sensitivity level to apply appropriate protections).",
+        rubric:
+          "A good answer should define confidentiality as preventing unauthorized access or disclosure, and identify at least two enforcement mechanisms such as encryption, access controls, data classification, or data masking.",
+        keyPoints: [
+          "Confidentiality prevents unauthorized disclosure of information",
+          "Encryption transforms data so only authorized parties can read it",
+          "Access controls restrict who can view or modify resources",
+          "Data classification categorizes information by sensitivity level",
+          "Other mechanisms include data masking and secure communication channels",
+        ],
+        hints: [
+          "Think about what happens when sensitive data falls into the wrong hands.",
+          "Consider both technical controls (like encryption) and administrative controls (like classification policies).",
+        ],
+        explanation:
+          "Confidentiality ensures that sensitive information is accessed only by authorized individuals. Encryption, access controls, and data classification are common mechanisms for enforcing confidentiality.",
+      },
     ],
   },
   {
@@ -90,6 +125,41 @@ export const nodes: SeedNode[] = [
           "Non-repudiation",
         ],
         correctAnswer: "Integrity",
+        explanation:
+          "Integrity ensures that data remains accurate and unaltered except by authorized changes. Hash functions, digital signatures, and checksums are used to detect unauthorized modifications.",
+      },
+      {
+        type: "cued_recall",
+        prompt:
+          "Which element of the CIA triad ensures that data has not been tampered with or altered by unauthorized parties?",
+        correctAnswer: "Integrity",
+        acceptableAnswers: ["integrity", "Integrity", "data integrity"],
+        hints: [
+          "Think about what guarantees that data remains accurate and trustworthy.",
+          "Hash functions and digital signatures are commonly used to verify this property.",
+        ],
+        explanation:
+          "Integrity ensures that data remains accurate and unaltered except by authorized changes. Hash functions, digital signatures, and checksums are used to detect unauthorized modifications.",
+      },
+      {
+        type: "free_recall",
+        prompt:
+          "Explain what integrity means in the CIA triad and describe how organizations detect or prevent unauthorized data modifications.",
+        correctAnswer:
+          "Integrity in the CIA triad means ensuring that data remains accurate, complete, and unaltered except through authorized processes. Organizations use several mechanisms to protect integrity: hash functions generate a fixed-size fingerprint of data that changes if even one bit is modified, digital signatures combine hashing with asymmetric encryption to verify both the source and integrity of data, checksums provide a simpler verification that data has not been corrupted, and version control and audit logs track all changes to detect unauthorized modifications.",
+        rubric:
+          "A good answer should define integrity as ensuring data accuracy and preventing unauthorized modification, and describe at least two detection or prevention mechanisms such as hashing, digital signatures, checksums, or audit trails.",
+        keyPoints: [
+          "Integrity ensures data accuracy and prevents unauthorized modification",
+          "Hash functions detect changes by producing a unique fingerprint of data",
+          "Digital signatures verify both the source and integrity of data",
+          "Checksums provide basic verification that data has not been corrupted",
+          "Audit logs and version control track changes over time",
+        ],
+        hints: [
+          "Consider what would happen if someone silently changed a financial record or medical file.",
+          "Think about cryptographic tools that can detect even the smallest change to data.",
+        ],
         explanation:
           "Integrity ensures that data remains accurate and unaltered except by authorized changes. Hash functions, digital signatures, and checksums are used to detect unauthorized modifications.",
       },
@@ -113,6 +183,41 @@ export const nodes: SeedNode[] = [
         explanation:
           "Availability ensures that systems and data are accessible to authorized users when needed. DDoS attacks directly target availability by overwhelming resources so legitimate users cannot access the service.",
       },
+      {
+        type: "cued_recall",
+        prompt:
+          "Which element of the CIA triad is compromised when authorized users are unable to access a system or its data when they need it?",
+        correctAnswer: "Availability",
+        acceptableAnswers: ["availability", "Availability"],
+        hints: [
+          "Think about what happens during a DDoS attack or a major system outage.",
+          "This principle is about ensuring systems are up and running when needed.",
+        ],
+        explanation:
+          "Availability ensures that systems and data are accessible to authorized users when needed. DDoS attacks directly target availability by overwhelming resources so legitimate users cannot access the service.",
+      },
+      {
+        type: "free_recall",
+        prompt:
+          "Explain what availability means in the CIA triad and describe common threats to availability along with defenses against them.",
+        correctAnswer:
+          "Availability is the principle that systems, networks, and data must be accessible to authorized users whenever they are needed. Common threats to availability include distributed denial-of-service (DDoS) attacks that overwhelm resources with traffic, hardware failures, natural disasters, and ransomware that locks users out of their data. Defenses include redundancy and failover systems, load balancing to distribute traffic, regular backups and disaster recovery plans, DDoS mitigation services, and uninterruptible power supplies (UPS) to handle power outages.",
+        rubric:
+          "A good answer should define availability as ensuring timely access for authorized users, identify at least two threats (such as DDoS, hardware failure, or natural disasters), and describe at least two defensive measures.",
+        keyPoints: [
+          "Availability ensures authorized users can access systems and data when needed",
+          "DDoS attacks are a primary threat that overwhelms resources with traffic",
+          "Redundancy and failover systems help maintain uptime during failures",
+          "Regular backups and disaster recovery plans protect against data loss",
+          "Load balancing distributes traffic to prevent any single point of overload",
+        ],
+        hints: [
+          "Think about what could prevent you from accessing a critical system and what safeguards could help.",
+          "Consider both intentional attacks and unintentional failures that affect system uptime.",
+        ],
+        explanation:
+          "Availability ensures that systems and data are accessible to authorized users when needed. DDoS attacks directly target availability by overwhelming resources so legitimate users cannot access the service.",
+      },
     ],
   },
   {
@@ -129,6 +234,46 @@ export const nodes: SeedNode[] = [
           "Containment, Isolation, Assessment",
         ],
         correctAnswer: "Confidentiality, Integrity, Availability",
+        explanation:
+          "The CIA triad is the foundational model in information security. Confidentiality protects data from unauthorized disclosure, integrity ensures data accuracy, and availability ensures systems are accessible when needed.",
+      },
+      {
+        type: "cued_recall",
+        prompt:
+          "Name the three components of the CIA triad, the foundational model of information security.",
+        correctAnswer: "Confidentiality, Integrity, and Availability",
+        acceptableAnswers: [
+          "Confidentiality, Integrity, Availability",
+          "confidentiality, integrity, availability",
+          "confidentiality integrity availability",
+          "C I A",
+        ],
+        hints: [
+          "The acronym CIA stands for three words, each representing a core security goal.",
+          "One is about keeping secrets, one is about accuracy, and one is about uptime.",
+        ],
+        explanation:
+          "The CIA triad is the foundational model in information security. Confidentiality protects data from unauthorized disclosure, integrity ensures data accuracy, and availability ensures systems are accessible when needed.",
+      },
+      {
+        type: "free_recall",
+        prompt:
+          "Describe the CIA triad and explain how each of its three components contributes to a comprehensive information security strategy.",
+        correctAnswer:
+          "The CIA triad is the foundational model of information security, consisting of three core principles: Confidentiality ensures that sensitive information is only accessible to authorized individuals, using mechanisms like encryption, access controls, and data classification. Integrity ensures that data remains accurate and unaltered except through authorized processes, using tools like hash functions, digital signatures, and audit trails. Availability ensures that systems and data are accessible to authorized users when needed, supported by redundancy, backups, disaster recovery planning, and DDoS mitigation. Together, these three principles guide the design and evaluation of security policies and controls.",
+        rubric:
+          "A good answer should name all three components, define each one clearly, and explain how they work together to form a comprehensive security model. Bonus for providing examples of mechanisms that support each component.",
+        keyPoints: [
+          "Confidentiality prevents unauthorized disclosure of information",
+          "Integrity ensures data remains accurate and unmodified by unauthorized parties",
+          "Availability ensures systems and data are accessible when needed",
+          "The three components together form the foundational model of information security",
+          "Each component is supported by specific technical and administrative controls",
+        ],
+        hints: [
+          "Think of three words that start with C, I, and A.",
+          "Consider what could go wrong if any one of these three properties were violated.",
+        ],
         explanation:
           "The CIA triad is the foundational model in information security. Confidentiality protects data from unauthorized disclosure, integrity ensures data accuracy, and availability ensures systems are accessible when needed.",
       },
@@ -149,6 +294,45 @@ export const nodes: SeedNode[] = [
           "Obfuscation",
         ],
         correctAnswer: "Non-repudiation",
+        explanation:
+          "Non-repudiation provides proof of the origin and integrity of data, making it impossible for the sender to deny having sent it. Digital signatures are the primary mechanism for achieving non-repudiation.",
+      },
+      {
+        type: "cued_recall",
+        prompt:
+          "What security property ensures that someone cannot deny having performed an action, such as sending a message or signing a document?",
+        correctAnswer: "Non-repudiation",
+        acceptableAnswers: [
+          "non-repudiation",
+          "Non-repudiation",
+          "nonrepudiation",
+        ],
+        hints: [
+          "This property is closely related to accountability and proof of origin.",
+          "Digital signatures are the primary cryptographic mechanism for achieving this.",
+        ],
+        explanation:
+          "Non-repudiation provides proof of the origin and integrity of data, making it impossible for the sender to deny having sent it. Digital signatures are the primary mechanism for achieving non-repudiation.",
+      },
+      {
+        type: "free_recall",
+        prompt:
+          "Explain the concept of non-repudiation in cybersecurity, why it matters, and how it is typically achieved.",
+        correctAnswer:
+          "Non-repudiation is the security property that ensures a party involved in a communication or transaction cannot deny having performed that action. It provides irrefutable proof of origin and delivery. This matters because in legal, financial, and contractual contexts, parties must be held accountable for their actions. Non-repudiation is primarily achieved through digital signatures, which use asymmetric cryptography: the sender signs a message with their private key, and anyone can verify the signature using the sender's public key. Since only the sender possesses their private key, they cannot plausibly deny having created the signature. Audit logs, timestamps, and certificates from a Public Key Infrastructure (PKI) further support non-repudiation.",
+        rubric:
+          "A good answer should define non-repudiation as the inability to deny an action, explain its importance for accountability, and describe the role of digital signatures (and optionally PKI or audit logs) in achieving it.",
+        keyPoints: [
+          "Non-repudiation prevents a party from denying they performed an action",
+          "It provides proof of origin and delivery of data",
+          "Digital signatures are the primary mechanism for achieving non-repudiation",
+          "It is essential for legal, financial, and contractual accountability",
+          "PKI, audit logs, and timestamps provide additional non-repudiation support",
+        ],
+        hints: [
+          "Think about what would happen in a legal dispute if someone could deny signing a contract.",
+          "Consider how asymmetric cryptography (public/private key pairs) can prove who created a message.",
+        ],
         explanation:
           "Non-repudiation provides proof of the origin and integrity of data, making it impossible for the sender to deny having sent it. Digital signatures are the primary mechanism for achieving non-repudiation.",
       },

@@ -74,6 +74,44 @@ export const nodes: SeedNode[] = [
         explanation:
           "Identification is the act of claiming an identity (e.g., entering a username), while authentication is the process of verifying that claim (e.g., providing a password). Identification always precedes authentication in the access control process.",
       },
+      {
+        type: "cued_recall",
+        prompt:
+          "In access control, what is the process called where a user proves they are who they claim to be (e.g., by entering a password after providing a username)?",
+        correctAnswer: "Authentication",
+        acceptableAnswers: [
+          "authentication",
+          "identity verification",
+          "identity authentication",
+        ],
+        hints: [
+          "It comes after identification in the access control process.",
+          "Think about what a password is used to do — it's not just claiming who you are.",
+        ],
+        explanation:
+          "Identification is the act of claiming an identity (e.g., entering a username), while authentication is the process of verifying that claim (e.g., providing a password). Identification always precedes authentication in the access control process.",
+      },
+      {
+        type: "free_recall",
+        prompt:
+          "Explain the difference between identification and authentication, and describe where each occurs in the access control process.",
+        correctAnswer:
+          "Identification is the act of claiming an identity, such as entering a username or presenting an ID badge. Authentication is the process of proving that claimed identity is legitimate, such as entering a password, providing a fingerprint, or using a security token. In the access control process, identification always comes first — the user states who they are — followed by authentication, where the system verifies that claim. Only after successful authentication does the system proceed to authorization, which determines what the authenticated user is allowed to do.",
+        rubric:
+          "A good answer should clearly distinguish between identification (claiming) and authentication (proving), provide examples of each, and explain the order in which they occur in access control.",
+        keyPoints: [
+          "Identification is claiming an identity (e.g., entering a username)",
+          "Authentication is proving or verifying that claimed identity (e.g., entering a password)",
+          "Identification always precedes authentication",
+          "Authorization is a separate step that follows authentication",
+        ],
+        hints: [
+          "Think about what happens when you log in — what do you do first, and what does the system check next?",
+          "One of these is about 'who you say you are' and the other is about 'proving it.'",
+        ],
+        explanation:
+          "Identification is the act of claiming an identity (e.g., entering a username), while authentication is the process of verifying that claim (e.g., providing a password). Identification always precedes authentication in the access control process.",
+      },
     ],
   },
   {
@@ -91,6 +129,48 @@ export const nodes: SeedNode[] = [
           "Somewhere you are",
         ],
         correctAnswer: "Something you know",
+        explanation:
+          "Knowledge-based authentication relies on information that the user memorizes. This includes passwords, PINs, passphrases, and security questions. It is the most common but also the weakest factor, as knowledge can be guessed, phished, or stolen.",
+      },
+      {
+        type: "cued_recall",
+        prompt:
+          "What authentication factor category do passwords, PINs, and security questions belong to?",
+        correctAnswer: "Something you know",
+        acceptableAnswers: [
+          "something you know",
+          "knowledge factor",
+          "knowledge-based factor",
+          "knowledge-based authentication",
+          "Type 1 factor",
+          "Type 1",
+        ],
+        hints: [
+          "These are all things you memorize rather than carry or physically possess.",
+          "The three main authentication factors are: something you know, something you have, and something you are.",
+        ],
+        explanation:
+          "Knowledge-based authentication relies on information that the user memorizes. This includes passwords, PINs, passphrases, and security questions. It is the most common but also the weakest factor, as knowledge can be guessed, phished, or stolen.",
+      },
+      {
+        type: "free_recall",
+        prompt:
+          "Describe knowledge-based authentication, give examples, and explain why it is considered the weakest authentication factor.",
+        correctAnswer:
+          "Knowledge-based authentication is an authentication method that relies on information the user has memorized, such as passwords, PINs, passphrases, and security questions. It falls under the 'something you know' factor category. While it is the most widely used authentication factor due to its simplicity and low implementation cost, it is considered the weakest because the information can be guessed through brute force or dictionary attacks, stolen through phishing or social engineering, captured through keyloggers, or exposed in data breaches. Unlike physical tokens or biometrics, knowledge can be shared, reused across services, and compromised without the user's awareness.",
+        rubric:
+          "A good answer should define knowledge-based authentication, list at least two examples, identify it as the 'something you know' factor, and explain at least two reasons why it is the weakest factor.",
+        keyPoints: [
+          "Falls under the 'something you know' authentication factor",
+          "Examples include passwords, PINs, passphrases, and security questions",
+          "Most common authentication factor due to simplicity",
+          "Weakest factor because knowledge can be guessed, phished, stolen, or leaked",
+          "Vulnerable to brute force, dictionary attacks, social engineering, and keyloggers",
+        ],
+        hints: [
+          "Think about what type of information these all share — they exist only in your memory.",
+          "Consider all the ways someone could learn your password without you knowing.",
+        ],
         explanation:
           "Knowledge-based authentication relies on information that the user memorizes. This includes passwords, PINs, passphrases, and security questions. It is the most common but also the weakest factor, as knowledge can be guessed, phished, or stolen.",
       },
@@ -115,6 +195,47 @@ export const nodes: SeedNode[] = [
         explanation:
           "Hashing is a one-way function that converts a password into a fixed-length digest. Adding a unique salt to each password before hashing prevents attackers from using precomputed rainbow tables. bcrypt, scrypt, and Argon2 are purpose-built password hashing algorithms.",
       },
+      {
+        type: "cued_recall",
+        prompt:
+          "What is the random value added to each password before hashing that prevents attackers from using precomputed rainbow tables?",
+        correctAnswer: "A salt",
+        acceptableAnswers: [
+          "salt",
+          "a salt",
+          "password salt",
+          "cryptographic salt",
+          "random salt",
+        ],
+        hints: [
+          "It's a random value unique to each password, mixed in before the hash function runs.",
+          "The term is borrowed from cooking — you add a little of this to change the result.",
+        ],
+        explanation:
+          "Hashing is a one-way function that converts a password into a fixed-length digest. Adding a unique salt to each password before hashing prevents attackers from using precomputed rainbow tables. bcrypt, scrypt, and Argon2 are purpose-built password hashing algorithms.",
+      },
+      {
+        type: "free_recall",
+        prompt:
+          "Explain why passwords should be stored as salted hashes, how salting and hashing work together, and name at least two purpose-built password hashing algorithms.",
+        correctAnswer:
+          "Passwords should never be stored in plaintext or with reversible encryption because if the database is compromised, attackers would gain immediate access to all user credentials. Instead, passwords are processed through a one-way hash function that produces a fixed-length digest from which the original password cannot be recovered. A unique random salt is added to each password before hashing, which ensures that even identical passwords produce different hash values. This defeats precomputed rainbow table attacks and forces attackers to crack each hash individually. Purpose-built password hashing algorithms like bcrypt, scrypt, and Argon2 are designed to be computationally expensive, making brute-force attacks impractical. Argon2 is the winner of the Password Hashing Competition and is considered the current best practice.",
+        rubric:
+          "A good answer should explain why plaintext storage is dangerous, describe the one-way nature of hashing, explain the purpose of salting, and name at least two password hashing algorithms (bcrypt, scrypt, or Argon2).",
+        keyPoints: [
+          "Hashing is a one-way function — the original password cannot be recovered from the hash",
+          "A unique salt added to each password prevents rainbow table attacks",
+          "Even identical passwords produce different hashes when salted",
+          "bcrypt, scrypt, and Argon2 are purpose-built password hashing algorithms",
+          "These algorithms are intentionally slow to resist brute-force attacks",
+        ],
+        hints: [
+          "Think about what happens if an attacker gets a copy of the database — what should they NOT be able to do?",
+          "Consider why two users with the same password should still have different stored values.",
+        ],
+        explanation:
+          "Hashing is a one-way function that converts a password into a fixed-length digest. Adding a unique salt to each password before hashing prevents attackers from using precomputed rainbow tables. bcrypt, scrypt, and Argon2 are purpose-built password hashing algorithms.",
+      },
     ],
   },
   {
@@ -135,6 +256,45 @@ export const nodes: SeedNode[] = [
         explanation:
           "Credential stuffing exploits password reuse by testing stolen credentials from one breach against multiple services. Unlike brute force, which guesses passwords, credential stuffing uses real credentials. MFA and breach-password detection are effective countermeasures.",
       },
+      {
+        type: "cued_recall",
+        prompt:
+          "What is the name of the attack where stolen username-password pairs from one data breach are automatically tested against other websites?",
+        correctAnswer: "Credential stuffing",
+        acceptableAnswers: [
+          "credential stuffing",
+          "credential stuffing attack",
+          "credential reuse attack",
+        ],
+        hints: [
+          "This attack specifically exploits the fact that people reuse passwords across multiple sites.",
+          "The attacker doesn't guess passwords — they already have real ones from a previous breach.",
+        ],
+        explanation:
+          "Credential stuffing exploits password reuse by testing stolen credentials from one breach against multiple services. Unlike brute force, which guesses passwords, credential stuffing uses real credentials. MFA and breach-password detection are effective countermeasures.",
+      },
+      {
+        type: "free_recall",
+        prompt:
+          "Explain how credential stuffing works, what makes it different from brute force attacks, and what countermeasures organizations can use to defend against it.",
+        correctAnswer:
+          "Credential stuffing is an automated attack where an attacker takes username-password pairs that were leaked from a data breach at one service and systematically tests them against login pages of other services. It exploits the widespread habit of password reuse — if a user uses the same email and password on multiple sites, compromising one gives access to many. Unlike brute force attacks, which try to guess unknown passwords through exhaustive combinations, credential stuffing uses real, validated credentials, making each attempt more likely to succeed. Effective countermeasures include multi-factor authentication (MFA), which blocks access even with valid credentials; breach-password detection services (like Have I Been Pwned) that flag known-compromised passwords; rate limiting and CAPTCHA to slow automated attempts; and monitoring for unusual login patterns such as high volumes of failed attempts from diverse IP addresses.",
+        rubric:
+          "A good answer should explain the attack mechanism (using breached credentials across services), distinguish it from brute force, identify password reuse as the root cause, and list at least two countermeasures.",
+        keyPoints: [
+          "Uses real credentials stolen from previous data breaches",
+          "Exploits password reuse across multiple services",
+          "Different from brute force — uses known-valid credentials, not guesses",
+          "MFA is an effective countermeasure even if credentials are compromised",
+          "Breach-password detection, rate limiting, and CAPTCHA also help defend",
+        ],
+        hints: [
+          "Think about what makes these credentials special — they're not guesses.",
+          "Consider what user behavior makes this attack possible in the first place.",
+        ],
+        explanation:
+          "Credential stuffing exploits password reuse by testing stolen credentials from one breach against multiple services. Unlike brute force, which guesses passwords, credential stuffing uses real credentials. MFA and breach-password detection are effective countermeasures.",
+      },
     ],
   },
   {
@@ -152,6 +312,46 @@ export const nodes: SeedNode[] = [
           "Brute force attack",
         ],
         correctAnswer: "Password spraying",
+        explanation:
+          "Password spraying avoids account lockout thresholds by trying one password across many accounts rather than many passwords against one account. It is effective against organizations that allow weak passwords and do not enforce MFA.",
+      },
+      {
+        type: "cued_recall",
+        prompt:
+          "What is the name of the attack where an attacker tries one common password against many user accounts before moving to the next password, specifically to avoid triggering account lockouts?",
+        correctAnswer: "Password spraying",
+        acceptableAnswers: [
+          "password spraying",
+          "password spray",
+          "password spray attack",
+          "password spraying attack",
+        ],
+        hints: [
+          "The attacker spreads a single password attempt across many accounts, like spraying a wide area.",
+          "Unlike brute force, this approach deliberately stays under the lockout threshold for any single account.",
+        ],
+        explanation:
+          "Password spraying avoids account lockout thresholds by trying one password across many accounts rather than many passwords against one account. It is effective against organizations that allow weak passwords and do not enforce MFA.",
+      },
+      {
+        type: "free_recall",
+        prompt:
+          "Explain how a password spraying attack works, how it differs from credential stuffing and brute force attacks, and what defenses are effective against it.",
+        correctAnswer:
+          "Password spraying is an attack technique where an attacker selects a single commonly used password (such as 'Password123' or 'Summer2024!') and tries it against a large number of user accounts before moving to the next password. This approach is designed to evade account lockout policies, which typically lock an account after a set number of failed attempts — since each account only sees one failed attempt per password round. It differs from brute force attacks, which try many passwords against a single account and are easily caught by lockout mechanisms. It also differs from credential stuffing, which uses previously breached username-password pairs rather than guessing common passwords. Password spraying is particularly effective against organizations that permit weak or default passwords. Effective defenses include enforcing strong password policies that prohibit common passwords, implementing MFA so that a correct password alone is insufficient, using smart lockout or risk-based authentication that detects distributed login patterns, and monitoring for distributed login failures across many accounts from similar sources.",
+        rubric:
+          "A good answer should describe the attack mechanism (one password across many accounts), explain why it evades lockout policies, differentiate it from both brute force and credential stuffing, and list at least two defenses.",
+        keyPoints: [
+          "Tries one common password across many accounts before moving to the next",
+          "Evades account lockout thresholds because each account sees few failed attempts",
+          "Different from brute force (many passwords against one account) and credential stuffing (uses real breached credentials)",
+          "Effective against organizations with weak password policies",
+          "Defenses include MFA, strong password policies banning common passwords, and monitoring distributed login failures",
+        ],
+        hints: [
+          "Think about why an attacker would try only one password at a time across many accounts.",
+          "Consider what kind of password policies would make an organization vulnerable to this.",
+        ],
         explanation:
           "Password spraying avoids account lockout thresholds by trying one password across many accounts rather than many passwords against one account. It is effective against organizations that allow weak passwords and do not enforce MFA.",
       },

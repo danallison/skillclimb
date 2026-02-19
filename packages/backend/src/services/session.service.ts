@@ -2,7 +2,7 @@ import { eq, inArray } from "drizzle-orm";
 import { db } from "../db/connection.js";
 import { learnerNodes, nodes as nodesTable, sessions } from "../db/schema.js";
 import { dbRowToLearnerState, dbRowToNode } from "../db/mappers.js";
-import { buildSession, DEFAULT_SESSION_CONFIG } from "@skillclimb/core";
+import { buildSession, DEFAULT_SESSION_CONFIG, selectQuestionType } from "@skillclimb/core";
 import type { SessionResult } from "@skillclimb/core";
 
 export interface SessionWithItems {
@@ -73,7 +73,8 @@ export async function getSession(sessionId: string): Promise<SessionWithItems | 
   const items = nodeRows.map((nodeRow) => {
     const node = dbRowToNode(nodeRow);
     const state = learnerMap.get(node.id)!;
-    const template = node.questionTemplates.find((t) => t.type === "recognition") ?? node.questionTemplates[0];
+    const selectedType = selectQuestionType(state, node.questionTemplates.map((t) => t.type));
+    const template = node.questionTemplates.find((t) => t.type === selectedType) ?? node.questionTemplates[0];
     return {
       node,
       learnerState: state,
