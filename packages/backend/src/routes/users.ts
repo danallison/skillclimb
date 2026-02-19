@@ -1,9 +1,10 @@
 import { Router } from "express";
 import { eq } from "drizzle-orm";
 import { db } from "../db/connection.js";
-import { users, learnerNodes, nodes, domains, topics } from "../db/schema.js";
+import { users, learnerNodes, nodes, domains, topics, reviews } from "../db/schema.js";
 import { dbRowToLearnerState } from "../db/mappers.js";
-import { computeOverallProgress, computeTopicProgress } from "@cyberclimb/core";
+import { computeOverallProgress, computeTopicProgress, computeCalibrationAnalysis } from "@cyberclimb/core";
+import type { CalibrationEntry } from "@cyberclimb/core";
 
 const router = Router();
 
@@ -100,6 +101,7 @@ router.get("/:id/progress", async (req, res) => {
         name: domain.name,
         description: domain.description,
         tier: domain.tier,
+        prerequisites: domain.prerequisites as string[],
         totalNodes: dp?.totalNodes ?? 0,
         mastered: dp?.mastered ?? 0,
         inProgress: dp?.inProgress ?? 0,
@@ -122,6 +124,70 @@ router.get("/:id/progress", async (req, res) => {
   } catch (err) {
     console.error("Error fetching user progress:", err);
     res.status(500).json({ error: "Failed to fetch progress" });
+  }
+});
+
+router.get("/:id/calibration", async (req, res) => {
+  try {
+    const userId = req.params.id;
+
+    // Fetch all reviews for this user with confidence and score
+    const userReviews = await db
+      .select()
+      .from(reviews)
+      .where(eq(reviews.userId, userId));
+
+    if (userReviews.length === 0) {
+      res.json({
+        overallScore: 0,
+        quadrantCounts: { calibrated: 0, illusion: 0, undervalued: 0, known_unknown: 0 },
+        quadrantPercentages: { calibrated: 0, illusion: 0, undervalued: 0, known_unknown: 0 },
+        domainBreakdown: [],
+        trend: [],
+        insights: [],
+        totalEntries: 0,
+      });
+      return;
+    }
+
+    // Build node → domain mapping
+    const allNodes = await db.select().from(nodes);
+    const nodeDomainMap = new Map(allNodes.map((n) => [n.id, n.domainId]));
+
+    // Derive calibration entries
+    const entries: CalibrationEntry[] = userReviews.map((r) => ({
+      confidence: r.confidence,
+      wasCorrect: r.score >= 3,
+      timestamp: r.createdAt,
+    }));
+
+    // Build domain map indexed by entry position
+    const domainMap = new Map<string, string>();
+    for (let i = 0; i < userReviews.length; i++) {
+      const domainId = nodeDomainMap.get(userReviews[i].nodeId);
+      if (domainId) {
+        domainMap.set(String(i), domainId);
+      }
+    }
+
+    const analysis = computeCalibrationAnalysis(entries, domainMap);
+
+    // Replace domain IDs with names in the breakdown
+    const allDomains = await db.select().from(domains);
+    const domainNames = new Map(allDomains.map((d) => [d.id, d.name]));
+
+    const enrichedBreakdown = analysis.domainBreakdown.map((d) => ({
+      ...d,
+      domainName: domainNames.get(d.domainId) ?? "Unknown",
+    }));
+
+    res.json({
+      ...analysis,
+      domainBreakdown: enrichedBreakdown,
+    });
+  } catch (err) {
+    console.error("Error fetching calibration:", err);
+    res.status(500).json({ error: "Failed to fetch calibration data" });
   }
 });
 

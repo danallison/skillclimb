@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
-import { useCreateUser, useCreateSession, useSession } from "./api/hooks.js";
+import { useCreateUser, useCreateSession, useSession, useStartPlacement, useProgress } from "./api/hooks.js";
 import { useSessionStore } from "./store/sessionStore.js";
+import { usePlacementStore } from "./store/placementStore.js";
 import { colors } from "./styles/theme.js";
 import SessionView from "./components/SessionView.js";
 import ProgressView from "./components/ProgressView.js";
+import PlacementView from "./components/PlacementView.js";
 
-type View = "login" | "progress" | "session";
+type View = "login" | "progress" | "session" | "placement";
 
 function getInitialView(userId: string | null): View {
   if (!userId) return "login";
@@ -16,10 +18,17 @@ function getInitialView(userId: string | null): View {
 
 export default function App() {
   const { userId, session, setUserId, setSession, resumeSession, reset } = useSessionStore();
+  const placementStore = usePlacementStore();
   const [email, setEmail] = useState("");
   const [view, setView] = useState<View>(() => getInitialView(userId));
   const createUser = useCreateUser();
   const createSession = useCreateSession();
+  const startPlacement = useStartPlacement();
+
+  // Check if user has learner nodes (to decide placement vs progress)
+  const { data: progressData } = useProgress(
+    view === "progress" && userId ? userId : null,
+  );
 
   // Restore in-progress session from localStorage
   const savedSessionId = view === "session" && !session
@@ -55,6 +64,21 @@ export default function App() {
     }
   };
 
+  const handleStartPlacement = async () => {
+    if (!userId) return;
+    try {
+      const result = await startPlacement.mutateAsync(userId);
+      placementStore.startPlacement(
+        result.placementId,
+        result.question,
+        result.estimatedTotal,
+      );
+      setView("placement");
+    } catch (err) {
+      console.error("Failed to start placement:", err);
+    }
+  };
+
   // Active session
   if (view === "session" && session) {
     return <SessionView onFinished={() => setView("progress")} />;
@@ -70,12 +94,29 @@ export default function App() {
     setView("progress");
   }
 
+  // Placement test
+  if (view === "placement") {
+    return (
+      <PlacementView
+        onComplete={() => {
+          placementStore.reset();
+          setView("progress");
+        }}
+        onSkip={() => {
+          placementStore.reset();
+          setView("progress");
+        }}
+      />
+    );
+  }
+
   // Progress view (after login or after session)
   if (view === "progress" && userId) {
     return (
       <ProgressView
         userId={userId}
         onStartSession={handleStartSession}
+        onStartPlacement={handleStartPlacement}
         onBack={() => {
           localStorage.removeItem("cyberclimb_userId");
           reset();

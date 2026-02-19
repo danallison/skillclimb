@@ -90,6 +90,7 @@ export interface DomainProgressResponse {
   name: string;
   description: string;
   tier: number;
+  prerequisites: string[];
   totalNodes: number;
   mastered: number;
   inProgress: number;
@@ -155,6 +156,122 @@ export function useProgress(userId: string | null) {
   return useQuery({
     queryKey: ["progress", userId],
     queryFn: () => fetchJson<ProgressResponse>(`/users/${userId}/progress`),
+    enabled: !!userId,
+  });
+}
+
+// === Placement Test ===
+
+export interface PlacementQuestion {
+  nodeId: string;
+  domainId: string;
+  concept: string;
+  questionTemplate: {
+    type: string;
+    prompt: string;
+    choices: string[];
+    correctAnswer: string;
+    explanation: string;
+  };
+}
+
+export interface PlacementStartResponse {
+  placementId: string;
+  question: PlacementQuestion;
+  questionsAnswered: number;
+  estimatedTotal: number;
+  theta: number;
+  standardError: number;
+}
+
+export interface PlacementAnswerResponse {
+  correct: boolean;
+  explanation: string;
+  done: boolean;
+  question?: PlacementQuestion;
+  questionsAnswered: number;
+  estimatedTotal: number;
+  theta: number;
+  standardError: number;
+  result?: {
+    globalTheta: number;
+    domainThetas: Record<string, number>;
+    domainNames?: Record<string, string>;
+    classifications: {
+      mastered: number;
+      partial: number;
+      weak: number;
+      unknown: number;
+    };
+  };
+}
+
+export interface CalibrationResponse {
+  overallScore: number;
+  quadrantCounts: Record<string, number>;
+  quadrantPercentages: Record<string, number>;
+  domainBreakdown: Array<{
+    domainId: string;
+    domainName: string;
+    score: number;
+    quadrantCounts: Record<string, number>;
+    entryCount: number;
+  }>;
+  trend: Array<{
+    periodStart: string;
+    periodEnd: string;
+    score: number;
+    entryCount: number;
+  }>;
+  insights: Array<{
+    type: string;
+    message: string;
+    severity: string;
+  }>;
+  totalEntries: number;
+}
+
+export function useStartPlacement() {
+  return useMutation({
+    mutationFn: (userId: string) =>
+      fetchJson<PlacementStartResponse>("/placement", {
+        method: "POST",
+        body: JSON.stringify({ userId }),
+      }),
+  });
+}
+
+export function useSubmitPlacementAnswer() {
+  return useMutation({
+    mutationFn: (data: {
+      placementId: string;
+      nodeId: string;
+      selectedAnswer: string | null;
+      confidence: number;
+    }) =>
+      fetchJson<PlacementAnswerResponse>(`/placement/${data.placementId}/answer`, {
+        method: "POST",
+        body: JSON.stringify({
+          nodeId: data.nodeId,
+          selectedAnswer: data.selectedAnswer,
+          confidence: data.confidence,
+        }),
+      }),
+  });
+}
+
+export function usePlacement(placementId: string | null) {
+  return useQuery({
+    queryKey: ["placement", placementId],
+    queryFn: () => fetchJson<any>(`/placement/${placementId}`),
+    enabled: !!placementId,
+  });
+}
+
+export function useCalibration(userId: string | null) {
+  return useQuery({
+    queryKey: ["calibration", userId],
+    queryFn: () => fetchJson<CalibrationResponse>(`/users/${userId}/calibration`),
     enabled: !!userId,
   });
 }

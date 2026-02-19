@@ -112,3 +112,91 @@ export const DEFAULT_LEARNER_STATE: Omit<LearnerNodeState, "userId" | "nodeId" |
   confidenceHistory: [],
   domainWeight: 1.0,
 };
+
+// === IRT (Item Response Theory) ===
+
+export interface IRTItem {
+  nodeId: string;
+  domainId: string;
+  difficulty: number;
+}
+
+export interface IRTResponse {
+  nodeId: string;
+  domainId: string;
+  difficulty: number;
+  correct: boolean;
+}
+
+export interface IRTState {
+  theta: number;
+  standardError: number;
+  responses: IRTResponse[];
+  domainThetas: Map<string, number>;
+}
+
+export interface PlacementConfig {
+  minItems: number;        // minimum questions before termination (default 20)
+  maxItems: number;        // hard cap (default 60)
+  sePrecisionTarget: number; // SE threshold for early termination (default 0.3)
+  seRelaxedTarget: number;   // SE threshold after extended test (default 0.5)
+  relaxedMinItems: number;   // when to apply relaxed SE target (default 40)
+  topK: number;              // top-K items for randomized selection (default 5)
+  domainCoverageWeight: number; // weight for under-represented domains (default 2.0)
+}
+
+export const DEFAULT_PLACEMENT_CONFIG: PlacementConfig = {
+  minItems: 20,
+  maxItems: 60,
+  sePrecisionTarget: 0.3,
+  seRelaxedTarget: 0.5,
+  relaxedMinItems: 40,
+  topK: 5,
+  domainCoverageWeight: 2.0,
+};
+
+export type NodeClassification = "mastered" | "partial" | "weak" | "unknown";
+
+export interface NodeClassificationResult {
+  nodeId: string;
+  domainId: string;
+  classification: NodeClassification;
+  probability: number;
+  initialState: Omit<LearnerNodeState, "userId" | "nodeId" | "domainId">;
+}
+
+export interface PlacementResult {
+  globalTheta: number;
+  domainThetas: Record<string, number>;
+  nodeClassifications: NodeClassificationResult[];
+}
+
+// === Calibration Analytics ===
+
+export interface CalibrationTrend {
+  periodStart: Date;
+  periodEnd: Date;
+  score: number;
+  entryCount: number;
+}
+
+export interface CalibrationInsight {
+  type: "overconfident" | "underconfident" | "well_calibrated" | "improving" | "declining" | "domain_specific";
+  message: string;
+  severity: "info" | "warning" | "success";
+}
+
+export interface CalibrationAnalysis {
+  overallScore: number;
+  quadrantCounts: Record<CalibrationQuadrant, number>;
+  quadrantPercentages: Record<CalibrationQuadrant, number>;
+  domainBreakdown: Array<{
+    domainId: string;
+    score: number;
+    quadrantCounts: Record<CalibrationQuadrant, number>;
+    entryCount: number;
+  }>;
+  trend: CalibrationTrend[];
+  insights: CalibrationInsight[];
+  totalEntries: number;
+}

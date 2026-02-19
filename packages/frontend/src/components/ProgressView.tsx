@@ -1,11 +1,15 @@
+import { useState } from "react";
 import { useProgress } from "../api/hooks.js";
 import type { DomainProgressResponse, TopicProgressResponse } from "../api/hooks.js";
 import { computeTierProgress } from "@cyberclimb/core";
 import { colors, buttonStyles } from "../styles/theme.js";
+import SkillTreeMap from "./SkillTreeMap.js";
+import CalibrationDashboard from "./CalibrationDashboard.js";
 
 interface Props {
   userId: string;
   onStartSession: () => void;
+  onStartPlacement: () => void;
   onBack: () => void;
 }
 
@@ -198,8 +202,9 @@ function DomainCard({ domain }: { domain: DomainProgressResponse }) {
   );
 }
 
-export default function ProgressView({ userId, onStartSession, onBack }: Props) {
+export default function ProgressView({ userId, onStartSession, onStartPlacement, onBack }: Props) {
   const { data, isLoading, error } = useProgress(userId);
+  const [progressView, setProgressView] = useState<"list" | "map" | "calibration">("map");
 
   if (isLoading) {
     return <div style={{ textAlign: "center", padding: "3rem", color: colors.textMuted }}>Loading...</div>;
@@ -213,74 +218,63 @@ export default function ProgressView({ userId, onStartSession, onBack }: Props) 
     );
   }
 
+  if (progressView === "calibration") {
+    return (
+      <CalibrationDashboard
+        userId={userId}
+        onBack={() => setProgressView("map")}
+      />
+    );
+  }
+
   const hasItemsDue = data.nextSession.dueNow > 0;
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
         <h1 style={{ marginBottom: 0 }}>Skill Tree</h1>
-        <button
-          onClick={onBack}
-          style={{ ...buttonStyles.secondary, padding: "0.4rem 0.8rem" }}
-        >
-          Back
-        </button>
+        <div style={{ display: "flex", gap: "0.5rem" }}>
+          <button
+            onClick={() => setProgressView("calibration")}
+            style={{ ...buttonStyles.secondary, padding: "0.4rem 0.8rem" }}
+          >
+            Calibration
+          </button>
+          <button
+            onClick={onStartPlacement}
+            style={{ ...buttonStyles.secondary, padding: "0.4rem 0.8rem" }}
+          >
+            Placement Test
+          </button>
+          <button
+            onClick={onBack}
+            style={{ ...buttonStyles.secondary, padding: "0.4rem 0.8rem" }}
+          >
+            Back
+          </button>
+        </div>
       </div>
 
-      {/* Overall stats */}
-      <div
-        style={{
-          background: colors.cardBg,
-          borderRadius: "12px",
-          padding: "1.25rem",
-          marginBottom: "1.5rem",
-          textAlign: "center",
-        }}
-      >
-        <div style={{ display: "flex", justifyContent: "center", gap: "2rem", marginBottom: "1rem" }}>
-          <div>
-            <div style={{ fontSize: "2rem", fontWeight: 700, color: colors.green }}>
-              {data.mastered}
-            </div>
-            <div style={{ fontSize: "0.8rem", color: colors.textMuted }}>mastered</div>
-          </div>
-          <div>
-            <div style={{ fontSize: "2rem", fontWeight: 700, color: colors.amber }}>
-              {data.inProgress}
-            </div>
-            <div style={{ fontSize: "0.8rem", color: colors.textMuted }}>in progress</div>
-          </div>
-          <div>
-            <div style={{ fontSize: "2rem", fontWeight: 700, color: colors.textDim }}>
-              {data.notStarted}
-            </div>
-            <div style={{ fontSize: "0.8rem", color: colors.textMuted }}>to go</div>
-          </div>
-        </div>
-        <ProgressBar
-          mastered={data.mastered}
-          inProgress={data.inProgress}
-          notStarted={data.notStarted}
-        />
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            gap: "1.5rem",
-            marginTop: "0.75rem",
-            fontSize: "0.8rem",
-          }}
-        >
-          <span>
-            <span style={{ color: colors.green }}>■</span> Mastered
-          </span>
-          <span>
-            <span style={{ color: colors.amber }}>■</span> In progress
-          </span>
-          <span>
-            <span style={{ color: colors.divider }}>■</span> Not started
-          </span>
-        </div>
+      {/* View toggle */}
+      <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1.5rem" }}>
+        {(["map", "list"] as const).map((v) => (
+          <button
+            key={v}
+            onClick={() => setProgressView(v)}
+            style={{
+              padding: "0.4rem 1rem",
+              borderRadius: "6px",
+              border: progressView === v ? `2px solid ${colors.cyan}` : `1px solid ${colors.inputBorder}`,
+              background: progressView === v ? "#1a3a4a" : "transparent",
+              color: progressView === v ? colors.cyan : colors.textMuted,
+              fontSize: "0.85rem",
+              fontWeight: progressView === v ? 600 : 400,
+              cursor: "pointer",
+            }}
+          >
+            {v === "map" ? "Map View" : "List View"}
+          </button>
+        ))}
       </div>
 
       {/* Next session timing */}
@@ -316,41 +310,107 @@ export default function ProgressView({ userId, onStartSession, onBack }: Props) 
         )}
       </div>
 
-      {/* Domains grouped by tier */}
-      {tierGroups(data.domains).map(({ tier, label, domains: tierDomains }) => {
-        const tierStats = computeTierProgress(tierDomains).find((t) => t.tier === tier);
+      {/* Map view */}
+      {progressView === "map" && (
+        <SkillTreeMap domains={data.domains} />
+      )}
 
-        return (
-          <div key={tier} style={{ marginBottom: "2rem" }}>
+      {/* List view */}
+      {progressView === "list" && (
+        <>
+          {/* Overall stats */}
+          <div
+            style={{
+              background: colors.cardBg,
+              borderRadius: "12px",
+              padding: "1.25rem",
+              marginBottom: "1.5rem",
+              textAlign: "center",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "center", gap: "2rem", marginBottom: "1rem" }}>
+              <div>
+                <div style={{ fontSize: "2rem", fontWeight: 700, color: colors.green }}>
+                  {data.mastered}
+                </div>
+                <div style={{ fontSize: "0.8rem", color: colors.textMuted }}>mastered</div>
+              </div>
+              <div>
+                <div style={{ fontSize: "2rem", fontWeight: 700, color: colors.amber }}>
+                  {data.inProgress}
+                </div>
+                <div style={{ fontSize: "0.8rem", color: colors.textMuted }}>in progress</div>
+              </div>
+              <div>
+                <div style={{ fontSize: "2rem", fontWeight: 700, color: colors.textDim }}>
+                  {data.notStarted}
+                </div>
+                <div style={{ fontSize: "0.8rem", color: colors.textMuted }}>to go</div>
+              </div>
+            </div>
+            <ProgressBar
+              mastered={data.mastered}
+              inProgress={data.inProgress}
+              notStarted={data.notStarted}
+            />
             <div
               style={{
                 display: "flex",
-                justifyContent: "space-between",
-                alignItems: "baseline",
-                marginBottom: "0.75rem",
+                justifyContent: "center",
+                gap: "1.5rem",
+                marginTop: "0.75rem",
+                fontSize: "0.8rem",
               }}
             >
-              <h2 style={{ margin: 0, fontSize: "1.2rem" }}>
-                <span style={{ color: colors.textDim, marginRight: "0.5rem" }}>T{tier}</span>
-                {label}
-              </h2>
-              {tierStats && tierStats.totalNodes > 0 && (
-                <span style={{ color: colors.cyan, fontWeight: 600, fontSize: "0.9rem" }}>
-                  {tierStats.masteryPercentage}%
-                </span>
-              )}
+              <span>
+                <span style={{ color: colors.green }}>■</span> Mastered
+              </span>
+              <span>
+                <span style={{ color: colors.amber }}>■</span> In progress
+              </span>
+              <span>
+                <span style={{ color: colors.divider }}>■</span> Not started
+              </span>
             </div>
-            {tierStats && tierStats.totalNodes > 0 && (
-              <div style={{ marginBottom: "0.75rem" }}>
-                <ProgressBar mastered={tierStats.mastered} inProgress={tierStats.inProgress} notStarted={tierStats.notStarted} />
-              </div>
-            )}
-            {tierDomains.map((domain) => (
-              <DomainCard key={domain.domainId} domain={domain} />
-            ))}
           </div>
-        );
-      })}
+
+          {/* Domains grouped by tier */}
+          {tierGroups(data.domains).map(({ tier, label, domains: tierDomains }) => {
+            const tierStats = computeTierProgress(tierDomains).find((t) => t.tier === tier);
+
+            return (
+              <div key={tier} style={{ marginBottom: "2rem" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "baseline",
+                    marginBottom: "0.75rem",
+                  }}
+                >
+                  <h2 style={{ margin: 0, fontSize: "1.2rem" }}>
+                    <span style={{ color: colors.textDim, marginRight: "0.5rem" }}>T{tier}</span>
+                    {label}
+                  </h2>
+                  {tierStats && tierStats.totalNodes > 0 && (
+                    <span style={{ color: colors.cyan, fontWeight: 600, fontSize: "0.9rem" }}>
+                      {tierStats.masteryPercentage}%
+                    </span>
+                  )}
+                </div>
+                {tierStats && tierStats.totalNodes > 0 && (
+                  <div style={{ marginBottom: "0.75rem" }}>
+                    <ProgressBar mastered={tierStats.mastered} inProgress={tierStats.inProgress} notStarted={tierStats.notStarted} />
+                  </div>
+                )}
+                {tierDomains.map((domain) => (
+                  <DomainCard key={domain.domainId} domain={domain} />
+                ))}
+              </div>
+            );
+          })}
+        </>
+      )}
     </div>
   );
 }

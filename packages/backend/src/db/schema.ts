@@ -1,4 +1,5 @@
 import { pgTable, uuid, text, integer, real, timestamp, jsonb, primaryKey } from "drizzle-orm/pg-core";
+import type { IRTResponse } from "@cyberclimb/core";
 
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -34,6 +35,7 @@ export const nodes = pgTable("nodes", {
     .notNull()
     .references(() => domains.id),
   concept: text("concept").notNull(),
+  difficulty: real("difficulty").notNull().default(0),
   questionTemplates: jsonb("question_templates")
     .notNull()
     .$type<
@@ -104,4 +106,29 @@ export const sessions = pgTable("sessions", {
       calibration?: Record<string, number>;
     }>()
     .default({}),
+});
+
+export interface PlacementResultRow {
+  globalTheta: number;
+  domainThetas: Record<string, number>;
+  nodeClassifications: Array<{
+    nodeId: string;
+    domainId: string;
+    classification: string;
+    probability: number;
+  }>;
+}
+
+export const placementTests = pgTable("placement_tests", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id),
+  status: text("status").notNull().default("in_progress"),
+  currentTheta: real("current_theta").notNull().default(0),
+  currentSE: real("current_se").notNull().default(4.0),
+  responses: jsonb("responses").notNull().$type<IRTResponse[]>().default([]),
+  result: jsonb("result").$type<PlacementResultRow>(),
+  startedAt: timestamp("started_at").notNull().defaultNow(),
+  completedAt: timestamp("completed_at"),
 });
