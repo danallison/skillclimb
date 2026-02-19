@@ -2,8 +2,8 @@ import { Router } from "express";
 import { eq } from "drizzle-orm";
 import { db } from "../db/connection.js";
 import { users, learnerNodes, nodes, domains, topics } from "../db/schema.js";
+import { dbRowToLearnerState } from "../db/mappers.js";
 import { computeOverallProgress, computeTopicProgress } from "@cyberclimb/core";
-import type { LearnerNodeState } from "@cyberclimb/core";
 
 const router = Router();
 
@@ -60,21 +60,7 @@ router.get("/:id/progress", async (req, res) => {
       .from(learnerNodes)
       .where(eq(learnerNodes.userId, userId));
 
-    const states: LearnerNodeState[] = rows.map((r) => ({
-      userId: r.userId,
-      nodeId: r.nodeId,
-      domainId: r.domainId,
-      easiness: r.easiness,
-      interval: r.interval,
-      repetitions: r.repetitions,
-      dueDate: r.dueDate,
-      confidenceHistory: (r.confidenceHistory ?? []).map((e) => ({
-        confidence: e.confidence,
-        wasCorrect: e.wasCorrect,
-        timestamp: new Date(e.timestamp),
-      })),
-      domainWeight: r.domainWeight,
-    }));
+    const states = rows.map(dbRowToLearnerState);
 
     const now = new Date();
     const overall = computeOverallProgress(states, now);

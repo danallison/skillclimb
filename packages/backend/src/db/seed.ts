@@ -181,8 +181,9 @@ async function seed() {
         prerequisites: [],
         displayOrder: d.displayOrder,
       })
-      .onConflictDoNothing({ target: domains.name });
-    if (result.rowCount && result.rowCount > 0) placeholderCount++;
+      .onConflictDoNothing({ target: domains.name })
+      .returning();
+    if (result.length > 0) placeholderCount++;
   }
 
   console.log(`Created ${placeholderCount} new placeholder domains (${placeholderDomains.length - placeholderCount} already existed)`);

@@ -1,5 +1,6 @@
 import { useSessionStore } from "../store/sessionStore.js";
 import type { SessionItemResponse } from "../api/hooks.js";
+import { colors, buttonStyles } from "../styles/theme.js";
 
 interface Props {
   item: SessionItemResponse;
@@ -26,7 +27,7 @@ export default function QuestionCard({ item }: Props) {
 
   return (
     <div style={{ marginBottom: "1.5rem" }}>
-      <div style={{ fontSize: "0.85rem", color: "#888", marginBottom: "0.5rem" }}>
+      <div style={{ fontSize: "0.85rem", color: colors.textMuted, marginBottom: "0.5rem" }}>
         {node.concept}
       </div>
       <h2 style={{ marginBottom: "1.5rem", color: "#e0e0e0" }}>
@@ -41,9 +42,9 @@ export default function QuestionCard({ item }: Props) {
               onClick={() => handleSelect(choice)}
               style={{
                 padding: "1rem",
-                background: isSelected ? "#1a3a5c" : "#151c2c",
-                border: isSelected ? "2px solid #00d4ff" : "2px solid #2a3040",
-                color: "#e0e0e0",
+                background: isSelected ? "#1a3a5c" : colors.cardBg,
+                border: isSelected ? `2px solid ${colors.cyan}` : `2px solid ${colors.inputBorder}`,
+                color: colors.textPrimary,
                 textAlign: "left",
                 fontSize: "0.95rem",
                 borderRadius: "8px",
@@ -58,13 +59,8 @@ export default function QuestionCard({ item }: Props) {
         <button
           onClick={handleDontKnow}
           style={{
+            ...buttonStyles.secondary,
             marginTop: "1rem",
-            padding: "0.6rem 1rem",
-            background: "transparent",
-            border: "1px solid #3a3a4a",
-            color: "#888",
-            fontSize: "0.85rem",
-            borderRadius: "6px",
             width: "100%",
           }}
         >

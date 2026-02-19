@@ -1,4 +1,5 @@
 import { useSessionStore } from "../store/sessionStore.js";
+import { colors } from "../styles/theme.js";
 import QuestionCard from "./QuestionCard.js";
 import ConfidenceRating from "./ConfidenceRating.js";
 import FeedbackDisplay from "./FeedbackDisplay.js";
@@ -35,13 +36,13 @@ export default function SessionView({ onFinished }: Props) {
         }}
       >
         <h1 style={{ marginBottom: 0 }}>CyberClimb</h1>
-        <div style={{ color: "#888", fontSize: "0.9rem" }}>{progress}</div>
+        <div style={{ color: colors.textMuted, fontSize: "0.9rem" }}>{progress}</div>
       </div>
 
       <div
         style={{
           height: "4px",
-          background: "#2a3040",
+          background: colors.divider,
           borderRadius: "2px",
           marginBottom: "2rem",
         }}
@@ -50,7 +51,7 @@ export default function SessionView({ onFinished }: Props) {
           style={{
             height: "100%",
             width: `${((currentItemIndex + 1) / session.totalItems) * 100}%`,
-            background: "#00d4ff",
+            background: colors.cyan,
             borderRadius: "2px",
             transition: "width 0.3s ease",
           }}

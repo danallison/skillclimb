@@ -1,36 +1,9 @@
 import { eq } from "drizzle-orm";
 import { db } from "../db/connection.js";
-import { learnerNodes, nodes as nodesTable, sessions, domains as domainsTable } from "../db/schema.js";
+import { learnerNodes, nodes as nodesTable, sessions } from "../db/schema.js";
+import { dbRowToLearnerState, dbRowToNode } from "../db/mappers.js";
 import { buildSession, DEFAULT_SESSION_CONFIG } from "@cyberclimb/core";
-import type { LearnerNodeState, Node, QuestionTemplate, SessionResult } from "@cyberclimb/core";
-
-function dbRowToLearnerState(row: typeof learnerNodes.$inferSelect): LearnerNodeState {
-  return {
-    userId: row.userId,
-    nodeId: row.nodeId,
-    domainId: row.domainId,
-    easiness: row.easiness,
-    interval: row.interval,
-    repetitions: row.repetitions,
-    dueDate: row.dueDate,
-    confidenceHistory: (row.confidenceHistory ?? []).map((e) => ({
-      confidence: e.confidence,
-      wasCorrect: e.wasCorrect,
-      timestamp: new Date(e.timestamp),
-    })),
-    domainWeight: row.domainWeight,
-  };
-}
-
-function dbRowToNode(row: typeof nodesTable.$inferSelect): Node {
-  return {
-    id: row.id,
-    topicId: row.topicId,
-    domainId: row.domainId,
-    concept: row.concept,
-    questionTemplates: (row.questionTemplates ?? []) as QuestionTemplate[],
-  };
-}
+import type { SessionResult } from "@cyberclimb/core";
 
 export interface SessionWithItems {
   id: string;

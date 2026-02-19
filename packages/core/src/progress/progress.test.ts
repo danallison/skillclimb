@@ -5,6 +5,8 @@ import {
   computeNextSession,
   computeDomainProgress,
   computeOverallProgress,
+  computeSessionSummary,
+  computeTierProgress,
 } from "./progress.js";
 import type { LearnerNodeState } from "../types.js";
 
@@ -142,5 +144,64 @@ describe("computeOverallProgress", () => {
     expect(result.masteryPercentage).toBe(25);
     expect(result.domains).toHaveLength(2);
     expect(result.nextSession).toBeDefined();
+  });
+});
+
+describe("computeSessionSummary", () => {
+  it("computes accuracy and calibration counts", () => {
+
+    const reviews = [
+      { wasCorrect: true, confidence: 4 },   // calibrated
+      { wasCorrect: true, confidence: 2 },   // undervalued
+      { wasCorrect: false, confidence: 5 },  // illusion
+      { wasCorrect: false, confidence: 1 },  // known_unknown
+      { wasCorrect: true, confidence: 3 },   // calibrated
+    ];
+    const summary = computeSessionSummary(reviews);
+    expect(summary.totalReviews).toBe(5);
+    expect(summary.correctCount).toBe(3);
+    expect(summary.accuracyPercentage).toBe(60);
+    expect(summary.calibrationCounts.calibrated).toBe(2);
+    expect(summary.calibrationCounts.illusion).toBe(1);
+    expect(summary.calibrationCounts.undervalued).toBe(1);
+    expect(summary.calibrationCounts.known_unknown).toBe(1);
+  });
+
+  it("handles empty reviews", () => {
+
+    const summary = computeSessionSummary([]);
+    expect(summary.totalReviews).toBe(0);
+    expect(summary.accuracyPercentage).toBe(0);
+  });
+});
+
+describe("computeTierProgress", () => {
+  it("aggregates domains by tier", () => {
+
+    const domains = [
+      { tier: 0, totalNodes: 10, mastered: 5, inProgress: 3, notStarted: 2 },
+      { tier: 0, totalNodes: 8, mastered: 2, inProgress: 1, notStarted: 5 },
+      { tier: 1, totalNodes: 6, mastered: 0, inProgress: 0, notStarted: 6 },
+    ];
+    const result = computeTierProgress(domains);
+    expect(result).toHaveLength(2);
+    expect(result[0].tier).toBe(0);
+    expect(result[0].totalNodes).toBe(18);
+    expect(result[0].mastered).toBe(7);
+    expect(result[0].masteryPercentage).toBe(39);
+    expect(result[1].tier).toBe(1);
+    expect(result[1].totalNodes).toBe(6);
+    expect(result[1].masteryPercentage).toBe(0);
+  });
+
+  it("returns sorted by tier", () => {
+
+    const domains = [
+      { tier: 2, totalNodes: 5, mastered: 0, inProgress: 0, notStarted: 5 },
+      { tier: 0, totalNodes: 5, mastered: 5, inProgress: 0, notStarted: 0 },
+    ];
+    const result = computeTierProgress(domains);
+    expect(result[0].tier).toBe(0);
+    expect(result[1].tier).toBe(2);
   });
 });

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useCreateUser, useCreateSession, useSession } from "./api/hooks.js";
 import { useSessionStore } from "./store/sessionStore.js";
+import { colors } from "./styles/theme.js";
 import SessionView from "./components/SessionView.js";
 import ProgressView from "./components/ProgressView.js";
 
@@ -61,7 +62,7 @@ export default function App() {
 
   // Session view but still loading from API — show loading state
   if (view === "session" && !session && savedSessionId) {
-    return <div style={{ textAlign: "center", padding: "3rem", color: "#888" }}>Resuming session...</div>;
+    return <div style={{ textAlign: "center", padding: "3rem", color: colors.textMuted }}>Resuming session...</div>;
   }
 
   // If we have a userId but no session, show progress (e.g. after session ends)
@@ -91,7 +92,7 @@ export default function App() {
   return (
     <div style={{ textAlign: "center", paddingTop: "4rem" }}>
       <h1 style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>CyberClimb</h1>
-      <p style={{ color: "#888", marginBottom: "2.5rem", fontSize: "1.1rem" }}>
+      <p style={{ color: colors.textMuted, marginBottom: "2.5rem", fontSize: "1.1rem" }}>
         Test-driven cybersecurity learning
       </p>
 
@@ -107,9 +108,9 @@ export default function App() {
             maxWidth: "400px",
             padding: "0.8rem 1rem",
             borderRadius: "8px",
-            border: "2px solid #2a3040",
-            background: "#151c2c",
-            color: "#e0e0e0",
+            border: `2px solid ${colors.inputBorder}`,
+            background: colors.cardBg,
+            color: colors.textPrimary,
             fontSize: "1rem",
             outline: "none",
           }}
@@ -121,8 +122,8 @@ export default function App() {
         disabled={isLoading || !email}
         style={{
           padding: "0.8rem 2.5rem",
-          background: isLoading ? "#444" : "#00d4ff",
-          color: "#0a0e17",
+          background: isLoading ? "#444" : colors.cyan,
+          color: colors.cyanDark,
           fontWeight: 600,
           fontSize: "1.1rem",
           borderRadius: "8px",
@@ -132,7 +133,7 @@ export default function App() {
       </button>
 
       {error && (
-        <p style={{ color: "#ff5252", marginTop: "1rem" }}>
+        <p style={{ color: colors.red, marginTop: "1rem" }}>
           {error.message}
         </p>
       )}

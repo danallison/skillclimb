@@ -1,5 +1,6 @@
-import type { LearnerNodeState } from "../types.js";
+import type { LearnerNodeState, CalibrationQuadrant } from "../types.js";
 import { isDue } from "../srs/sm2.js";
+import { getCalibrationQuadrant } from "../scoring/scoring.js";
 
 export interface DomainProgress {
   domainId: string;
@@ -167,6 +168,91 @@ export function computeTopicProgress(
   }
 
   return results;
+}
+
+// === Session summary ===
+
+export interface ReviewRecord {
+  wasCorrect: boolean;
+  confidence: number;
+}
+
+export interface SessionSummary {
+  totalReviews: number;
+  correctCount: number;
+  accuracyPercentage: number;
+  calibrationCounts: Record<CalibrationQuadrant, number>;
+}
+
+/**
+ * Compute session summary statistics from review records.
+ */
+export function computeSessionSummary(reviews: ReviewRecord[]): SessionSummary {
+  const total = reviews.length;
+  const correct = reviews.filter((r) => r.wasCorrect).length;
+
+  const calibrationCounts: Record<CalibrationQuadrant, number> = {
+    calibrated: 0,
+    illusion: 0,
+    undervalued: 0,
+    known_unknown: 0,
+  };
+
+  for (const r of reviews) {
+    const quadrant = getCalibrationQuadrant(r.confidence, r.wasCorrect);
+    calibrationCounts[quadrant]++;
+  }
+
+  return {
+    totalReviews: total,
+    correctCount: correct,
+    accuracyPercentage: total > 0 ? Math.round((correct / total) * 100) : 0,
+    calibrationCounts,
+  };
+}
+
+// === Tier aggregation ===
+
+export interface TierProgress {
+  tier: number;
+  totalNodes: number;
+  mastered: number;
+  inProgress: number;
+  notStarted: number;
+  masteryPercentage: number;
+}
+
+/**
+ * Aggregate domain progress into tier-level summaries.
+ */
+export function computeTierProgress(
+  domains: Array<{ tier: number; totalNodes: number; mastered: number; inProgress: number; notStarted: number }>,
+): TierProgress[] {
+  const byTier = new Map<number, TierProgress>();
+
+  for (const d of domains) {
+    const existing = byTier.get(d.tier) ?? {
+      tier: d.tier,
+      totalNodes: 0,
+      mastered: 0,
+      inProgress: 0,
+      notStarted: 0,
+      masteryPercentage: 0,
+    };
+    existing.totalNodes += d.totalNodes;
+    existing.mastered += d.mastered;
+    existing.inProgress += d.inProgress;
+    existing.notStarted += d.notStarted;
+    byTier.set(d.tier, existing);
+  }
+
+  const results: TierProgress[] = [];
+  for (const tp of byTier.values()) {
+    tp.masteryPercentage = tp.totalNodes > 0 ? Math.round((tp.mastered / tp.totalNodes) * 100) : 0;
+    results.push(tp);
+  }
+
+  return results.sort((a, b) => a.tier - b.tier);
 }
 
 /**

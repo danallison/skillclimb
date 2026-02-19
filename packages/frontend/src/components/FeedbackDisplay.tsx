@@ -1,4 +1,5 @@
 import { useSessionStore } from "../store/sessionStore.js";
+import { colors, buttonStyles } from "../styles/theme.js";
 
 export default function FeedbackDisplay() {
   const {
@@ -33,10 +34,10 @@ export default function FeedbackDisplay() {
           marginBottom: "1rem",
           background: isCorrect ? "#0d2818" : didSelectDontKnow ? "#1a1a2e" : "#2d0f0f",
           border: isCorrect
-            ? "2px solid #00c853"
+            ? `2px solid ${colors.green}`
             : didSelectDontKnow
               ? "2px solid #5c5c8a"
-              : "2px solid #ff5252",
+              : `2px solid ${colors.red}`,
         }}
       >
         <div style={{ fontWeight: 600, fontSize: "1.1rem", marginBottom: "0.5rem" }}>
@@ -57,11 +58,11 @@ export default function FeedbackDisplay() {
         style={{
           padding: "1rem",
           borderRadius: "8px",
-          background: "#151c2c",
+          background: colors.cardBg,
           marginBottom: "1rem",
         }}
       >
-        <div style={{ fontSize: "0.85rem", color: "#888", marginBottom: "0.25rem" }}>
+        <div style={{ fontSize: "0.85rem", color: colors.textMuted, marginBottom: "0.25rem" }}>
           Explanation
         </div>
         <div>{questionTemplate.explanation}</div>
@@ -82,14 +83,7 @@ export default function FeedbackDisplay() {
 
       <button
         onClick={nextItem}
-        style={{
-          width: "100%",
-          padding: "0.8rem",
-          background: "#00d4ff",
-          color: "#0a0e17",
-          fontWeight: 600,
-          fontSize: "1rem",
-        }}
+        style={buttonStyles.primary}
       >
         Continue
       </button>

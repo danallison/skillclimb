@@ -51,7 +51,7 @@ export function calculateInterval(
 export function calculateNextState(
   current: LearnerNodeState,
   score: number,
-  now: Date = new Date(),
+  now: Date,
 ): LearnerNodeState {
   const newEasiness = calculateEasiness(current.easiness, score);
 
@@ -102,14 +102,14 @@ export function calculateNextState(
 /**
  * Returns true if the node is due for review (due date <= now).
  */
-export function isDue(state: LearnerNodeState, now: Date = new Date()): boolean {
+export function isDue(state: LearnerNodeState, now: Date): boolean {
   return state.dueDate <= now;
 }
 
 /**
  * Returns the number of days overdue (0 if not overdue).
  */
-export function daysOverdue(state: LearnerNodeState, now: Date = new Date()): number {
+export function daysOverdue(state: LearnerNodeState, now: Date): number {
   const diff = now.getTime() - state.dueDate.getTime();
   if (diff <= 0) return 0;
   return Math.floor(diff / (1000 * 60 * 60 * 24));

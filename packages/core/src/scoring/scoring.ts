@@ -40,7 +40,7 @@ export function updateCalibration(
   confidence: number,
   wasCorrect: boolean,
   history: CalibrationHistory,
-  now: Date = new Date(),
+  now: Date,
 ): CalibrationHistory {
   const entry: CalibrationEntry = {
     confidence,

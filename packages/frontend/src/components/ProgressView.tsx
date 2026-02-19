@@ -1,5 +1,7 @@
 import { useProgress } from "../api/hooks.js";
 import type { DomainProgressResponse, TopicProgressResponse } from "../api/hooks.js";
+import { computeTierProgress } from "@cyberclimb/core";
+import { colors, buttonStyles } from "../styles/theme.js";
 
 interface Props {
   userId: string;
@@ -72,17 +74,17 @@ function ProgressBar({
     <div
       style={{
         height: "8px",
-        background: "#2a3040",
+        background: colors.divider,
         borderRadius: "4px",
         overflow: "hidden",
         display: "flex",
       }}
     >
       {mPct > 0 && (
-        <div style={{ width: `${mPct}%`, background: "#00c853", transition: "width 0.3s" }} />
+        <div style={{ width: `${mPct}%`, background: colors.green, transition: "width 0.3s" }} />
       )}
       {iPct > 0 && (
-        <div style={{ width: `${iPct}%`, background: "#ffab40", transition: "width 0.3s" }} />
+        <div style={{ width: `${iPct}%`, background: colors.amber, transition: "width 0.3s" }} />
       )}
     </div>
   );
@@ -102,16 +104,16 @@ function TopicRow({ topic }: { topic: TopicProgressResponse }) {
         <span style={{ color: "#ccc" }}>{topic.name}</span>
         <span style={{ fontSize: "0.8rem" }}>
           {topic.mastered > 0 && (
-            <span style={{ color: "#00c853" }}>{topic.mastered} mastered</span>
+            <span style={{ color: colors.green }}>{topic.mastered} mastered</span>
           )}
           {topic.mastered > 0 && topic.inProgress > 0 && (
-            <span style={{ color: "#888" }}> · </span>
+            <span style={{ color: colors.textMuted }}> · </span>
           )}
           {topic.inProgress > 0 && (
-            <span style={{ color: "#ffab40" }}>{topic.inProgress} started</span>
+            <span style={{ color: colors.amber }}>{topic.inProgress} started</span>
           )}
           {topic.mastered === 0 && topic.inProgress === 0 && (
-            <span style={{ color: "#888" }}>{topic.totalNodes} to go</span>
+            <span style={{ color: colors.textMuted }}>{topic.totalNodes} to go</span>
           )}
         </span>
       </div>
@@ -130,7 +132,7 @@ function DomainCard({ domain }: { domain: DomainProgressResponse }) {
     return (
       <div
         style={{
-          background: "#111827",
+          background: colors.surfaceBg,
           borderRadius: "12px",
           padding: "1rem 1.25rem",
           marginBottom: "0.5rem",
@@ -146,7 +148,7 @@ function DomainCard({ domain }: { domain: DomainProgressResponse }) {
             {domain.description}
           </div>
         </div>
-        <span style={{ fontSize: "0.75rem", color: "#555", whiteSpace: "nowrap", marginLeft: "1rem" }}>
+        <span style={{ fontSize: "0.75rem", color: colors.textDim, whiteSpace: "nowrap", marginLeft: "1rem" }}>
           Coming soon
         </span>
       </div>
@@ -156,7 +158,7 @@ function DomainCard({ domain }: { domain: DomainProgressResponse }) {
   return (
     <div
       style={{
-        background: "#151c2c",
+        background: colors.cardBg,
         borderRadius: "12px",
         padding: "1.25rem",
         marginBottom: "0.75rem",
@@ -171,7 +173,7 @@ function DomainCard({ domain }: { domain: DomainProgressResponse }) {
         }}
       >
         <span style={{ fontWeight: 600, fontSize: "1.1rem" }}>{domain.name}</span>
-        <span style={{ color: "#00d4ff", fontWeight: 600 }}>{domain.masteryPercentage}%</span>
+        <span style={{ color: colors.cyan, fontWeight: 600 }}>{domain.masteryPercentage}%</span>
       </div>
 
       <ProgressBar
@@ -180,13 +182,13 @@ function DomainCard({ domain }: { domain: DomainProgressResponse }) {
         notStarted={domain.notStarted}
       />
 
-      <div style={{ fontSize: "0.8rem", color: "#888", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
+      <div style={{ fontSize: "0.8rem", color: colors.textMuted, marginTop: "0.5rem", marginBottom: "0.75rem" }}>
         {domain.mastered} mastered · {domain.inProgress} in progress · {domain.notStarted} not
         started
       </div>
 
       {domain.topics.length > 0 && (
-        <div style={{ borderTop: "1px solid #2a3040", paddingTop: "0.5rem" }}>
+        <div style={{ borderTop: `1px solid ${colors.divider}`, paddingTop: "0.5rem" }}>
           {domain.topics.map((topic) => (
             <TopicRow key={topic.topicId} topic={topic} />
           ))}
@@ -200,12 +202,12 @@ export default function ProgressView({ userId, onStartSession, onBack }: Props) 
   const { data, isLoading, error } = useProgress(userId);
 
   if (isLoading) {
-    return <div style={{ textAlign: "center", padding: "3rem", color: "#888" }}>Loading...</div>;
+    return <div style={{ textAlign: "center", padding: "3rem", color: colors.textMuted }}>Loading...</div>;
   }
 
   if (error || !data) {
     return (
-      <div style={{ textAlign: "center", padding: "3rem", color: "#ff5252" }}>
+      <div style={{ textAlign: "center", padding: "3rem", color: colors.red }}>
         Failed to load progress
       </div>
     );
@@ -219,13 +221,7 @@ export default function ProgressView({ userId, onStartSession, onBack }: Props) 
         <h1 style={{ marginBottom: 0 }}>Skill Tree</h1>
         <button
           onClick={onBack}
-          style={{
-            padding: "0.4rem 0.8rem",
-            background: "transparent",
-            border: "1px solid #3a3a4a",
-            color: "#888",
-            fontSize: "0.85rem",
-          }}
+          style={{ ...buttonStyles.secondary, padding: "0.4rem 0.8rem" }}
         >
           Back
         </button>
@@ -234,7 +230,7 @@ export default function ProgressView({ userId, onStartSession, onBack }: Props) 
       {/* Overall stats */}
       <div
         style={{
-          background: "#151c2c",
+          background: colors.cardBg,
           borderRadius: "12px",
           padding: "1.25rem",
           marginBottom: "1.5rem",
@@ -243,22 +239,22 @@ export default function ProgressView({ userId, onStartSession, onBack }: Props) 
       >
         <div style={{ display: "flex", justifyContent: "center", gap: "2rem", marginBottom: "1rem" }}>
           <div>
-            <div style={{ fontSize: "2rem", fontWeight: 700, color: "#00c853" }}>
+            <div style={{ fontSize: "2rem", fontWeight: 700, color: colors.green }}>
               {data.mastered}
             </div>
-            <div style={{ fontSize: "0.8rem", color: "#888" }}>mastered</div>
+            <div style={{ fontSize: "0.8rem", color: colors.textMuted }}>mastered</div>
           </div>
           <div>
-            <div style={{ fontSize: "2rem", fontWeight: 700, color: "#ffab40" }}>
+            <div style={{ fontSize: "2rem", fontWeight: 700, color: colors.amber }}>
               {data.inProgress}
             </div>
-            <div style={{ fontSize: "0.8rem", color: "#888" }}>in progress</div>
+            <div style={{ fontSize: "0.8rem", color: colors.textMuted }}>in progress</div>
           </div>
           <div>
-            <div style={{ fontSize: "2rem", fontWeight: 700, color: "#555" }}>
+            <div style={{ fontSize: "2rem", fontWeight: 700, color: colors.textDim }}>
               {data.notStarted}
             </div>
-            <div style={{ fontSize: "0.8rem", color: "#888" }}>to go</div>
+            <div style={{ fontSize: "0.8rem", color: colors.textMuted }}>to go</div>
           </div>
         </div>
         <ProgressBar
@@ -276,13 +272,13 @@ export default function ProgressView({ userId, onStartSession, onBack }: Props) 
           }}
         >
           <span>
-            <span style={{ color: "#00c853" }}>■</span> Mastered
+            <span style={{ color: colors.green }}>■</span> Mastered
           </span>
           <span>
-            <span style={{ color: "#ffab40" }}>■</span> In progress
+            <span style={{ color: colors.amber }}>■</span> In progress
           </span>
           <span>
-            <span style={{ color: "#2a3040" }}>■</span> Not started
+            <span style={{ color: colors.divider }}>■</span> Not started
           </span>
         </div>
       </div>
@@ -291,7 +287,7 @@ export default function ProgressView({ userId, onStartSession, onBack }: Props) 
       <div
         style={{
           background: hasItemsDue ? "#0d2818" : "#1a1a2e",
-          border: hasItemsDue ? "2px solid #00c853" : "2px solid #3a3a5a",
+          border: hasItemsDue ? `2px solid ${colors.green}` : "2px solid #3a3a5a",
           borderRadius: "12px",
           padding: "1rem 1.25rem",
           marginBottom: "1.5rem",
@@ -305,7 +301,7 @@ export default function ProgressView({ userId, onStartSession, onBack }: Props) 
             {formatNextSession(data.nextSession)}
           </div>
           {data.nextSession.dueWithinWeek > 0 && !hasItemsDue && (
-            <div style={{ fontSize: "0.8rem", color: "#888" }}>
+            <div style={{ fontSize: "0.8rem", color: colors.textMuted }}>
               {data.nextSession.dueWithinWeek} more due this week
             </div>
           )}
@@ -313,13 +309,7 @@ export default function ProgressView({ userId, onStartSession, onBack }: Props) 
         {hasItemsDue && (
           <button
             onClick={onStartSession}
-            style={{
-              padding: "0.6rem 1.2rem",
-              background: "#00d4ff",
-              color: "#0a0e17",
-              fontWeight: 600,
-              fontSize: "0.9rem",
-            }}
+            style={{ ...buttonStyles.primary, width: "auto", padding: "0.6rem 1.2rem", fontSize: "0.9rem" }}
           >
             Start Session
           </button>
@@ -328,11 +318,7 @@ export default function ProgressView({ userId, onStartSession, onBack }: Props) 
 
       {/* Domains grouped by tier */}
       {tierGroups(data.domains).map(({ tier, label, domains: tierDomains }) => {
-        const tierMastered = tierDomains.reduce((s, d) => s + d.mastered, 0);
-        const tierInProgress = tierDomains.reduce((s, d) => s + d.inProgress, 0);
-        const tierNotStarted = tierDomains.reduce((s, d) => s + d.notStarted, 0);
-        const tierTotal = tierMastered + tierInProgress + tierNotStarted;
-        const tierPct = tierTotal > 0 ? Math.round((tierMastered / tierTotal) * 100) : 0;
+        const tierStats = computeTierProgress(tierDomains).find((t) => t.tier === tier);
 
         return (
           <div key={tier} style={{ marginBottom: "2rem" }}>
@@ -345,18 +331,18 @@ export default function ProgressView({ userId, onStartSession, onBack }: Props) 
               }}
             >
               <h2 style={{ margin: 0, fontSize: "1.2rem" }}>
-                <span style={{ color: "#555", marginRight: "0.5rem" }}>T{tier}</span>
+                <span style={{ color: colors.textDim, marginRight: "0.5rem" }}>T{tier}</span>
                 {label}
               </h2>
-              {tierTotal > 0 && (
-                <span style={{ color: "#00d4ff", fontWeight: 600, fontSize: "0.9rem" }}>
-                  {tierPct}%
+              {tierStats && tierStats.totalNodes > 0 && (
+                <span style={{ color: colors.cyan, fontWeight: 600, fontSize: "0.9rem" }}>
+                  {tierStats.masteryPercentage}%
                 </span>
               )}
             </div>
-            {tierTotal > 0 && (
+            {tierStats && tierStats.totalNodes > 0 && (
               <div style={{ marginBottom: "0.75rem" }}>
-                <ProgressBar mastered={tierMastered} inProgress={tierInProgress} notStarted={tierNotStarted} />
+                <ProgressBar mastered={tierStats.mastered} inProgress={tierStats.inProgress} notStarted={tierStats.notStarted} />
               </div>
             )}
             {tierDomains.map((domain) => (

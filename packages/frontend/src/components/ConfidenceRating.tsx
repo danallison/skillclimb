@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useSessionStore } from "../store/sessionStore.js";
 import { useSubmitReview } from "../api/hooks.js";
 import { evaluateRecognition } from "@cyberclimb/core";
+import { colors } from "../styles/theme.js";
 
 export default function ConfidenceRating() {
   const {
@@ -80,15 +81,15 @@ export default function ConfidenceRating() {
             style={{
               flex: 1,
               padding: "0.75rem 0.5rem",
-              background: "#151c2c",
-              border: "2px solid #2a3040",
-              color: "#e0e0e0",
+              background: colors.cardBg,
+              border: `2px solid ${colors.inputBorder}`,
+              color: colors.textPrimary,
               borderRadius: "8px",
               fontSize: "0.85rem",
             }}
           >
             <div style={{ fontSize: "1.2rem", marginBottom: "0.25rem" }}>{rating}</div>
-            <div style={{ fontSize: "0.7rem", color: "#888" }}>{labels[rating - 1]}</div>
+            <div style={{ fontSize: "0.7rem", color: colors.textMuted }}>{labels[rating - 1]}</div>
           </button>
         ))}
       </div>

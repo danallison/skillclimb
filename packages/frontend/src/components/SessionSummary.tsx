@@ -1,4 +1,6 @@
 import { useSessionStore } from "../store/sessionStore.js";
+import { computeSessionSummary } from "@cyberclimb/core";
+import { colors, buttonStyles } from "../styles/theme.js";
 
 interface Props {
   onViewProgress: () => void;
@@ -7,16 +9,8 @@ interface Props {
 export default function SessionSummary({ onViewProgress }: Props) {
   const { reviewHistory, reset } = useSessionStore();
 
-  const total = reviewHistory.length;
-  const correct = reviewHistory.filter((r) => r.wasCorrect).length;
-  const percentage = total > 0 ? Math.round((correct / total) * 100) : 0;
-
-  const quadrantCounts = {
-    calibrated: reviewHistory.filter((r) => r.calibrationQuadrant === "calibrated").length,
-    illusion: reviewHistory.filter((r) => r.calibrationQuadrant === "illusion").length,
-    undervalued: reviewHistory.filter((r) => r.calibrationQuadrant === "undervalued").length,
-    known_unknown: reviewHistory.filter((r) => r.calibrationQuadrant === "known_unknown").length,
-  };
+  const summary = computeSessionSummary(reviewHistory);
+  const { totalReviews: total, correctCount: correct, accuracyPercentage: percentage, calibrationCounts: quadrantCounts } = summary;
 
   return (
     <div>
@@ -25,16 +19,16 @@ export default function SessionSummary({ onViewProgress }: Props) {
       <div
         style={{
           padding: "1.5rem",
-          background: "#151c2c",
+          background: colors.cardBg,
           borderRadius: "12px",
           marginBottom: "1.5rem",
           textAlign: "center",
         }}
       >
-        <div style={{ fontSize: "3rem", fontWeight: 700, color: "#00d4ff" }}>
+        <div style={{ fontSize: "3rem", fontWeight: 700, color: colors.cyan }}>
           {percentage}%
         </div>
-        <div style={{ color: "#888" }}>
+        <div style={{ color: colors.textMuted }}>
           {correct} of {total} correct
         </div>
       </div>
@@ -51,25 +45,25 @@ export default function SessionSummary({ onViewProgress }: Props) {
         <CalibrationCard
           label="Calibrated"
           count={quadrantCounts.calibrated}
-          color="#00c853"
+          color={colors.green}
           description="Confident & correct"
         />
         <CalibrationCard
           label="Illusion"
           count={quadrantCounts.illusion}
-          color="#ff5252"
+          color={colors.red}
           description="Confident & wrong"
         />
         <CalibrationCard
           label="Undervalued"
           count={quadrantCounts.undervalued}
-          color="#ffab40"
+          color={colors.amber}
           description="Unsure & correct"
         />
         <CalibrationCard
           label="Known Unknown"
           count={quadrantCounts.known_unknown}
-          color="#888"
+          color={colors.textMuted}
           description="Unsure & wrong"
         />
       </div>
@@ -79,14 +73,7 @@ export default function SessionSummary({ onViewProgress }: Props) {
           reset();
           onViewProgress();
         }}
-        style={{
-          width: "100%",
-          padding: "0.8rem",
-          background: "#00d4ff",
-          color: "#0a0e17",
-          fontWeight: 600,
-          fontSize: "1rem",
-        }}
+        style={buttonStyles.primary}
       >
         View Progress
       </button>
@@ -109,14 +96,14 @@ function CalibrationCard({
     <div
       style={{
         padding: "1rem",
-        background: "#151c2c",
+        background: colors.cardBg,
         borderRadius: "8px",
         borderLeft: `4px solid ${color}`,
       }}
     >
       <div style={{ fontWeight: 600, fontSize: "1.5rem", color }}>{count}</div>
       <div style={{ fontWeight: 500 }}>{label}</div>
-      <div style={{ fontSize: "0.8rem", color: "#888" }}>{description}</div>
+      <div style={{ fontSize: "0.8rem", color: colors.textMuted }}>{description}</div>
     </div>
   );
 }

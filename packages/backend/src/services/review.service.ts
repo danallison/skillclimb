@@ -1,26 +1,9 @@
 import { eq, and } from "drizzle-orm";
 import { db } from "../db/connection.js";
 import { learnerNodes, reviews } from "../db/schema.js";
+import { dbRowToLearnerState } from "../db/mappers.js";
 import { calculateNextState, evaluateRecognition, getCalibrationQuadrant, updateCalibration } from "@cyberclimb/core";
-import type { LearnerNodeState, CalibrationHistory, ReviewResult, CalibrationEntry } from "@cyberclimb/core";
-
-function dbRowToLearnerState(row: typeof learnerNodes.$inferSelect): LearnerNodeState {
-  return {
-    userId: row.userId,
-    nodeId: row.nodeId,
-    domainId: row.domainId,
-    easiness: row.easiness,
-    interval: row.interval,
-    repetitions: row.repetitions,
-    dueDate: row.dueDate,
-    confidenceHistory: (row.confidenceHistory ?? []).map((e) => ({
-      confidence: e.confidence,
-      wasCorrect: e.wasCorrect,
-      timestamp: new Date(e.timestamp),
-    })),
-    domainWeight: row.domainWeight,
-  };
-}
+import type { CalibrationHistory, ReviewResult, CalibrationEntry } from "@cyberclimb/core";
 
 export async function submitReview(
   userId: string,

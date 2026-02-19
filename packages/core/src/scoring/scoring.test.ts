@@ -59,7 +59,7 @@ describe("updateCalibration", () => {
     const history: CalibrationHistory = {
       entries: [{ confidence: 3, wasCorrect: false, timestamp: new Date("2025-01-10") }],
     };
-    const updated = updateCalibration(5, true, history);
+    const updated = updateCalibration(5, true, history, new Date("2025-01-11"));
 
     expect(updated.entries).toHaveLength(2);
     expect(history.entries).toHaveLength(1); // original not mutated
