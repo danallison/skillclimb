@@ -1,79 +1,89 @@
 import { Router } from "express";
+import { Effect } from "effect";
 import {
   startPlacement,
   submitPlacementAnswer,
   getPlacement,
   abandonPlacement,
 } from "../services/placement.service.js";
+import { ValidationError, NotFoundError } from "../errors.js";
+import { HttpResponse, type EffectHandler } from "../effectHandler.js";
 
-const router = Router();
+export function placementRouter(handle: EffectHandler) {
+  const router = Router();
 
-// POST /api/placement — Start a new placement test
-router.post("/", async (req, res) => {
-  try {
-    const { userId } = req.body;
-    if (!userId) {
-      res.status(400).json({ error: "userId is required" });
-      return;
-    }
+  // POST /api/placement — Start a new placement test
+  router.post(
+    "/",
+    handle((req) =>
+      Effect.gen(function* () {
+        const { userId } = req.body;
+        if (!userId) {
+          return yield* Effect.fail(
+            new ValidationError({ message: "userId is required" }),
+          );
+        }
+        const result = yield* startPlacement(userId);
+        return new HttpResponse(201, result);
+      }),
+    ),
+  );
 
-    const result = await startPlacement(userId);
-    res.status(201).json(result);
-  } catch (err: any) {
-    console.error("Error starting placement:", err);
-    res.status(500).json({ error: err.message ?? "Failed to start placement" });
-  }
-});
+  // POST /api/placement/:id/answer — Submit an answer
+  router.post(
+    "/:id/answer",
+    handle((req) =>
+      Effect.gen(function* () {
+        const placementId = req.params.id as string;
+        const { nodeId, selectedAnswer, confidence } = req.body;
 
-// POST /api/placement/:id/answer — Submit an answer
-router.post("/:id/answer", async (req, res) => {
-  try {
-    const placementId = req.params.id;
-    const { nodeId, selectedAnswer, confidence } = req.body;
+        if (!nodeId) {
+          return yield* Effect.fail(
+            new ValidationError({ message: "nodeId is required" }),
+          );
+        }
 
-    if (!nodeId) {
-      res.status(400).json({ error: "nodeId is required" });
-      return;
-    }
+        const result = yield* submitPlacementAnswer(
+          placementId,
+          nodeId,
+          selectedAnswer ?? null,
+          confidence ?? 3,
+        );
+        return new HttpResponse(200, result);
+      }),
+    ),
+  );
 
-    const result = await submitPlacementAnswer(
-      placementId,
-      nodeId,
-      selectedAnswer ?? null,
-      confidence ?? 3,
-    );
+  // GET /api/placement/:id — Get current placement state
+  router.get(
+    "/:id",
+    handle((req) =>
+      Effect.gen(function* () {
+        const id = req.params.id as string;
+        const placement = yield* getPlacement(id);
+        if (!placement) {
+          return yield* Effect.fail(
+            new NotFoundError({
+              entity: "Placement test",
+              id,
+            }),
+          );
+        }
+        return new HttpResponse(200, placement);
+      }),
+    ),
+  );
 
-    res.json(result);
-  } catch (err: any) {
-    console.error("Error submitting placement answer:", err);
-    res.status(500).json({ error: err.message ?? "Failed to submit answer" });
-  }
-});
+  // POST /api/placement/:id/abandon — Abandon the test
+  router.post(
+    "/:id/abandon",
+    handle((req) =>
+      Effect.gen(function* () {
+        yield* abandonPlacement(req.params.id as string);
+        return new HttpResponse(200, { status: "abandoned" });
+      }),
+    ),
+  );
 
-// GET /api/placement/:id — Get current placement state
-router.get("/:id", async (req, res) => {
-  try {
-    const placement = await getPlacement(req.params.id);
-    if (!placement) {
-      res.status(404).json({ error: "Placement test not found" });
-      return;
-    }
-    res.json(placement);
-  } catch (err: any) {
-    console.error("Error fetching placement:", err);
-    res.status(500).json({ error: "Failed to fetch placement" });
-  }
-});
-
-// POST /api/placement/:id/abandon — Abandon the test
-router.post("/:id/abandon", async (req, res) => {
-  try {
-    await abandonPlacement(req.params.id);
-    res.json({ status: "abandoned" });
-  } catch (err: any) {
-    console.error("Error abandoning placement:", err);
-    res.status(500).json({ error: "Failed to abandon placement" });
-  }
-});
-
-export default router;
+  return router;
+}
