@@ -8,8 +8,10 @@ import CalibrationDashboard from "./CalibrationDashboard.js";
 
 interface Props {
   userId: string;
+  skilltreeId?: string;
   onStartSession: () => void;
   onStartPlacement: () => void;
+  onChangeSkillTree?: () => void;
   onBack: () => void;
 }
 
@@ -179,8 +181,8 @@ function DomainCard({ domain }: { domain: DomainProgressResponse }) {
   );
 }
 
-export default function ProgressView({ userId, onStartSession, onStartPlacement, onBack }: Props) {
-  const { data, isLoading, error } = useProgress(userId);
+export default function ProgressView({ userId, skilltreeId, onStartSession, onStartPlacement, onChangeSkillTree, onBack }: Props) {
+  const { data, isLoading, error } = useProgress(userId, skilltreeId);
   const [progressView, setProgressView] = useState<"list" | "map" | "calibration">("map");
 
   if (isLoading) {
@@ -199,6 +201,7 @@ export default function ProgressView({ userId, onStartSession, onStartPlacement,
     return (
       <CalibrationDashboard
         userId={userId}
+        skilltreeId={skilltreeId}
         onBack={() => setProgressView("map")}
       />
     );
@@ -223,6 +226,14 @@ export default function ProgressView({ userId, onStartSession, onStartPlacement,
           >
             Placement Test
           </button>
+          {onChangeSkillTree && (
+            <button
+              onClick={onChangeSkillTree}
+              style={{ ...buttonStyles.secondary, padding: "0.4rem 0.8rem" }}
+            >
+              Change Skill Tree
+            </button>
+          )}
           <button
             onClick={onBack}
             style={{ ...buttonStyles.secondary, padding: "0.4rem 0.8rem" }}

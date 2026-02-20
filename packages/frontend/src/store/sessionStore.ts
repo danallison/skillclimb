@@ -4,6 +4,7 @@ import type { SessionResponse, ReviewResponse } from "../api/hooks.js";
 
 const STORAGE_KEYS = {
   userId: "skillclimb_userId",
+  selectedSkillTreeId: "skillclimb_selectedSkillTreeId",
   sessionId: "skillclimb_sessionId",
   itemIndex: "skillclimb_itemIndex",
   reviewHistory: "skillclimb_reviewHistory",
@@ -27,6 +28,7 @@ type SessionPhase =
 
 interface SessionStore {
   userId: string | null;
+  selectedSkillTreeId: string | null;
   savedSessionId: string | null;
   savedItemIndex: number;
   session: SessionResponse | null;
@@ -41,6 +43,7 @@ interface SessionStore {
   hintText: string | null;
 
   setUserId: (id: string) => void;
+  setSelectedSkillTreeId: (id: string | null) => void;
   setSession: (session: SessionResponse) => void;
   resumeSession: (session: SessionResponse, itemIndex: number) => void;
   selectAnswer: (answer: string) => void;
@@ -58,6 +61,7 @@ interface SessionStore {
 
 export const useSessionStore = create<SessionStore>((set) => ({
   userId: localStorage.getItem(STORAGE_KEYS.userId),
+  selectedSkillTreeId: localStorage.getItem(STORAGE_KEYS.selectedSkillTreeId),
   savedSessionId: localStorage.getItem(STORAGE_KEYS.sessionId),
   savedItemIndex: parseInt(localStorage.getItem(STORAGE_KEYS.itemIndex) ?? "0", 10),
   session: null,
@@ -74,6 +78,14 @@ export const useSessionStore = create<SessionStore>((set) => ({
   setUserId: (id) => {
     localStorage.setItem(STORAGE_KEYS.userId, id);
     set({ userId: id });
+  },
+  setSelectedSkillTreeId: (id) => {
+    if (id) {
+      localStorage.setItem(STORAGE_KEYS.selectedSkillTreeId, id);
+    } else {
+      localStorage.removeItem(STORAGE_KEYS.selectedSkillTreeId);
+    }
+    set({ selectedSkillTreeId: id });
   },
   setSession: (session) => {
     localStorage.setItem(STORAGE_KEYS.sessionId, session.id);
@@ -161,11 +173,13 @@ export const useSessionStore = create<SessionStore>((set) => ({
   },
   logout: () => {
     localStorage.removeItem(STORAGE_KEYS.userId);
+    localStorage.removeItem(STORAGE_KEYS.selectedSkillTreeId);
     localStorage.removeItem(STORAGE_KEYS.sessionId);
     localStorage.removeItem(STORAGE_KEYS.itemIndex);
     localStorage.removeItem(STORAGE_KEYS.reviewHistory);
     set({
       userId: null,
+      selectedSkillTreeId: null,
       session: null,
       savedSessionId: null,
       savedItemIndex: 0,

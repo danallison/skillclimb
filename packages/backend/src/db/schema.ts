@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, integer, real, timestamp, jsonb, primaryKey } from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, integer, real, timestamp, jsonb, primaryKey, unique } from "drizzle-orm/pg-core";
 import type { IRTResponse } from "@skillclimb/core";
 
 export const users = pgTable("users", {
@@ -7,14 +7,23 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+export const skilltrees = pgTable("skilltrees", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 export const domains = pgTable("domains", {
   id: uuid("id").primaryKey().defaultRandom(),
+  skilltreeId: text("skilltree_id").notNull().references(() => skilltrees.id),
   tier: integer("tier").notNull(),
-  name: text("name").notNull().unique(),
+  name: text("name").notNull(),
   description: text("description").notNull(),
   prerequisites: jsonb("prerequisites").notNull().$type<string[]>().default([]),
   displayOrder: integer("display_order").notNull(),
-});
+}, (table) => [
+  unique().on(table.skilltreeId, table.name),
+]);
 
 export const topics = pgTable("topics", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -128,6 +137,7 @@ export const placementTests = pgTable("placement_tests", {
   userId: uuid("user_id")
     .notNull()
     .references(() => users.id),
+  skilltreeId: text("skilltree_id").references(() => skilltrees.id),
   status: text("status").notNull().default("in_progress"),
   currentTheta: real("current_theta").notNull().default(0),
   currentSE: real("current_se").notNull().default(4.0),

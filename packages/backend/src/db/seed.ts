@@ -1,13 +1,14 @@
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { db } from "./connection.js";
-import { domains, topics, nodes } from "./schema.js";
-import { readdirSync } from "fs";
+import { skilltrees, domains, topics, nodes } from "./schema.js";
+import { existsSync, readdirSync } from "fs";
 import { fileURLToPath, pathToFileURL } from "url";
 import { dirname, join } from "path";
+import { loadYamlSkillTree } from "../content/loader.js";
 import { computeDifficulty } from "@skillclimb/core";
-import type { ContentPack, SeedDomain, SeedTopic, SeedNode } from "../seed/types.js";
+import type { SkillTreeDef, SeedDomain, SeedTopic, SeedNode } from "../seed/types.js";
 
-async function upsertDomain(values: {
+async function upsertDomain(skilltreeId: string, values: {
   name: string;
   tier: number;
   description: string;
@@ -16,13 +17,15 @@ async function upsertDomain(values: {
 }) {
   const [row] = await db
     .insert(domains)
-    .values(values)
-    .onConflictDoNothing({ target: domains.name })
+    .values({ ...values, skilltreeId })
+    .onConflictDoNothing()
     .returning();
 
   // If conflict (already exists), look it up
   if (!row) {
-    const [existing] = await db.select().from(domains).where(eq(domains.name, values.name));
+    const [existing] = await db.select().from(domains).where(
+      and(eq(domains.skilltreeId, skilltreeId), eq(domains.name, values.name)),
+    );
     return existing;
   }
   return row;
@@ -39,12 +42,13 @@ interface SeedData {
  * Uses a prefix to namespace topic names in the topicMap.
  */
 async function seedDomain(
+  skilltreeId: string,
   prefix: string,
   data: SeedData,
   tierBases: Record<number, number>,
   topicMap: Map<string, { id: string; domainId: string; complexityWeight: number }>,
 ): Promise<{ domainRow: typeof domains.$inferSelect; nodeCount: number }> {
-  const domainRow = await upsertDomain({
+  const domainRow = await upsertDomain(skilltreeId, {
     name: data.domain.name,
     tier: data.domain.tier,
     description: data.domain.description,
@@ -129,20 +133,25 @@ async function seedDomain(
 }
 
 /**
- * Seeds the database from a content pack.
+ * Seeds the database from a skill tree definition.
  */
-async function seedContentPack(pack: ContentPack) {
-  console.log(`Loading content pack: ${pack.name}`);
+async function seedSkillTree(skilltree: SkillTreeDef) {
+  console.log(`Loading skill tree: ${skilltree.name}`);
+
+  // Upsert skilltree record
+  await db.insert(skilltrees).values({ id: skilltree.id, name: skilltree.name })
+    .onConflictDoNothing({ target: skilltrees.id });
 
   const topicMap = new Map<string, { id: string; domainId: string; complexityWeight: number }>();
   let totalNewNodes = 0;
   const domainRows = new Map<string, typeof domains.$inferSelect>();
 
-  for (const { prefix, domain, topics: t, nodes: n } of pack.domains) {
+  for (const { prefix, domain, topics: t, nodes: n } of skilltree.domains) {
     const { domainRow, nodeCount } = await seedDomain(
+      skilltree.id,
       prefix,
       { domain, topics: t, nodes: n },
-      pack.tierBases,
+      skilltree.tierBases,
       topicMap,
     );
     domainRows.set(domain.name, domainRow);
@@ -157,7 +166,7 @@ async function seedContentPack(pack: ContentPack) {
   console.log(`Seeded ${domainRows.size} domains with content (${totalNewNodes} new nodes)`);
 
   // Set prerequisites by domain name
-  for (const [domainName, prereqNames] of Object.entries(pack.prerequisites)) {
+  for (const [domainName, prereqNames] of Object.entries(skilltree.prerequisites)) {
     const domainRow = domainRows.get(domainName);
     if (!domainRow) continue;
 
@@ -174,34 +183,35 @@ async function seedContentPack(pack: ContentPack) {
 
   // Seed placeholder domains
   let placeholderCount = 0;
-  for (const d of pack.placeholderDomains) {
+  for (const d of skilltree.placeholderDomains) {
     const result = await db
       .insert(domains)
       .values({
+        skilltreeId: skilltree.id,
         name: d.name,
         tier: d.tier,
         description: d.description,
         prerequisites: [],
         displayOrder: d.displayOrder,
       })
-      .onConflictDoNothing({ target: domains.name })
+      .onConflictDoNothing()
       .returning();
     if (result.length > 0) placeholderCount++;
   }
 
-  console.log(`Created ${placeholderCount} new placeholder domains (${pack.placeholderDomains.length - placeholderCount} already existed)`);
+  console.log(`Created ${placeholderCount} new placeholder domains (${skilltree.placeholderDomains.length - placeholderCount} already existed)`);
 }
 
 /**
  * Update question templates on existing nodes by matching on concept text.
  * Merges new template types into the JSONB array without replacing existing ones.
  */
-async function updateTemplatesForPack(pack: ContentPack) {
-  console.log(`Updating templates for content pack: ${pack.name}`);
+async function updateTemplatesForSkillTree(skilltree: SkillTreeDef) {
+  console.log(`Updating templates for skill tree: ${skilltree.name}`);
 
   let updatedCount = 0;
 
-  for (const { domain: domainData, nodes: seedNodes } of pack.domains) {
+  for (const { domain: domainData, nodes: seedNodes } of skilltree.domains) {
     // Find the domain by name
     const [domainRow] = await db.select().from(domains).where(eq(domains.name, domainData.name));
     if (!domainRow) {
@@ -242,21 +252,21 @@ async function updateTemplatesForPack(pack: ContentPack) {
 async function seed() {
   console.log("Seeding database...");
 
-  // Load content packs from the content directory
-  // Accept --pack <name> CLI arg, or default to all packs
+  // Load skill trees from the content directory
+  // Accept --skilltree <name> CLI arg, or default to all skill trees
   const args = process.argv.slice(2);
-  const packArgIndex = args.indexOf("--pack");
-  const requestedPack = packArgIndex >= 0 ? args[packArgIndex + 1] : null;
+  const skilltreeArgIndex = args.indexOf("--skilltree");
+  const requestedSkillTree = skilltreeArgIndex >= 0 ? args[skilltreeArgIndex + 1] : null;
   const updateTemplatesOnly = args.includes("--update-templates");
 
-  // Discover available content packs
+  // Discover available skill trees
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = dirname(__filename);
   const contentDir = join(__dirname, "..", "content");
 
-  let packDirs: string[];
+  let skilltreeDirs: string[];
   try {
-    packDirs = readdirSync(contentDir, { withFileTypes: true })
+    skilltreeDirs = readdirSync(contentDir, { withFileTypes: true })
       .filter((d) => d.isDirectory())
       .map((d) => d.name);
   } catch {
@@ -264,23 +274,30 @@ async function seed() {
     process.exit(1);
   }
 
-  if (requestedPack) {
-    if (!packDirs.includes(requestedPack)) {
-      console.error(`Content pack "${requestedPack}" not found. Available: ${packDirs.join(", ")}`);
+  if (requestedSkillTree) {
+    if (!skilltreeDirs.includes(requestedSkillTree)) {
+      console.error(`Skill tree "${requestedSkillTree}" not found. Available: ${skilltreeDirs.join(", ")}`);
       process.exit(1);
     }
-    packDirs = [requestedPack];
+    skilltreeDirs = [requestedSkillTree];
   }
 
-  for (const packDir of packDirs) {
-    const packPath = pathToFileURL(join(contentDir, packDir, "index.ts")).href;
-    const packModule = await import(packPath);
-    const pack: ContentPack = packModule.default;
+  for (const skilltreeDir of skilltreeDirs) {
+    const fullSkilltreeDir = join(contentDir, skilltreeDir);
+    let skilltree: SkillTreeDef;
+
+    if (existsSync(join(fullSkilltreeDir, "skilltree.yaml"))) {
+      skilltree = loadYamlSkillTree(fullSkilltreeDir);
+    } else {
+      const skilltreePath = pathToFileURL(join(fullSkilltreeDir, "index.ts")).href;
+      const skilltreeModule = await import(skilltreePath);
+      skilltree = skilltreeModule.default;
+    }
 
     if (updateTemplatesOnly) {
-      await updateTemplatesForPack(pack);
+      await updateTemplatesForSkillTree(skilltree);
     } else {
-      await seedContentPack(pack);
+      await seedSkillTree(skilltree);
     }
   }
 

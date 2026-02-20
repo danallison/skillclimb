@@ -11,13 +11,13 @@ export function sessionsRouter(handle: EffectHandler) {
     "/",
     handle((req) =>
       Effect.gen(function* () {
-        const { userId } = req.body;
+        const { userId, skilltreeId } = req.body;
         if (!userId) {
           return yield* Effect.fail(
             new ValidationError({ message: "userId is required" }),
           );
         }
-        const session = yield* createSession(userId);
+        const session = yield* createSession(userId, skilltreeId);
         return new HttpResponse(201, session);
       }),
     ),

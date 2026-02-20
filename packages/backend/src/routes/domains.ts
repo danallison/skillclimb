@@ -13,11 +13,15 @@ export function domainsRouter(handle: EffectHandler) {
 
   router.get(
     "/",
-    handle((_req) =>
+    handle((req) =>
       Effect.gen(function* () {
-        const allDomains = yield* query((db) =>
+        const skilltreeId = req.query.skilltreeId as string | undefined;
+        let allDomains = yield* query((db) =>
           db.select().from(domains).orderBy(domains.displayOrder),
         );
+        if (skilltreeId) {
+          allDomains = allDomains.filter((d) => d.skilltreeId === skilltreeId);
+        }
         return new HttpResponse(200, allDomains);
       }),
     ),

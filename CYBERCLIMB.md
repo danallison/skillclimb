@@ -1,12 +1,12 @@
 # CYBERCLIMB
 
-**Cybersecurity Content Pack for SkillClimb**
+**Cybersecurity Skill Tree for SkillClimb**
 
-*The first and primary content pack — covering the full cybersecurity skill tree*
+*The first and primary skill tree — covering the full cybersecurity knowledge domain*
 
 ---
 
-**Content Pack Specification — Version 1.0 — February 2026**
+**Skill Tree Specification — Version 1.0 — February 2026**
 
 ---
 
@@ -25,7 +25,7 @@
 
 ## Overview
 
-CyberClimb is the cybersecurity content pack for SkillClimb, the test-driven learning platform built on desirable difficulties, spaced repetition, and adaptive assessment. See `SKILLCLIMB.md` for the full platform specification — learning science foundations, SRS algorithm, question engine, AI tutor, technical architecture, and implementation roadmap.
+CyberClimb is the cybersecurity skill tree for SkillClimb, the test-driven learning platform built on desirable difficulties, spaced repetition, and adaptive assessment. See `SKILLCLIMB.md` for the full platform specification — learning science foundations, SRS algorithm, question engine, AI tutor, technical architecture, and implementation roadmap.
 
 This document specifies the cybersecurity-specific content: the skill tree structure, how generic question types map to cybersecurity topics, lab environments, red team challenges, content creation plans, and certification alignment.
 
@@ -98,7 +98,7 @@ The following domains are fully seeded with topics, nodes, and question template
 
 ### Placeholder Domains
 
-The following domains are defined in the content pack but not yet seeded with full question content. They appear in the skill tree as locked/coming-soon:
+The following domains are defined in the skill tree but not yet seeded with full question content. They appear in the skill tree as locked/coming-soon:
 
 Programming Fundamentals (T0), Web Application Security (T1), System Administration (T2), Penetration Testing (T2), SOC Operations (T2), Digital Forensics (T2), Cloud Security (T2), Malware Analysis (T2), Exploit Development (T3), Threat Intelligence (T3), Incident Response (T3), Security Architecture (T3), AI Security domains (T4).
 

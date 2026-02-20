@@ -21,7 +21,7 @@
 7. [Progress Visualization and Analytics](#progress-visualization-and-analytics)
 8. [AI Tutor Integration](#ai-tutor-integration)
 9. [Gamification and Motivation Design](#gamification-and-motivation-design)
-10. [Content Pack System](#content-pack-system)
+10. [Skill Tree System](#skill-tree-system)
 11. [Technical Architecture](#technical-architecture)
 12. [Implementation Roadmap](#implementation-roadmap)
 13. [Success Metrics](#success-metrics)
@@ -37,7 +37,7 @@ SkillClimb is a test-driven learning platform that inverts the traditional tutor
 
 The platform is grounded in cognitive science research on durable learning, particularly the framework of desirable difficulties articulated by Robert Bjork and synthesized in the book *Make It Stick* by Peter Brown, Henry Roediger, and Mark McDaniel. A spaced repetition engine (based on a modified SM-2 algorithm) ensures that knowledge, once acquired, is retained over the long term through optimally timed review.
 
-SkillClimb works with arbitrary skill trees via a **content pack system**. Each content pack defines a domain of knowledge — its structure, questions, prerequisites, and progression. The platform handles all the learning science, adaptive assessment, and spaced repetition; content packs supply the subject matter. The first and primary content pack covers cybersecurity (see `CYBERCLIMB.md`).
+SkillClimb works with arbitrary skill trees via a **skill tree system**. Each skill tree defines a domain of knowledge — its structure, questions, prerequisites, and progression. The platform handles all the learning science, adaptive assessment, and spaced repetition; skill trees supply the subject matter. The first and primary skill tree covers cybersecurity (see `CYBERCLIMB.md`).
 
 Learners always know where they stand, what they don't know yet, and exactly what to do next.
 
@@ -117,9 +117,9 @@ Review sessions draw from multiple domains simultaneously. The session builder u
 
 ### Four-Level Structure
 
-All content packs use a four-level hierarchy that maps cleanly to both the knowledge landscape and the spaced repetition system.
+All skill trees use a four-level hierarchy that maps cleanly to both the knowledge landscape and the spaced repetition system.
 
-| Level | Description | Contains | Count (est. per pack) |
+| Level | Description | Contains | Count (est. per skill tree) |
 |-------|-------------|----------|----------------------|
 | Tier | Broadest grouping (e.g., Foundations, Intermediate, Advanced) | 3–6 domains | 3–5 tiers |
 | Domain | A coherent area of knowledge | 4–10 topics | ~25 domains |
@@ -178,7 +178,7 @@ SkillClimb is test-first, but it is not test-only. When the assessment engine id
 
 - **Micro-lessons (2–5 minutes):** Concise explanations of a single concept, optimized for the specific gap identified by assessment. Written in clear, direct prose with concrete examples.
 - **Worked examples:** Step-by-step walkthroughs of a problem or scenario, with annotations explaining the reasoning at each step. Research shows worked examples are highly effective for novices.
-- **Interactive labs:** Browser-based environments where learners practice skills and solve challenges in realistic contexts. Lab formats vary by content pack.
+- **Interactive labs:** Browser-based environments where learners practice skills and solve challenges in realistic contexts. Lab formats vary by skill tree.
 - **Concept maps:** Visual representations showing how the current concept connects to other nodes in the skill tree, reinforcing the network structure of knowledge.
 
 ### Correction and Feedback
@@ -242,32 +242,32 @@ A visible calibration score (0–100) reflects how accurately the learner predic
 
 ### Challenge Mode
 
-Periodic cross-domain synthesis challenges present scenarios that require combining knowledge from multiple domains under time pressure. These are unlocked at tier transitions and serve as both assessments and motivation milestones. Top scores are displayed on an optional leaderboard. Content packs define the specific challenge scenarios relevant to their domain.
+Periodic cross-domain synthesis challenges present scenarios that require combining knowledge from multiple domains under time pressure. These are unlocked at tier transitions and serve as both assessments and motivation milestones. Top scores are displayed on an optional leaderboard. Skill trees define the specific challenge scenarios relevant to their domain.
 
 ---
 
-## Content Pack System
+## Skill Tree System
 
-SkillClimb is a generic platform — all subject-matter content is delivered through **content packs**. Each pack defines a complete skill tree (tiers, domains, topics, nodes, questions, prerequisites) for a specific domain of knowledge.
+SkillClimb is a generic platform — all subject-matter content is delivered through **skill trees**. Each skill tree defines a complete hierarchy (tiers, domains, topics, nodes, questions, prerequisites) for a specific domain of knowledge.
 
 ### Directory Structure
 
-Content packs live in `packages/backend/src/content/<pack-id>/`. Each pack contains:
+Skill trees live in `packages/backend/src/content/<skilltree-id>/`. Each skill tree contains:
 
 ```
-packages/backend/src/content/<pack-id>/
-├── index.ts          # Exports a ContentPack object
+packages/backend/src/content/<skilltree-id>/
+├── skilltree.yaml    # Skill tree manifest
 └── domains/          # Individual domain seed files
-    ├── domain-a.ts
-    ├── domain-b.ts
+    ├── domain-a.yaml
+    ├── domain-b.yaml
     └── ...
 ```
 
-### ContentPack Interface
+### SkillTreeDef Interface
 
-Each pack's `index.ts` exports a `ContentPack` object with:
+Each skill tree's `skilltree.yaml` defines a `SkillTreeDef` with:
 
-- **name / id** — Display name and unique identifier for the pack.
+- **name / id** — Display name and unique identifier for the skill tree.
 - **tierBases** — Maps tier numbers to base difficulty values used by the IRT placement algorithm.
 - **domains** — Array of domain definitions, each containing a domain descriptor, its topics, and its nodes (with question templates).
 - **prerequisites** — Maps domain names to arrays of prerequisite domain names, defining the DAG.
@@ -275,16 +275,15 @@ Each pack's `index.ts` exports a `ContentPack` object with:
 
 ### Seeding
 
-The seed script (`npm run seed`) auto-discovers all content packs and loads them into the database. Seeding is idempotent — it uses `onConflictDoNothing` so it can be re-run safely without destroying existing data. To seed a specific pack: `npm run seed -- --pack <pack-id>`.
+The seed script (`npm run seed`) auto-discovers all skill trees and loads them into the database. Seeding is idempotent — it uses `onConflictDoNothing` so it can be re-run safely without destroying existing data. To seed a specific skill tree: `npm run seed -- --skilltree <skilltree-id>`.
 
-### Creating a New Content Pack
+### Creating a New Skill Tree
 
-1. Create a directory under `packages/backend/src/content/` with your pack ID.
-2. Define your tier structure, domains, topics, and nodes following the `ContentPack` interface.
-3. Export the pack from `index.ts`.
-4. Run `npm run seed -- --pack <your-pack-id>` to load the content.
+1. Create a directory under `packages/backend/src/content/` with your skill tree ID.
+2. Define your tier structure, domains, topics, and nodes in `skilltree.yaml` and `domains/*.yaml`. See `SKILL_TREES.md` for the full authoring guide.
+3. Run `npm run seed -- --skilltree <your-skilltree-id>` to load the content.
 
-The platform handles all SRS scheduling, session building, placement testing, progress tracking, and analytics. Content packs only need to supply the knowledge structure and questions.
+The platform handles all SRS scheduling, session building, placement testing, progress tracking, and analytics. Skill trees only need to supply the knowledge structure and questions.
 
 ---
 
@@ -345,7 +344,7 @@ Establish core data models, SRS engine, and basic question delivery.
 2. Build the SM-2 algorithm module with domain_weight modifications and unit tests validating interval calculations.
 3. Implement the session builder that selects review items based on due dates, interleaving priorities, and prerequisite reinforcement.
 4. Create a minimal React frontend: single-question view with answer input, confidence rating, and feedback display.
-5. Seed the database with initial content pack domains.
+5. Seed the database with initial skill tree domains.
 
 ### Phase 2: Assessment and Placement ✅
 
@@ -355,7 +354,7 @@ Build the adaptive testing engine and placement flow.
 2. Build the placement test flow: 40–60 adaptive questions that estimate competency across all tiers.
 3. Create the skill tree map visualization with domain states, prerequisite edges, and mastery color-coding.
 4. Implement the confidence calibration tracking system and the four-quadrant analysis.
-5. Expand content pack coverage.
+5. Expand skill tree coverage.
 
 ### Phase 3: AI Tutor and Content Depth
 
@@ -364,14 +363,14 @@ Integrate the LLM tutor and expand content across the full skill tree.
 1. Integrate Anthropic API for elaboration evaluation, Socratic hints, and misconception detection.
 2. Build the elaboration prompt system with free-form answer UI and AI feedback display.
 3. Implement adaptive difficulty escalation across question types (recognition → cued recall → free recall → application).
-4. Expand content packs to cover intermediate and advanced domains.
+4. Expand skill trees to cover intermediate and advanced domains.
 5. Build the second-attempt hint system for incorrect answers.
 
 ### Phase 4: Labs and Advanced Features
 
 Add practical lab environments and advanced analytics.
 
-1. Build Docker-based lab environments for practical challenges (hands-on exercises defined by content packs).
+1. Build Docker-based lab environments for practical challenges (hands-on exercises defined by skill trees).
 2. Implement the analytics dashboard: session summaries, retention curves, calibration trends, domain progress.
 3. Build cross-domain challenge mode with scenario generation.
 4. Implement offline-first SRS with IndexedDB and server sync.
@@ -404,7 +403,7 @@ Refine the experience, add gamification, and prepare for launch.
 
 | Risk | Impact | Mitigation |
 |------|--------|------------|
-| Content creation bottleneck | Slow domain expansion; incomplete skill trees | Use AI-assisted question generation with expert review; prioritize high-demand packs |
+| Content creation bottleneck | Slow domain expansion; incomplete skill trees | Use AI-assisted question generation with expert review; prioritize high-demand skill trees |
 | SRS parameter tuning | Intervals too short (burnout) or too long (forgetting) | A/B test parameters; track long-term retention rates; allow user overrides |
 | AI tutor cost scaling | API costs exceed revenue per user | Batch API for non-real-time evaluation; cache common misconception responses; rate-limit AI interactions |
 | Learner frustration with difficulty | Dropoff due to test-first approach feeling punishing | Careful onboarding explaining the science; celebrate growth from errors; normalize productive struggle |
@@ -414,11 +413,11 @@ Refine the experience, add gamification, and prepare for launch.
 
 ## Conclusion
 
-SkillClimb is designed around a conviction supported by decades of cognitive science research: the fastest path to expertise is not to study more, but to test more—and to test strategically. By combining desirable difficulties, spaced repetition, adaptive assessment, and AI-powered tutoring within the structure of a content pack system, the platform offers a learning experience that is simultaneously more efficient, more engaging, and more durable than traditional approaches.
+SkillClimb is designed around a conviction supported by decades of cognitive science research: the fastest path to expertise is not to study more, but to test more—and to test strategically. By combining desirable difficulties, spaced repetition, adaptive assessment, and AI-powered tutoring within the structure of a skill tree system, the platform offers a learning experience that is simultaneously more efficient, more engaging, and more durable than traditional approaches.
 
 The implementation roadmap delivers a functional learning platform in phases, with each phase producing a usable product. Phase 1 alone yields a working SRS-powered quiz engine that a motivated learner could use immediately. Each subsequent phase adds depth, breadth, and sophistication.
 
-The content pack architecture means SkillClimb can grow into any domain where structured, hierarchical knowledge and spaced repetition are valuable — from cybersecurity to programming, from medicine to law, from language learning to mathematics.
+The skill tree architecture means SkillClimb can grow into any domain where structured, hierarchical knowledge and spaced repetition are valuable — from cybersecurity to programming, from medicine to law, from language learning to mathematics.
 
 ---
 

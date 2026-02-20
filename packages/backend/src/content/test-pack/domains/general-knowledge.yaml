@@ -1,0 +1,65 @@
+name: General Knowledge
+tier: 0
+description: Basic trivia and general knowledge questions for testing multi-pack support
+topics:
+  - name: Geography
+    complexityWeight: 1.0
+    nodes:
+      - concept: Capital of France
+        questions:
+          - type: recognition
+            prompt: What is the capital of France?
+            answer: Paris
+            explanation: Paris is the capital and largest city of France.
+            choices:
+              - Paris
+              - London
+              - Berlin
+              - Madrid
+      - concept: Longest River
+        questions:
+          - type: recognition
+            prompt: What is the longest river in the world?
+            answer: Nile
+            explanation: The Nile River in Africa is approximately 6,650 km long.
+            choices:
+              - Nile
+              - Amazon
+              - Mississippi
+              - Yangtze
+      - concept: Largest Ocean
+        questions:
+          - type: recognition
+            prompt: What is the largest ocean on Earth?
+            answer: Pacific Ocean
+            explanation: The Pacific Ocean covers about 165 million square kilometers.
+            choices:
+              - Pacific Ocean
+              - Atlantic Ocean
+              - Indian Ocean
+              - Arctic Ocean
+  - name: Science
+    complexityWeight: 1.2
+    nodes:
+      - concept: Speed of Light
+        questions:
+          - type: recognition
+            prompt: Approximately how fast does light travel in a vacuum?
+            answer: 300,000 km/s
+            explanation: Light travels at approximately 299,792 km/s in a vacuum.
+            choices:
+              - 300,000 km/s
+              - 150,000 km/s
+              - 1,000,000 km/s
+              - 30,000 km/s
+      - concept: Chemical Symbol for Water
+        questions:
+          - type: recognition
+            prompt: What is the chemical formula for water?
+            answer: H2O
+            explanation: Water is composed of two hydrogen atoms and one oxygen atom.
+            choices:
+              - H2O
+              - CO2
+              - NaCl
+              - O2

@@ -86,6 +86,7 @@ export function usersRouter(handle: EffectHandler) {
     handle((req) =>
       Effect.gen(function* () {
         const userId = req.params.id as string;
+        const skilltreeId = req.query.skilltreeId as string | undefined;
 
         const rows = yield* query((db) =>
           db
@@ -94,11 +95,28 @@ export function usersRouter(handle: EffectHandler) {
             .where(eq(learnerNodes.userId, userId)),
         );
 
-        const states = rows.map(dbRowToLearnerState);
+        // If skilltreeId provided, filter to only domains in that skill tree
+        let allDomains = yield* query((db) =>
+          db.select().from(domains).orderBy(domains.displayOrder),
+        );
+        if (skilltreeId) {
+          allDomains = allDomains.filter((d) => d.skilltreeId === skilltreeId);
+        }
+        const stDomainIds = new Set(allDomains.map((d) => d.id));
+
+        let filteredRows = rows;
+        if (skilltreeId) {
+          filteredRows = rows.filter((r) => stDomainIds.has(r.domainId));
+        }
+
+        const states = filteredRows.map(dbRowToLearnerState);
         const now = new Date();
         const overall = computeOverallProgress(states, now);
 
-        const allNodes = yield* query((db) => db.select().from(nodes));
+        let allNodes = yield* query((db) => db.select().from(nodes));
+        if (skilltreeId) {
+          allNodes = allNodes.filter((n) => stDomainIds.has(n.domainId));
+        }
         const nodeTopicMap = new Map(
           allNodes.map((n) => [
             n.id,
@@ -107,9 +125,6 @@ export function usersRouter(handle: EffectHandler) {
         );
         const topicProgress = computeTopicProgress(states, nodeTopicMap);
 
-        const allDomains = yield* query((db) =>
-          db.select().from(domains).orderBy(domains.displayOrder),
-        );
         const allTopics = yield* query((db) =>
           db.select().from(topics).orderBy(topics.displayOrder),
         );
@@ -165,12 +180,35 @@ export function usersRouter(handle: EffectHandler) {
     handle((req) =>
       Effect.gen(function* () {
         const userId = req.params.id as string;
+        const skilltreeId = req.query.skilltreeId as string | undefined;
 
         const userReviews = yield* query((db) =>
           db.select().from(reviews).where(eq(reviews.userId, userId)),
         );
 
-        if (userReviews.length === 0) {
+        // Build node→domain lookup and optionally filter by skill tree
+        const allNodes = yield* query((db) => db.select().from(nodes));
+        const nodeDomainMap = new Map(
+          allNodes.map((n) => [n.id, n.domainId]),
+        );
+
+        let stDomainIds: Set<string> | null = null;
+        if (skilltreeId) {
+          const stDomains = yield* query((db) =>
+            db.select().from(domains).where(eq(domains.skilltreeId, skilltreeId)),
+          );
+          stDomainIds = new Set(stDomains.map((d) => d.id));
+        }
+
+        let filteredReviews = userReviews;
+        if (stDomainIds) {
+          filteredReviews = userReviews.filter((r) => {
+            const domainId = nodeDomainMap.get(r.nodeId);
+            return domainId && stDomainIds!.has(domainId);
+          });
+        }
+
+        if (filteredReviews.length === 0) {
           return new HttpResponse(200, {
             overallScore: 0,
             quadrantCounts: {
@@ -192,18 +230,13 @@ export function usersRouter(handle: EffectHandler) {
           });
         }
 
-        const allNodes = yield* query((db) => db.select().from(nodes));
-        const nodeDomainMap = new Map(
-          allNodes.map((n) => [n.id, n.domainId]),
-        );
-
-        const entries: CalibrationEntry[] = userReviews.map((r) => ({
+        const entries: CalibrationEntry[] = filteredReviews.map((r) => ({
           confidence: r.confidence,
           wasCorrect: r.score >= CORRECT_SCORE_THRESHOLD,
           timestamp: r.createdAt,
         }));
 
-        const entryDomainIds = userReviews.map(
+        const entryDomainIds = filteredReviews.map(
           (r) => nodeDomainMap.get(r.nodeId) ?? "",
         );
 

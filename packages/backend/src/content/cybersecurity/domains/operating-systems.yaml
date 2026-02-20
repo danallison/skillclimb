@@ -1,0 +1,1278 @@
+name: Operating Systems
+tier: 0
+description: Linux and Windows fundamentals, file systems, processes, and permissions
+displayOrder: 3
+topics:
+  - name: Linux File System
+    nodes:
+      - concept: The root directory and filesystem hierarchy
+        questions:
+          - type: recognition
+            prompt: What is the top-level directory in the Linux filesystem hierarchy?
+            answer: /
+            explanation: The forward slash (/) is the root of the entire Linux filesystem hierarchy. Every other file and directory is located beneath it. The /root directory is the home directory for the root user, which is different from the filesystem root.
+            choices:
+              - /home
+              - /root
+              - /
+              - /usr
+          - type: cued_recall
+            prompt: What single character represents the top-level (root) directory of the entire Linux filesystem hierarchy?
+            answer: /
+            explanation: The forward slash (/) is the root of the entire Linux filesystem hierarchy. Every other file and directory is located beneath it. The /root directory is the home directory for the root user, which is different from the filesystem root.
+            acceptableAnswers:
+              - /
+              - forward slash
+              - slash
+            hints:
+              - It is a single punctuation character also used as the path separator.
+              - Every absolute path in Linux begins with this character.
+          - type: free_recall
+            prompt: Explain the Linux Filesystem Hierarchy Standard (FHS). What is the root directory, and describe the purpose of at least four major top-level directories beneath it.
+            answer: "The Linux Filesystem Hierarchy Standard defines the directory structure of Linux systems. The root directory (/) is the top-level directory from which all other directories branch. Key directories include: /etc for system-wide configuration files, /home for user home directories, /var for variable data like logs and mail spools, /tmp for temporary files, /usr for read-only user programs and libraries, /bin for essential user commands, /sbin for system administration commands, /dev for device files, and /proc for virtual kernel/process information."
+            explanation: The forward slash (/) is the root of the entire Linux filesystem hierarchy. Every other file and directory is located beneath it. The /root directory is the home directory for the root user, which is different from the filesystem root.
+            hints:
+              - Think about where configuration, user data, and logs are stored.
+              - The standard is called the Filesystem Hierarchy Standard (FHS).
+            rubric: A good answer should identify / as the root, explain that it is the top of the hierarchy, and correctly describe the purpose of at least four subdirectories such as /etc, /home, /var, /tmp, /usr, /bin, /sbin, /dev, or /proc.
+            keyPoints:
+              - / (root) is the top-level directory containing all others
+              - /etc stores system-wide configuration files
+              - /home contains user home directories
+              - /var holds variable data such as logs
+              - /usr contains read-only user programs and libraries
+      - concept: The /etc directory and system configuration files
+        questions:
+          - type: recognition
+            prompt: Which directory in Linux contains system-wide configuration files?
+            answer: /etc
+            explanation: The /etc directory holds system-wide configuration files such as /etc/passwd, /etc/shadow, /etc/hosts, and /etc/fstab. Attackers often target this directory during post-exploitation to harvest credentials and understand system configuration.
+            choices:
+              - /var
+              - /etc
+              - /opt
+              - /usr
+          - type: cued_recall
+            prompt: What is the absolute path of the Linux directory that stores system-wide configuration files such as passwd, shadow, and hosts?
+            answer: /etc
+            explanation: The /etc directory holds system-wide configuration files such as /etc/passwd, /etc/shadow, /etc/hosts, and /etc/fstab. Attackers often target this directory during post-exploitation to harvest credentials and understand system configuration.
+            acceptableAnswers:
+              - /etc
+              - /etc/
+              - etc
+            hints:
+              - This three-letter directory name is directly under the root (/).
+              - Files like passwd, shadow, and fstab live here.
+          - type: free_recall
+            prompt: Describe the /etc directory in Linux. What is its purpose, name several important files it contains, and explain why attackers often target this directory during post-exploitation.
+            answer: The /etc directory stores system-wide configuration files that control how the operating system and services behave. Important files include /etc/passwd (user account information), /etc/shadow (hashed passwords), /etc/hosts (hostname-to-IP mappings), /etc/fstab (filesystem mount configuration), /etc/sudoers (sudo privilege rules), and /etc/ssh/sshd_config (SSH server settings). Attackers target /etc during post-exploitation because it contains credential data (passwd/shadow), network configuration, service configurations, and privilege escalation opportunities (sudoers).
+            explanation: The /etc directory holds system-wide configuration files such as /etc/passwd, /etc/shadow, /etc/hosts, and /etc/fstab. Attackers often target this directory during post-exploitation to harvest credentials and understand system configuration.
+            hints:
+              - Think about where Linux stores user account and password information.
+              - Consider what an attacker would want to read after gaining access to a system.
+            rubric: A good answer should explain that /etc holds system-wide configuration, name at least three important files with their purposes, and explain the security relevance of the directory.
+            keyPoints:
+              - /etc stores system-wide configuration files
+              - /etc/passwd contains user account information
+              - /etc/shadow contains hashed passwords and is a prime attacker target
+              - /etc/hosts maps hostnames to IP addresses
+              - Attackers target /etc for credential harvesting and understanding system configuration
+      - concept: The /var directory and variable data
+        questions:
+          - type: recognition
+            prompt: Which Linux directory typically stores log files, mail spools, and other variable data that changes during system operation?
+            answer: /var
+            explanation: The /var directory contains variable data files including system logs (/var/log), mail (/var/mail), and print spools. Security analysts frequently examine /var/log for evidence of intrusions and suspicious activity.
+            choices:
+              - /tmp
+              - /var
+              - /opt
+              - /usr
+          - type: cued_recall
+            prompt: What is the absolute path of the Linux directory that contains variable data such as system logs, mail spools, and print queues?
+            answer: /var
+            explanation: The /var directory contains variable data files including system logs (/var/log), mail (/var/mail), and print spools. Security analysts frequently examine /var/log for evidence of intrusions and suspicious activity.
+            acceptableAnswers:
+              - /var
+              - /var/
+              - var
+            hints:
+              - The name is short for 'variable'.
+              - System logs are stored under this directory at /___/log.
+          - type: free_recall
+            prompt: Explain the purpose of the /var directory in Linux. What types of data does it store, what are some important subdirectories, and why is /var/log particularly important for security analysts?
+            answer: The /var directory stores variable data that changes during normal system operation, as opposed to static data in /usr. Important subdirectories include /var/log (system and application logs), /var/mail (user mailboxes), /var/spool (print and mail queues), /var/tmp (temporary files preserved between reboots), and /var/lib (state information for applications). /var/log is critical for security analysts because it contains logs like auth.log or secure (authentication attempts), syslog (system events), kern.log (kernel messages), and application-specific logs. These logs provide evidence of intrusions, brute-force attacks, privilege escalation attempts, and other suspicious activity.
+            explanation: The /var directory contains variable data files including system logs (/var/log), mail (/var/mail), and print spools. Security analysts frequently examine /var/log for evidence of intrusions and suspicious activity.
+            hints:
+              - Think about what data on a Linux system changes frequently during operation.
+              - Consider what a security analyst would examine when investigating an incident.
+            rubric: A good answer should explain that /var holds variable/changing data, name at least three subdirectories with their purposes, and explain the security importance of /var/log with specific log file examples.
+            keyPoints:
+              - /var stores variable data that changes during system operation
+              - /var/log contains system and application log files
+              - /var/mail holds user mailboxes
+              - /var/spool manages print and mail queues
+              - Security analysts use /var/log to investigate intrusions and suspicious activity
+      - concept: The /tmp directory and its security implications
+        questions:
+          - type: recognition
+            prompt: Why is the /tmp directory a common target for attackers on Linux systems?
+            answer: It is world-writable, allowing any user to create and execute files there
+            explanation: The /tmp directory is world-writable by default, meaning any user can create files in it. Attackers often use /tmp to drop malicious payloads, scripts, or tools after gaining initial access. Mounting /tmp with noexec can mitigate this risk.
+            choices:
+              - It stores encrypted user passwords
+              - It is world-writable, allowing any user to create and execute files there
+              - It contains kernel modules that can be replaced
+              - It holds backup copies of the /etc/shadow file
+          - type: cued_recall
+            prompt: What mount option can be applied to /tmp to prevent execution of binaries and scripts placed there by attackers?
+            answer: noexec
+            explanation: The /tmp directory is world-writable by default, meaning any user can create files in it. Attackers often use /tmp to drop malicious payloads, scripts, or tools after gaining initial access. Mounting /tmp with noexec can mitigate this risk.
+            acceptableAnswers:
+              - noexec
+              - the noexec mount option
+              - noexec flag
+              - noexec option
+            hints:
+              - It is a mount option that prevents files from being run as programs.
+              - The option name literally means 'no execution'.
+          - type: free_recall
+            prompt: Explain why the /tmp directory is a security concern on Linux systems. Describe its default permissions, how attackers exploit it, and what hardening measures can be applied to mitigate the risk.
+            answer: "The /tmp directory is world-writable (permission 1777 with the sticky bit) by default, meaning any user on the system can create, read, and write files there. Attackers exploit this by dropping malicious payloads, reverse shells, scripts, and exploitation tools into /tmp after gaining initial access, since they know any user account can write there. Hardening measures include: mounting /tmp as a separate partition with the noexec option (prevents binary/script execution), nosuid (prevents SUID bit abuse), and nodev (prevents device file creation). The sticky bit ensures users can only delete their own files in /tmp. Additionally, administrators can use tmpwatch or systemd-tmpfiles to regularly clean old files from /tmp."
+            explanation: The /tmp directory is world-writable by default, meaning any user can create files in it. Attackers often use /tmp to drop malicious payloads, scripts, or tools after gaining initial access. Mounting /tmp with noexec can mitigate this risk.
+            hints:
+              - Consider what permissions /tmp has by default and what that allows any user to do.
+              - Think about mount options that restrict what can happen with files in a directory.
+            rubric: A good answer should explain that /tmp is world-writable, describe how attackers use it as a staging area for malicious files, and mention at least two hardening measures such as noexec, nosuid, separate partition, or regular cleanup.
+            keyPoints:
+              - /tmp is world-writable by default, allowing any user to create files
+              - Attackers use /tmp to drop malicious payloads and tools after initial access
+              - The noexec mount option prevents execution of files in /tmp
+              - Additional hardening includes nosuid and nodev mount options
+              - The sticky bit (1777) ensures users can only delete their own files
+      - concept: The /proc filesystem and process information
+        questions:
+          - type: recognition
+            prompt: What type of filesystem is /proc in Linux?
+            answer: A virtual filesystem that exposes kernel and process information
+            explanation: The /proc filesystem is a virtual (pseudo) filesystem that does not exist on disk. It provides an interface to kernel data structures and per-process information. Analysts use files like /proc/[pid]/cmdline and /proc/[pid]/maps for live forensics.
+            choices:
+              - A standard ext4 filesystem for storing process binaries
+              - A virtual filesystem that exposes kernel and process information
+              - An encrypted filesystem for storing sensitive process data
+              - A network filesystem for sharing process information across hosts
+          - type: cued_recall
+            prompt: What is the name of the virtual filesystem in Linux that provides an interface to kernel data structures and per-process information, located at a top-level mount point?
+            answer: /proc
+            explanation: The /proc filesystem is a virtual (pseudo) filesystem that does not exist on disk. It provides an interface to kernel data structures and per-process information. Analysts use files like /proc/[pid]/cmdline and /proc/[pid]/maps for live forensics.
+            acceptableAnswers:
+              - /proc
+              - /proc/
+              - proc
+              - procfs
+              - the proc filesystem
+            hints:
+              - Its name is short for 'process'.
+              - Each running process has a numbered subdirectory in this filesystem.
+          - type: free_recall
+            prompt: Describe the /proc filesystem in Linux. Explain what kind of filesystem it is, what information it exposes, give examples of useful files within it, and explain how security analysts use it for live forensics.
+            answer: "The /proc filesystem is a virtual (pseudo) filesystem that does not exist on disk — its contents are generated dynamically by the kernel. It exposes kernel data structures and per-process information. Each running process has a numbered directory (/proc/[pid]/) containing files like cmdline (the command that started the process), maps (memory mappings), fd/ (open file descriptors), environ (environment variables), and status (process state and memory usage). System-wide information is also available, such as /proc/cpuinfo, /proc/meminfo, /proc/version, and /proc/net/. Security analysts use /proc for live forensics: examining /proc/[pid]/cmdline reveals what commands processes are running, /proc/[pid]/exe shows the actual binary, /proc/[pid]/maps reveals loaded libraries (useful for detecting injection), and /proc/[pid]/fd/ shows open files and network connections."
+            explanation: The /proc filesystem is a virtual (pseudo) filesystem that does not exist on disk. It provides an interface to kernel data structures and per-process information. Analysts use files like /proc/[pid]/cmdline and /proc/[pid]/maps for live forensics.
+            hints:
+              - Think about what makes this filesystem different from ext4 or XFS.
+              - Consider what information about a running process would be useful for an investigator.
+            rubric: A good answer should explain that /proc is a virtual filesystem not stored on disk, describe the per-process directories, name at least three specific files and their contents, and explain at least one forensic use case.
+            keyPoints:
+              - /proc is a virtual (pseudo) filesystem not stored on disk
+              - Each process has a /proc/[pid]/ directory with process details
+              - /proc/[pid]/cmdline shows the command line of a process
+              - /proc/[pid]/maps reveals memory mappings useful for detecting code injection
+              - Security analysts use /proc for live forensics to examine running processes without specialized tools
+      - concept: Hard links vs symbolic links
+        questions:
+          - type: recognition
+            prompt: What is the key difference between a hard link and a symbolic (soft) link in Linux?
+            answer: A hard link points directly to the inode of a file; a symbolic link points to the file path
+            explanation: A hard link is an additional directory entry pointing to the same inode as the original file. A symbolic link is a separate file that stores the path to the target. Deleting the original file breaks a symbolic link but does not affect a hard link.
+            choices:
+              - A hard link points directly to the inode of a file; a symbolic link points to the file path
+              - A symbolic link can only reference directories; a hard link cannot
+              - Hard links work across different filesystems; symbolic links do not
+              - Symbolic links share the same inode number as the target file
+      - concept: The /home directory and user data
+        questions:
+          - type: recognition
+            prompt: Where are individual user home directories typically located on a Linux system?
+            answer: /home
+            explanation: User home directories are typically stored under /home (e.g., /home/alice). Each user's home directory contains personal files, shell configuration files like .bashrc and .bash_history, and SSH keys in .ssh/, all of which are valuable to attackers.
+            choices:
+              - /usr/home
+              - /home
+              - /users
+              - /var/users
+      - concept: The /bin and /sbin directories
+        questions:
+          - type: recognition
+            prompt: What is the primary difference between /bin and /sbin on a Linux system?
+            answer: /bin contains user commands; /sbin contains system administration commands typically requiring root privileges
+            explanation: /bin holds essential user commands available to all users (ls, cp, cat), while /sbin holds system administration binaries (iptables, fdisk, ifconfig) that typically require root privileges. On modern systems, these are often symlinked to /usr/bin and /usr/sbin.
+            choices:
+              - /bin contains user commands; /sbin contains system administration commands typically requiring root privileges
+              - /sbin is for shell scripts; /bin is for compiled binaries
+              - /bin is for 32-bit binaries; /sbin is for 64-bit binaries
+              - /sbin stores backup copies of /bin executables
+      - concept: Inodes and file metadata
+        questions:
+          - type: recognition
+            prompt: What information does an inode store in a Linux filesystem?
+            answer: File metadata including ownership, permissions, timestamps, and data block pointers
+            explanation: "An inode stores metadata about a file: owner, group, permissions, timestamps (access, modification, change), file size, and pointers to the data blocks on disk. Notably, the filename is not stored in the inode but in the directory entry."
+            choices:
+              - The filename and its directory path
+              - File metadata including ownership, permissions, timestamps, and data block pointers
+              - Only the file contents in compressed form
+              - The user's password hash associated with the file
+      - concept: Common Linux filesystem types (ext4, XFS, Btrfs)
+        questions:
+          - type: recognition
+            prompt: Which filesystem is the default on most modern Linux distributions?
+            answer: ext4
+            explanation: ext4 (Fourth Extended Filesystem) is the default filesystem on most Linux distributions. It supports journaling for crash recovery, file sizes up to 16 TiB, and volumes up to 1 EiB. XFS and Btrfs are also common alternatives.
+            choices:
+              - NTFS
+              - FAT32
+              - ext4
+              - HFS+
+      - concept: The /dev directory and device files
+        questions:
+          - type: recognition
+            prompt: What does the /dev directory contain in Linux?
+            answer: Device files that represent hardware and virtual devices
+            explanation: The /dev directory contains special device files that represent hardware devices (e.g., /dev/sda for a hard disk) and virtual devices (e.g., /dev/null, /dev/random). In security contexts, /dev/null discards output and /dev/urandom provides cryptographic randomness.
+            choices:
+              - Development tools and compilers
+              - Device files that represent hardware and virtual devices
+              - Developer documentation and man pages
+              - Temporary files created by development environments
+      - concept: Mount points and the /etc/fstab file
+        questions:
+          - type: recognition
+            prompt: What is the purpose of the /etc/fstab file on a Linux system?
+            answer: It defines filesystems to be automatically mounted at boot, including their mount points and options
+            explanation: The /etc/fstab (filesystem table) file defines which filesystems are mounted automatically at boot and their options (e.g., noexec, nosuid, nodev). Proper fstab hardening is important for security, such as mounting /tmp with noexec to prevent execution of malicious files.
+            choices:
+              - It stores user account information
+              - It defines filesystems to be automatically mounted at boot, including their mount points and options
+              - It lists all currently running processes
+              - It configures the system firewall rules
+      - concept: The /usr directory and user programs
+        questions:
+          - type: recognition
+            prompt: What does the /usr directory hierarchy contain in Linux?
+            answer: Read-only user programs, libraries, documentation, and shared resources
+            explanation: "/usr (Unix System Resources) contains read-only user programs and data: /usr/bin for user commands, /usr/lib for libraries, /usr/share for architecture-independent data, and /usr/local for locally installed software. It is the largest directory hierarchy on most systems."
+            choices:
+              - User home directories and personal files
+              - Read-only user programs, libraries, documentation, and shared resources
+              - Temporary user session data
+              - User-specific log files
+  - name: Linux Permissions
+    complexityWeight: 1.2
+    nodes:
+      - concept: "The three permission categories: owner, group, other"
+        questions:
+          - type: recognition
+            prompt: In Linux file permissions, what are the three categories of users that permissions apply to?
+            answer: Owner, Group, Other
+            explanation: "Linux file permissions are divided into three categories: Owner (the file's owner), Group (members of the file's group), and Other (everyone else). Each category can independently have read, write, and execute permissions."
+            choices:
+              - Admin, User, Guest
+              - Owner, Group, Other
+              - Root, Sudo, Normal
+              - Read, Write, Execute
+      - concept: Numeric (octal) permission notation
+        questions:
+          - type: recognition
+            prompt: In Linux octal permission notation, what does the permission value 755 represent?
+            answer: "Owner: read/write/execute, Group: read/execute, Other: read/execute"
+            explanation: In octal notation, 7 = read(4) + write(2) + execute(1), and 5 = read(4) + execute(1). So 755 gives the owner full permissions (rwx) and grants group and other read and execute permissions (r-x).
+            choices:
+              - "Owner: read/write, Group: read, Other: none"
+              - "Owner: read/write/execute, Group: read/execute, Other: read/execute"
+              - "Owner: read/write/execute, Group: read/write, Other: read/write"
+              - "Owner: read/execute, Group: write, Other: execute"
+      - concept: The chmod command for changing permissions
+        questions:
+          - type: recognition
+            prompt: Which command is used to change file permissions on a Linux system?
+            answer: chmod
+            explanation: The chmod (change mode) command modifies file permissions. It can use symbolic notation (chmod u+x file) or octal notation (chmod 755 file). Misconfigured permissions are a common security vulnerability.
+            choices:
+              - chown
+              - chmod
+              - chgrp
+              - umask
+      - concept: The SUID bit and its security implications
+        questions:
+          - type: recognition
+            prompt: What does the SUID (Set User ID) bit do when set on an executable file in Linux?
+            answer: It causes the file to execute with the permissions of the file owner, regardless of who runs it
+            explanation: When the SUID bit is set on an executable, it runs with the effective permissions of the file owner (often root) instead of the user who launched it. Finding SUID binaries (find / -perm -4000) is a key step in Linux privilege escalation.
+            choices:
+              - It prevents the file from being executed by non-root users
+              - It causes the file to execute with the permissions of the file owner, regardless of who runs it
+              - It encrypts the file so only the owner can read it
+              - It logs all executions of the file to the system audit log
+      - concept: The SGID bit on files and directories
+        questions:
+          - type: recognition
+            prompt: What is the effect of the SGID (Set Group ID) bit when applied to a directory?
+            answer: Files created within the directory inherit the directory's group ownership
+            explanation: When SGID is set on a directory, new files and subdirectories created within it inherit the group ownership of the parent directory rather than the creating user's primary group. This is useful for shared directories.
+            choices:
+              - Files created within the directory inherit the directory's group ownership
+              - Only the group owner can list the directory contents
+              - The directory becomes read-only for all group members
+              - The directory is excluded from backup operations
+      - concept: The sticky bit on directories
+        questions:
+          - type: recognition
+            prompt: What does the sticky bit do when set on a directory like /tmp?
+            answer: It allows only the file owner, directory owner, or root to delete or rename files within it
+            explanation: The sticky bit on a directory prevents users from deleting or renaming files owned by other users. This is essential for world-writable directories like /tmp, where without the sticky bit any user could delete any other user's files.
+            choices:
+              - It makes the directory hidden from non-root users
+              - It allows only the file owner, directory owner, or root to delete or rename files within it
+              - It compresses all files stored in the directory
+              - It prevents any new files from being created in the directory
+      - concept: The umask and default file permissions
+        questions:
+          - type: recognition
+            prompt: What does the umask value control on a Linux system?
+            answer: The default permissions that are removed from newly created files and directories
+            explanation: The umask is a bitmask that is subtracted from the system default permissions when creating new files and directories. For example, a umask of 022 removes write permission for group and other from new files, resulting in 644 for files and 755 for directories.
+            choices:
+              - The maximum number of files a user can create
+              - The default permissions that are removed from newly created files and directories
+              - The encryption algorithm used for file storage
+              - The list of users who are denied login access
+      - concept: The chown command for changing ownership
+        questions:
+          - type: recognition
+            prompt: What does the chown command do in Linux?
+            answer: Changes the owner and/or group of a file or directory
+            explanation: The chown (change owner) command modifies the owner and optionally the group of a file or directory (e.g., chown alice:developers file.txt). Only root can change file ownership on most systems.
+            choices:
+              - Changes the permissions (mode) of a file
+              - Changes the owner and/or group of a file or directory
+              - Changes the timestamp of a file
+              - Changes the name of a file or directory
+      - concept: The /etc/passwd file and user accounts
+        questions:
+          - type: recognition
+            prompt: What information is stored in the /etc/passwd file on a Linux system?
+            answer: User account information including username, UID, GID, home directory, and default shell
+            explanation: "The /etc/passwd file contains one line per user account with colon-separated fields: username, password placeholder (x), UID, GID, comment, home directory, and login shell. Despite its name, actual password hashes are stored in /etc/shadow."
+            choices:
+              - Encrypted user passwords and their expiration dates
+              - User account information including username, UID, GID, home directory, and default shell
+              - A log of all successful and failed login attempts
+              - The list of users currently logged into the system
+      - concept: The /etc/shadow file and password hashes
+        questions:
+          - type: recognition
+            prompt: Why are password hashes stored in /etc/shadow rather than /etc/passwd?
+            answer: Because /etc/shadow is readable only by root, protecting password hashes from non-privileged users
+            explanation: The /etc/shadow file is readable only by root (permissions 640 or 600), whereas /etc/passwd must be world-readable for system functionality. Moving password hashes to /etc/shadow prevents unprivileged users from obtaining hashes for offline cracking.
+            choices:
+              - Because /etc/shadow supports longer passwords
+              - Because /etc/shadow is readable only by root, protecting password hashes from non-privileged users
+              - Because /etc/passwd does not support any form of encryption
+              - Because /etc/shadow automatically rotates passwords every 90 days
+      - concept: The sudo command and privilege escalation
+        questions:
+          - type: recognition
+            prompt: What is the purpose of the sudo command in Linux?
+            answer: To execute a command with the privileges of another user, typically root
+            explanation: sudo (superuser do) allows authorized users to run commands as root or another user, as configured in /etc/sudoers. Misconfigured sudo rules are a top target for privilege escalation attacks on Linux systems.
+            choices:
+              - To switch to a different user's home directory
+              - To execute a command with the privileges of another user, typically root
+              - To encrypt a command before execution
+              - To schedule a command to run at a later time
+      - concept: The /etc/sudoers file and sudo configuration
+        questions:
+          - type: recognition
+            prompt: Which file controls which users and groups are permitted to use sudo, and what commands they may run?
+            answer: /etc/sudoers
+            explanation: "The /etc/sudoers file defines sudo policies: which users or groups may run which commands, on which hosts, and as which target users. It should only be edited with the visudo command, which validates syntax before saving."
+            choices:
+              - /etc/passwd
+              - /etc/sudo.conf
+              - /etc/sudoers
+              - /etc/security/access.conf
+      - concept: Access Control Lists (ACLs) in Linux
+        questions:
+          - type: recognition
+            prompt: What do Linux Access Control Lists (ACLs) provide beyond standard file permissions?
+            answer: Fine-grained permission control for specific users and groups beyond owner/group/other
+            explanation: Linux ACLs extend the traditional owner/group/other model by allowing permissions to be set for additional named users and groups on a per-file basis. The getfacl and setfacl commands manage ACLs.
+            choices:
+              - The ability to encrypt individual files at the filesystem level
+              - Fine-grained permission control for specific users and groups beyond owner/group/other
+              - Automatic permission inheritance from parent directories only
+              - A mechanism to prevent root from accessing certain files
+  - name: Linux Processes
+    complexityWeight: 1.1
+    nodes:
+      - concept: The init/systemd process (PID 1)
+        questions:
+          - type: recognition
+            prompt: Which process always has PID 1 on a Linux system and is the ancestor of all other processes?
+            answer: init or systemd
+            explanation: The init process (or systemd on modern distributions) is the first user-space process started by the kernel and always has PID 1. It is the ancestor of all other processes and is responsible for starting and managing system services.
+            choices:
+              - bash
+              - kernel
+              - init or systemd
+              - cron
+      - concept: The ps command for viewing processes
+        questions:
+          - type: recognition
+            prompt: Which command is commonly used to display a snapshot of currently running processes on a Linux system?
+            answer: ps aux
+            explanation: The 'ps aux' command displays a snapshot of all running processes with detailed information including user, PID, CPU usage, memory usage, and the command line. It is essential for security investigations and identifying suspicious processes.
+            choices:
+              - ls -l
+              - ps aux
+              - df -h
+              - cat /proc/cpuinfo
+      - concept: Process signals and the kill command
+        questions:
+          - type: recognition
+            prompt: What does the command 'kill -9 <PID>' do in Linux?
+            answer: Sends SIGKILL to forcefully terminate the process immediately
+            explanation: Signal 9 (SIGKILL) cannot be caught or ignored by a process; the kernel immediately terminates it. Unlike SIGTERM (signal 15), which allows a process to clean up before exiting, SIGKILL is a last resort when a process is unresponsive.
+            choices:
+              - Sends SIGHUP to gracefully restart the process
+              - Sends SIGKILL to forcefully terminate the process immediately
+              - Sends SIGSTOP to pause the process
+              - Sends SIGTERM to request a graceful shutdown
+      - concept: Foreground and background processes
+        questions:
+          - type: recognition
+            prompt: In a Linux shell, how do you send a running foreground process to the background?
+            answer: Press Ctrl+Z to suspend it, then type bg
+            explanation: Ctrl+Z sends SIGTSTP to the foreground process, suspending it. The 'bg' command then resumes it in the background. The 'fg' command brings a background process back to the foreground. The '&' suffix starts a command directly in the background.
+            choices:
+              - Press Ctrl+C, then type bg
+              - Press Ctrl+Z to suspend it, then type bg
+              - Type 'background' followed by the PID
+              - Press Ctrl+D to detach the process
+      - concept: Daemons and background services
+        questions:
+          - type: recognition
+            prompt: What is a daemon in the context of Linux systems?
+            answer: A background process that runs continuously, typically providing a system service
+            explanation: A daemon is a background process that runs without direct user interaction, typically started at boot to provide services such as web serving (httpd), logging (syslogd), or SSH access (sshd). Daemon names conventionally end with 'd'.
+            choices:
+              - A malicious process that hides from the user
+              - A background process that runs continuously, typically providing a system service
+              - A process that only runs when a user is logged in
+              - A kernel module that manages hardware devices
+      - concept: The /proc filesystem for process inspection
+        questions:
+          - type: recognition
+            prompt: How can you view the exact command line used to start a process with PID 1234 on Linux?
+            answer: cat /proc/1234/cmdline
+            explanation: The /proc/[pid]/cmdline file contains the complete command line used to start a process, with arguments separated by null bytes. This is invaluable during incident response for understanding what a suspicious process is doing.
+            choices:
+              - cat /var/log/process/1234
+              - cat /proc/1234/cmdline
+              - cat /etc/process/1234.conf
+              - cat /sys/process/1234/cmd
+      - concept: Process niceness and priority
+        questions:
+          - type: recognition
+            prompt: What does the 'nice' value of a Linux process control?
+            answer: The CPU scheduling priority of the process
+            explanation: The nice value ranges from -20 (highest priority) to 19 (lowest priority). A higher nice value means the process is 'nicer' to other processes by yielding CPU time. Only root can set negative nice values (higher priority).
+            choices:
+              - The amount of memory allocated to the process
+              - The CPU scheduling priority of the process
+              - The network bandwidth available to the process
+              - The file access permissions of the process
+      - concept: Zombie processes and process states
+        questions:
+          - type: recognition
+            prompt: What is a zombie process in Linux?
+            answer: A process that has completed execution but still has an entry in the process table because its parent has not collected its exit status
+            explanation: A zombie process has finished executing but remains in the process table (state 'Z') until its parent calls wait() to read its exit status. Zombies consume minimal resources but a large number may indicate a poorly written or compromised parent process.
+            choices:
+              - A process that consumes excessive CPU resources
+              - A process that has completed execution but still has an entry in the process table because its parent has not collected its exit status
+              - A process that has been suspended by the kernel for security reasons
+              - A process running in a container that has lost its network connection
+      - concept: The top and htop commands for real-time monitoring
+        questions:
+          - type: recognition
+            prompt: What does the 'top' command display in Linux?
+            answer: A real-time, dynamic view of running processes and system resource utilization
+            explanation: The 'top' command provides a real-time, updating display of system processes sorted by CPU usage, along with overall CPU, memory, and swap utilization. It is commonly used during incident response to identify resource-intensive or suspicious processes.
+            choices:
+              - A list of the top 10 largest files on the system
+              - A real-time, dynamic view of running processes and system resource utilization
+              - The top-level directory structure of the filesystem
+              - A list of the most recently modified configuration files
+      - concept: The cron scheduler and crontab
+        questions:
+          - type: recognition
+            prompt: What is the purpose of cron on a Linux system?
+            answer: To schedule commands or scripts to run automatically at specified times or intervals
+            explanation: Cron is a time-based job scheduler that executes commands at specified intervals defined in crontab files. Attackers frequently install cron jobs for persistence, so reviewing crontabs (crontab -l, /etc/crontab, /etc/cron.d/) is essential during investigations.
+            choices:
+              - To monitor system logs for security events
+              - To schedule commands or scripts to run automatically at specified times or intervals
+              - To manage user authentication and session tracking
+              - To compress and archive old files
+      - concept: Process namespaces and containerization
+        questions:
+          - type: recognition
+            prompt: What do Linux namespaces provide in the context of process isolation?
+            answer: Isolated views of system resources such as PIDs, network, and mount points for groups of processes
+            explanation: Linux namespaces isolate groups of processes so they have their own view of system resources (PID, network, mount, user, UTS, IPC). Namespaces are the foundational technology behind containers like Docker and are critical to understanding container security.
+            choices:
+              - Encryption of process memory to prevent reading by other processes
+              - Isolated views of system resources such as PIDs, network, and mount points for groups of processes
+              - A mechanism to run processes on remote machines transparently
+              - Automatic load balancing of processes across CPU cores
+      - concept: The lsof command for listing open files
+        questions:
+          - type: recognition
+            prompt: What does the lsof command do in Linux, and why is it useful for security?
+            answer: It lists open files and the processes that have them open, including network connections
+            explanation: lsof (list open files) shows all files currently opened by processes, including regular files, directories, network sockets, and pipes. It is invaluable for identifying which process is using a port (lsof -i :80) or which files a suspicious process has open.
+            choices:
+              - It lists all files on the filesystem sorted by size
+              - It lists open files and the processes that have them open, including network connections
+              - It locks files to prevent simultaneous access by multiple users
+              - It logs all file system operations to the audit log
+      - concept: The strace command for system call tracing
+        questions:
+          - type: recognition
+            prompt: What does the strace utility do in Linux?
+            answer: It intercepts and records system calls made by a process and the signals it receives
+            explanation: strace traces system calls (open, read, write, connect, execve, etc.) made by a process. Security analysts use it to understand malware behavior, debug suspicious processes, and observe what files and network connections a program accesses.
+            choices:
+              - It traces network packets between two hosts
+              - It intercepts and records system calls made by a process and the signals it receives
+              - It traces the execution path through source code
+              - It monitors disk I/O operations at the block device level
+  - name: Linux Networking
+    complexityWeight: 1.3
+    nodes:
+      - concept: The ifconfig and ip commands for network configuration
+        questions:
+          - type: recognition
+            prompt: Which modern command has replaced ifconfig for network interface configuration on most Linux distributions?
+            answer: ip
+            explanation: The 'ip' command (from iproute2) has replaced the deprecated ifconfig for configuring network interfaces, routes, and addresses. Use 'ip addr' to show addresses, 'ip link' for interfaces, and 'ip route' for routing tables.
+            choices:
+              - netstat
+              - ip
+              - route
+              - nmcli
+      - concept: The netstat and ss commands for network connections
+        questions:
+          - type: recognition
+            prompt: Which command is the modern replacement for netstat that displays socket statistics on Linux?
+            answer: ss
+            explanation: The 'ss' command (socket statistics) replaces the deprecated netstat for displaying network connections, listening ports, and socket information. 'ss -tulnp' shows all TCP/UDP listening ports with process information, which is essential for identifying unauthorized services.
+            choices:
+              - nmap
+              - ss
+              - dig
+              - traceroute
+      - concept: iptables and Linux firewall management
+        questions:
+          - type: recognition
+            prompt: What is iptables in Linux?
+            answer: A user-space utility for configuring the kernel's packet filtering rules (firewall)
+            explanation: iptables is the traditional user-space tool for configuring the Linux kernel's Netfilter packet filtering framework. It organizes rules into chains (INPUT, OUTPUT, FORWARD) within tables (filter, nat, mangle). nftables is its modern successor.
+            choices:
+              - A tool for managing DNS records
+              - A user-space utility for configuring the kernel's packet filtering rules (firewall)
+              - A network monitoring tool that captures packets
+              - A service that assigns IP addresses via DHCP
+      - concept: The /etc/hosts file and local name resolution
+        questions:
+          - type: recognition
+            prompt: What role does the /etc/hosts file play on a Linux system?
+            answer: It provides static hostname-to-IP address mappings that override DNS
+            explanation: The /etc/hosts file maps hostnames to IP addresses locally, and is typically consulted before DNS (depending on /etc/nsswitch.conf). Attackers may modify it to redirect traffic, and defenders use it to block known malicious domains by pointing them to 127.0.0.1.
+            choices:
+              - It configures the DHCP client settings
+              - It provides static hostname-to-IP address mappings that override DNS
+              - It stores the SSH known_hosts keys
+              - It lists all network interfaces and their MAC addresses
+      - concept: SSH key-based authentication
+        questions:
+          - type: recognition
+            prompt: Where is the default location for storing a user's authorized SSH public keys on a Linux server?
+            answer: ~/.ssh/authorized_keys
+            explanation: The ~/.ssh/authorized_keys file in each user's home directory lists the public keys allowed to authenticate as that user. Attackers who gain write access to this file can add their own key for persistent backdoor access.
+            choices:
+              - /etc/ssh/authorized_keys
+              - ~/.ssh/authorized_keys
+              - /var/ssh/keys
+              - /home/ssh/public_keys
+      - concept: The tcpdump command for packet capture
+        questions:
+          - type: recognition
+            prompt: What is tcpdump used for in Linux?
+            answer: Capturing and analyzing network packets on an interface
+            explanation: tcpdump is a command-line packet analyzer that captures and displays network packets passing through an interface. It is commonly used for network troubleshooting and security analysis (e.g., 'tcpdump -i eth0 port 443' captures HTTPS traffic).
+            choices:
+              - Dumping the contents of TCP configuration files
+              - Capturing and analyzing network packets on an interface
+              - Testing TCP connection speeds between two hosts
+              - Displaying the TCP connection table
+      - concept: The /etc/resolv.conf file and DNS resolver configuration
+        questions:
+          - type: recognition
+            prompt: What does the /etc/resolv.conf file configure on a Linux system?
+            answer: The DNS name servers and search domains used for name resolution
+            explanation: The /etc/resolv.conf file specifies the DNS servers (nameserver entries) and default search domains used by the system's resolver library. An attacker who modifies this file can redirect all DNS queries to a malicious server.
+            choices:
+              - The system's firewall resolution rules
+              - The DNS name servers and search domains used for name resolution
+              - The list of resolved security vulnerabilities
+              - The hostname resolution order for NIS and LDAP
+      - concept: The nmap port scanner and its uses
+        questions:
+          - type: recognition
+            prompt: What is the primary purpose of the nmap tool?
+            answer: Network discovery and security auditing through port scanning
+            explanation: nmap (Network Mapper) is an open-source tool for network discovery and security auditing. It can identify open ports, running services, operating system versions, and potential vulnerabilities on target hosts. It is used by both defenders and attackers.
+            choices:
+              - Managing network interface IP addresses
+              - Network discovery and security auditing through port scanning
+              - Monitoring network bandwidth usage in real time
+              - Configuring VPN tunnels between networks
+      - concept: Network bonding and interface teaming
+        questions:
+          - type: recognition
+            prompt: What is the purpose of network interface bonding (teaming) in Linux?
+            answer: Combining multiple network interfaces for redundancy and/or increased throughput
+            explanation: Network bonding (or teaming) aggregates multiple physical network interfaces into a single logical interface. It provides fault tolerance (if one link fails, traffic continues on another) and can increase bandwidth through load balancing across links.
+            choices:
+              - Encrypting traffic across multiple interfaces simultaneously
+              - Combining multiple network interfaces for redundancy and/or increased throughput
+              - Assigning multiple IP addresses to a single interface
+              - Bridging traffic between wired and wireless interfaces
+      - concept: The curl and wget commands for HTTP requests
+        questions:
+          - type: recognition
+            prompt: Which command-line tool is commonly used to transfer data from or to a server using URLs and supports protocols like HTTP, HTTPS, and FTP?
+            answer: curl
+            explanation: curl (Client URL) is a versatile command-line tool for transferring data using various protocols. Security professionals use it to test web applications, download payloads, and interact with REST APIs. wget is a similar tool focused on downloading files.
+            choices:
+              - dig
+              - curl
+              - arp
+              - traceroute
+      - concept: The /etc/network/interfaces and NetworkManager
+        questions:
+          - type: recognition
+            prompt: On Debian-based Linux systems, which file traditionally defines persistent network interface configurations?
+            answer: /etc/network/interfaces
+            explanation: On Debian/Ubuntu systems, /etc/network/interfaces defines persistent network configurations including IP addresses, gateways, and DNS settings. Modern Ubuntu uses Netplan (/etc/netplan/) which generates configurations for NetworkManager or systemd-networkd.
+            choices:
+              - /etc/sysconfig/network-scripts/ifcfg-eth0
+              - /etc/network/interfaces
+              - /etc/netplan/config.yaml
+              - /etc/NetworkManager/system-connections/
+      - concept: VPN and tunneling on Linux (OpenVPN, WireGuard)
+        questions:
+          - type: recognition
+            prompt: Which modern VPN protocol is known for its simplicity, high performance, and small codebase, making it increasingly popular on Linux?
+            answer: WireGuard
+            explanation: WireGuard is a modern VPN protocol built into the Linux kernel since version 5.6. Its small codebase (~4,000 lines vs. OpenVPN's ~100,000) makes it easier to audit for security vulnerabilities, and it provides excellent performance with state-of-the-art cryptography.
+            choices:
+              - PPTP
+              - L2TP/IPsec
+              - WireGuard
+              - SSTP
+      - concept: The dig command for DNS queries
+        questions:
+          - type: recognition
+            prompt: What is the dig command used for in Linux?
+            answer: Performing DNS lookups and querying DNS servers for specific record types
+            explanation: dig (Domain Information Groper) is a flexible DNS lookup tool used to query DNS servers for specific record types (A, MX, NS, TXT, etc.). Security professionals use it to investigate DNS configurations, detect misconfigurations, and verify DNSSEC signatures.
+            choices:
+              - Discovering open ports on a remote host
+              - Performing DNS lookups and querying DNS servers for specific record types
+              - Digging into filesystem metadata to find hidden files
+              - Monitoring disk I/O operations
+  - name: Windows Architecture
+    complexityWeight: 1.1
+    nodes:
+      - concept: The Windows Registry and its structure
+        questions:
+          - type: recognition
+            prompt: What is the Windows Registry?
+            answer: A hierarchical database that stores configuration settings for the operating system, applications, and users
+            explanation: The Windows Registry is a hierarchical database organized into hives (HKEY_LOCAL_MACHINE, HKEY_CURRENT_USER, etc.) that stores OS configuration, application settings, and user preferences. Malware frequently modifies registry keys for persistence.
+            choices:
+              - A log file that records all system events
+              - A hierarchical database that stores configuration settings for the operating system, applications, and users
+              - A tool for managing Windows services
+              - A file system used exclusively for storing system DLLs
+      - concept: "Registry hives: HKLM and HKCU"
+        questions:
+          - type: recognition
+            prompt: What does the HKEY_LOCAL_MACHINE (HKLM) registry hive contain?
+            answer: System-wide configuration settings that apply to all users on the machine
+            explanation: HKEY_LOCAL_MACHINE (HKLM) contains system-wide settings including hardware configuration, installed software, and security policies. HKEY_CURRENT_USER (HKCU) contains settings for the currently logged-in user. Both are key targets for forensic analysis.
+            choices:
+              - Settings specific to the currently logged-in user
+              - System-wide configuration settings that apply to all users on the machine
+              - Temporary files and cached application data
+              - Network connection logs and firewall rules
+      - concept: The Windows kernel and user mode vs. kernel mode
+        questions:
+          - type: recognition
+            prompt: What is the fundamental difference between user mode and kernel mode in Windows?
+            answer: User mode code has restricted access to hardware and system resources; kernel mode code has unrestricted access
+            explanation: User mode processes run in an isolated virtual address space with restricted access to system resources. Kernel mode code (drivers, kernel) has unrestricted access to all hardware and memory. A vulnerability in kernel mode code can compromise the entire system.
+            choices:
+              - User mode is for graphical applications; kernel mode is for command-line tools
+              - User mode code has restricted access to hardware and system resources; kernel mode code has unrestricted access
+              - User mode runs only 32-bit applications; kernel mode runs 64-bit applications
+              - There is no difference; they are alternate names for the same execution context
+      - concept: Windows services and the Service Control Manager
+        questions:
+          - type: recognition
+            prompt: What manages the lifecycle of Windows services (starting, stopping, and configuring)?
+            answer: Service Control Manager (SCM)
+            explanation: The Service Control Manager (SCM) manages Windows services, handling start, stop, pause, and configuration operations. Services run in the background, often with SYSTEM privileges, making them attractive targets for attackers seeking persistent access.
+            choices:
+              - Task Manager
+              - Service Control Manager (SCM)
+              - Windows Defender
+              - Group Policy Editor
+      - concept: The Windows Task Manager and process monitoring
+        questions:
+          - type: recognition
+            prompt: Which Windows tool provides a real-time view of running processes, CPU usage, memory consumption, and network activity?
+            answer: Task Manager
+            explanation: Windows Task Manager (Ctrl+Shift+Esc) displays running processes, performance metrics, startup programs, and services. Security analysts use it as a first-pass tool to identify suspicious processes, though Process Explorer from Sysinternals provides deeper analysis.
+            choices:
+              - Registry Editor (regedit)
+              - Device Manager
+              - Task Manager
+              - Disk Management
+      - concept: The NTFS file system and its features
+        questions:
+          - type: recognition
+            prompt: Which feature of the NTFS file system allows files to contain hidden data streams that are not visible through normal directory listings?
+            answer: Alternate Data Streams (ADS)
+            explanation: NTFS Alternate Data Streams (ADS) allow additional named data streams to be attached to a file without changing its apparent size or content. Malware can hide payloads in ADS, making detection more difficult. Use 'dir /r' or Sysinternals Streams to detect them.
+            choices:
+              - Journaling
+              - Alternate Data Streams (ADS)
+              - Disk quotas
+              - File compression
+      - concept: DLLs (Dynamic Link Libraries) and DLL hijacking
+        questions:
+          - type: recognition
+            prompt: What is DLL hijacking in Windows?
+            answer: Placing a malicious DLL in a location where a legitimate application will load it instead of the intended DLL
+            explanation: DLL hijacking exploits the Windows DLL search order. When an application loads a DLL without specifying a full path, Windows searches several directories in order. An attacker can place a malicious DLL with the same name in a higher-priority search path.
+            choices:
+              - Encrypting DLL files to prevent unauthorized use
+              - Placing a malicious DLL in a location where a legitimate application will load it instead of the intended DLL
+              - Removing DLL files to cause application crashes
+              - Replacing the Windows DLL cache with outdated versions
+      - concept: Windows boot process and Secure Boot
+        questions:
+          - type: recognition
+            prompt: What is the primary security function of UEFI Secure Boot in Windows?
+            answer: Verifying that only trusted, digitally signed boot components are loaded during startup
+            explanation: UEFI Secure Boot verifies the digital signatures of bootloaders, drivers, and OS kernels before executing them. This protects against bootkits and rootkits that attempt to load malicious code before the operating system's security controls are active.
+            choices:
+              - Encrypting the entire hard drive during startup
+              - Verifying that only trusted, digitally signed boot components are loaded during startup
+              - Preventing users from changing BIOS settings
+              - Scanning for malware in memory before the OS loads
+      - concept: The Windows command prompt (cmd.exe) vs PowerShell
+        questions:
+          - type: recognition
+            prompt: Why is PowerShell considered more powerful than the traditional Windows Command Prompt (cmd.exe)?
+            answer: PowerShell is object-oriented, has access to .NET framework, and can manage virtually all Windows components
+            explanation: PowerShell works with objects rather than text, has full access to .NET and COM, and provides cmdlets for managing every aspect of Windows. Its power also makes it a favorite tool for attackers (living-off-the-land techniques).
+            choices:
+              - PowerShell can only run on Windows Server, while cmd.exe runs on all Windows versions
+              - PowerShell is object-oriented, has access to .NET framework, and can manage virtually all Windows components
+              - PowerShell executes commands faster than cmd.exe
+              - PowerShell has a graphical interface while cmd.exe does not
+      - concept: The Windows Event Log and its categories
+        questions:
+          - type: recognition
+            prompt: Which Windows component records system events, security audit events, and application events for troubleshooting and forensic analysis?
+            answer: Windows Event Log
+            explanation: The Windows Event Log records events in categories including Application, Security, System, and Setup. Security events (logon attempts, privilege use, policy changes) are critical for forensic investigations and are accessible via Event Viewer or PowerShell.
+            choices:
+              - Windows Defender
+              - Windows Event Log
+              - Windows Firewall
+              - Windows Update
+      - concept: The Windows file system structure (C:\Windows, C:\Users)
+        questions:
+          - type: recognition
+            prompt: Which directory in a standard Windows installation contains the operating system files, including system32?
+            answer: C:\Windows
+            explanation: C:\Windows contains the OS core files, including the critical C:\Windows\System32 directory which holds system executables, DLLs, and drivers. C:\Users contains user profiles, and C:\Program Files holds installed applications.
+            choices:
+              - C:\Program Files
+              - C:\Users
+              - C:\Windows
+              - C:\System
+      - concept: WMI (Windows Management Instrumentation)
+        questions:
+          - type: recognition
+            prompt: What is WMI (Windows Management Instrumentation) used for?
+            answer: Querying and managing Windows system resources, hardware, and configuration remotely or locally
+            explanation: WMI provides a standardized interface for querying system information and managing Windows resources both locally and remotely. Attackers use WMI for reconnaissance, lateral movement, and persistence (WMI event subscriptions).
+            choices:
+              - Managing Windows Firewall rules exclusively
+              - Querying and managing Windows system resources, hardware, and configuration remotely or locally
+              - Installing Windows updates and patches
+              - Encrypting files on NTFS volumes
+      - concept: Windows Subsystem for Linux (WSL)
+        questions:
+          - type: recognition
+            prompt: What does Windows Subsystem for Linux (WSL) allow users to do?
+            answer: Run Linux binary executables natively on Windows without a traditional virtual machine
+            explanation: WSL enables running unmodified Linux binaries on Windows. WSL 2 uses a real Linux kernel in a lightweight VM. From a security perspective, WSL can be used by attackers to run Linux-native tools and may bypass some Windows security controls.
+            choices:
+              - Replace the Windows kernel with the Linux kernel
+              - Run Linux binary executables natively on Windows without a traditional virtual machine
+              - Convert Windows applications to run on Linux
+              - Dual-boot between Windows and Linux from the same partition
+  - name: Windows Security
+    complexityWeight: 1.3
+    nodes:
+      - concept: User Account Control (UAC)
+        questions:
+          - type: recognition
+            prompt: What is the purpose of User Account Control (UAC) in Windows?
+            answer: To prompt for confirmation or credentials before allowing actions that require elevated privileges
+            explanation: UAC prevents unauthorized changes by prompting for consent or credentials when an action requires administrator privileges. UAC bypass techniques are commonly used by attackers during privilege escalation on Windows systems.
+            choices:
+              - To encrypt user files with a per-account key
+              - To prompt for confirmation or credentials before allowing actions that require elevated privileges
+              - To manage user accounts and reset passwords
+              - To restrict which websites users can visit
+      - concept: Windows Defender and real-time protection
+        questions:
+          - type: recognition
+            prompt: What type of security tool is Windows Defender (Microsoft Defender Antivirus)?
+            answer: A built-in anti-malware solution providing real-time protection against viruses, spyware, and other threats
+            explanation: Microsoft Defender Antivirus is Windows' built-in anti-malware engine that provides real-time scanning, cloud-delivered protection, and behavioral analysis. Attackers often attempt to disable or evade Defender as one of their first post-exploitation steps.
+            choices:
+              - A network firewall
+              - A built-in anti-malware solution providing real-time protection against viruses, spyware, and other threats
+              - A disk encryption tool
+              - A vulnerability scanner for web applications
+      - concept: BitLocker full disk encryption
+        questions:
+          - type: recognition
+            prompt: What does BitLocker provide on a Windows system?
+            answer: Full volume encryption to protect data at rest from unauthorized physical access
+            explanation: BitLocker encrypts entire disk volumes to protect data at rest. If a device is stolen or lost, BitLocker prevents attackers from accessing the data by booting from another OS or removing the hard drive. It typically uses TPM (Trusted Platform Module) for key management.
+            choices:
+              - File-level encryption for individual documents
+              - Full volume encryption to protect data at rest from unauthorized physical access
+              - Network traffic encryption between Windows hosts
+              - Email encryption for Outlook
+      - concept: Windows Firewall (Windows Defender Firewall)
+        questions:
+          - type: recognition
+            prompt: Which Windows Firewall profile is applied when a computer is connected to a network it has not previously identified?
+            answer: Public profile
+            explanation: "Windows Firewall uses three profiles: Domain (joined to Active Directory domain), Private (trusted home/work networks), and Public (untrusted networks like coffee shops). The Public profile applies the most restrictive rules by default for unknown networks."
+            choices:
+              - Domain profile
+              - Private profile
+              - Public profile
+              - Guest profile
+      - concept: NTLM vs. Kerberos authentication
+        questions:
+          - type: recognition
+            prompt: Which authentication protocol is the preferred default in Windows Active Directory environments?
+            answer: Kerberos
+            explanation: Kerberos is the default authentication protocol in Active Directory environments, using ticket-based authentication with a Key Distribution Center (KDC). NTLM is a legacy protocol still supported for backward compatibility but is weaker and vulnerable to relay attacks.
+            choices:
+              - NTLM
+              - Kerberos
+              - LDAP
+              - RADIUS
+      - concept: The SAM (Security Account Manager) database
+        questions:
+          - type: recognition
+            prompt: What does the SAM database store on a Windows system?
+            answer: Local user account credentials including password hashes
+            explanation: The SAM (Security Account Manager) database stores local user account information and their hashed passwords. It is located at C:\Windows\System32\config\SAM and is locked while Windows is running. Attackers target the SAM file for offline password cracking.
+            choices:
+              - System audit logs and event records
+              - Local user account credentials including password hashes
+              - Network interface configuration and IP addresses
+              - Installed application license keys
+      - concept: Group Policy Objects (GPOs) for security enforcement
+        questions:
+          - type: recognition
+            prompt: What are Group Policy Objects (GPOs) used for in a Windows domain environment?
+            answer: Centrally managing and enforcing security settings, software deployment, and configurations across domain-joined computers
+            explanation: GPOs allow administrators to centrally define security policies (password complexity, account lockout, audit settings, software restrictions) and apply them across users and computers in an Active Directory domain.
+            choices:
+              - Routing network traffic between subnets
+              - Centrally managing and enforcing security settings, software deployment, and configurations across domain-joined computers
+              - Monitoring real-time network bandwidth usage
+              - Backing up Active Directory databases
+      - concept: Windows Security Identifiers (SIDs)
+        questions:
+          - type: recognition
+            prompt: What is a Security Identifier (SID) in Windows?
+            answer: A unique alphanumeric string that identifies a security principal (user, group, or computer)
+            explanation: A SID is a unique value assigned to each security principal (user, group, computer, service account) in Windows. Access control decisions use SIDs, not usernames. Well-known SIDs include S-1-5-18 (SYSTEM) and S-1-5-32-544 (Administrators group).
+            choices:
+              - A human-readable username used for login
+              - A unique alphanumeric string that identifies a security principal (user, group, or computer)
+              - An encryption key used for BitLocker
+              - A certificate used for code signing
+      - concept: Credential Guard and virtual-based security
+        questions:
+          - type: recognition
+            prompt: What does Windows Credential Guard protect against?
+            answer: Credential theft attacks by isolating secrets in a virtualization-based security container
+            explanation: Credential Guard uses virtualization-based security (VBS) to isolate NTLM hashes, Kerberos tickets, and other derived credentials in a protected container. This prevents credential theft tools like Mimikatz from extracting secrets from the LSASS process memory.
+            choices:
+              - Phishing emails that attempt to steal passwords
+              - Credential theft attacks by isolating secrets in a virtualization-based security container
+              - Brute-force attacks against the login screen
+              - SQL injection attacks against web applications
+      - concept: Windows audit policies and security logging
+        questions:
+          - type: recognition
+            prompt: Which Windows Event Log channel contains records of logon attempts, privilege use, and security policy changes?
+            answer: Security log
+            explanation: The Security log records security-related events such as logon/logoff (Event IDs 4624/4634), privilege escalation (4672), account management (4720), and policy changes. These events are only generated when the corresponding audit policies are enabled.
+            choices:
+              - Application log
+              - System log
+              - Security log
+              - Setup log
+      - concept: LSASS (Local Security Authority Subsystem Service)
+        questions:
+          - type: recognition
+            prompt: Why is the LSASS (lsass.exe) process a high-value target for attackers on Windows?
+            answer: It handles authentication and stores credentials in memory, which can be extracted by tools like Mimikatz
+            explanation: LSASS enforces security policy, handles user authentication, and caches credentials (NTLM hashes, Kerberos tickets) in memory. Attackers use tools like Mimikatz to dump LSASS memory and extract these credentials for lateral movement.
+            choices:
+              - It manages Windows Update downloads
+              - It handles authentication and stores credentials in memory, which can be extracted by tools like Mimikatz
+              - It controls the Windows Firewall rules
+              - It manages file system encryption keys
+      - concept: AppLocker and application whitelisting
+        questions:
+          - type: recognition
+            prompt: What is the purpose of AppLocker in Windows?
+            answer: To control which applications, scripts, and installers are allowed to run based on rules
+            explanation: AppLocker is a Windows application whitelisting feature that allows administrators to define rules controlling which executables, scripts, DLLs, and installers can run. It helps prevent unauthorized software, malware, and potentially unwanted applications from executing.
+            choices:
+              - To manage app purchases from the Microsoft Store
+              - To control which applications, scripts, and installers are allowed to run based on rules
+              - To lock the screen after a period of inactivity
+              - To encrypt application data in transit
+      - concept: The principle of least privilege in Windows
+        questions:
+          - type: recognition
+            prompt: How does running daily tasks with a standard user account instead of an administrator account improve Windows security?
+            answer: Standard accounts limit the damage malware can cause because they lack privileges to modify system settings or install software
+            explanation: "Running as a standard user enforces least privilege: if malware executes in the user's context, it cannot install system services, modify protected registry keys, or affect other users. This significantly reduces the attack surface of a compromised account."
+            choices:
+              - Standard accounts have faster boot times
+              - Standard accounts limit the damage malware can cause because they lack privileges to modify system settings or install software
+              - Standard accounts cannot access the internet, preventing malware downloads
+              - Standard accounts encrypt all files by default
+  - name: Windows Administration
+    complexityWeight: 1.2
+    nodes:
+      - concept: Active Directory fundamentals
+        questions:
+          - type: recognition
+            prompt: What is Active Directory (AD) in a Windows environment?
+            answer: A centralized directory service that manages users, computers, groups, and policies across a network domain
+            explanation: Active Directory is Microsoft's directory service that provides centralized authentication, authorization, and management for users, computers, and resources in a Windows domain. Compromising AD is often the ultimate goal of attackers targeting enterprise networks.
+            choices:
+              - A file sharing protocol for Windows networks
+              - A centralized directory service that manages users, computers, groups, and policies across a network domain
+              - A database for storing application data
+              - A backup and recovery tool for Windows servers
+      - concept: Domain Controllers and their role
+        questions:
+          - type: recognition
+            prompt: What is the primary role of a Domain Controller (DC) in a Windows domain?
+            answer: Hosting the Active Directory database and handling authentication requests for the domain
+            explanation: A Domain Controller stores a copy of the Active Directory database (NTDS.dit) and handles authentication (Kerberos/NTLM) for the domain. Compromising a DC gives an attacker full control over all domain accounts and resources.
+            choices:
+              - Providing DHCP and DNS services exclusively
+              - Hosting the Active Directory database and handling authentication requests for the domain
+              - Serving as a file and print server for domain users
+              - Running antivirus scans on all domain-joined computers
+      - concept: The net command for user and group management
+        questions:
+          - type: recognition
+            prompt: Which Windows command lists all local user accounts on the system?
+            answer: net user
+            explanation: "The 'net user' command lists all local user accounts. Adding a username (net user Administrator) shows account details. Attackers use net commands for domain enumeration: 'net user /domain' lists domain users, 'net group /domain' lists domain groups."
+            choices:
+              - net user
+              - net share
+              - net config
+              - net session
+      - concept: Remote Desktop Protocol (RDP) and its security
+        questions:
+          - type: recognition
+            prompt: Which default port does Remote Desktop Protocol (RDP) use, and why is it a security concern?
+            answer: Port 3389; exposed RDP services are frequently targeted by brute-force and credential stuffing attacks
+            explanation: RDP uses TCP port 3389 by default. Internet-exposed RDP is a top attack vector, frequently targeted by brute-force attacks, credential stuffing, and exploits like BlueKeep (CVE-2019-0708). Best practices include using VPN, Network Level Authentication (NLA), and MFA.
+            choices:
+              - Port 22; it uses weak encryption
+              - Port 3389; exposed RDP services are frequently targeted by brute-force and credential stuffing attacks
+              - Port 443; it conflicts with HTTPS traffic
+              - Port 8080; it is commonly blocked by firewalls
+      - concept: Windows Update and patch management
+        questions:
+          - type: recognition
+            prompt: Why is timely patch management critical for Windows security?
+            answer: Unpatched systems remain vulnerable to known exploits that attackers actively use
+            explanation: Microsoft releases security patches monthly (Patch Tuesday). Unpatched vulnerabilities are among the most common attack vectors. Exploit code is often published shortly after patches are released, putting unpatched systems at immediate risk.
+            choices:
+              - Patches primarily improve system performance, not security
+              - Unpatched systems remain vulnerable to known exploits that attackers actively use
+              - Patches are only needed for third-party applications, not Windows itself
+              - Patches automatically reset all user passwords for security
+      - concept: The Task Scheduler for automation
+        questions:
+          - type: recognition
+            prompt: Why is the Windows Task Scheduler relevant from a security perspective?
+            answer: Attackers can create scheduled tasks for persistence, running malicious payloads at system startup or on a recurring schedule
+            explanation: Windows Task Scheduler can run programs at specified times or events. Attackers frequently create scheduled tasks (schtasks.exe) for persistence, executing malware at boot or login. Reviewing scheduled tasks is essential during incident response.
+            choices:
+              - It is only used for defragmenting disks
+              - Attackers can create scheduled tasks for persistence, running malicious payloads at system startup or on a recurring schedule
+              - It automatically patches the system without user intervention
+              - It encrypts scheduled task output for confidentiality
+      - concept: SMB (Server Message Block) file sharing
+        questions:
+          - type: recognition
+            prompt: Which protocol is used for Windows file sharing and is associated with major vulnerabilities like EternalBlue?
+            answer: SMB
+            explanation: SMB (Server Message Block) is the standard Windows file and printer sharing protocol (ports 445 and 139). The EternalBlue exploit (CVE-2017-0144) in SMBv1 was used by the WannaCry ransomware. SMBv1 should be disabled on all modern systems.
+            choices:
+              - FTP
+              - NFS
+              - SMB
+              - WebDAV
+      - concept: PowerShell Remoting and WinRM
+        questions:
+          - type: recognition
+            prompt: What protocol does PowerShell Remoting use to enable remote command execution on Windows systems?
+            answer: WinRM (Windows Remote Management)
+            explanation: PowerShell Remoting uses WinRM (based on WS-Management protocol) over HTTP (port 5985) or HTTPS (port 5986) for remote administration. It enables running commands, scripts, and managing multiple systems. Attackers use it for lateral movement once they have credentials.
+            choices:
+              - SSH
+              - RDP
+              - WinRM (Windows Remote Management)
+              - Telnet
+      - concept: The Sysinternals Suite of tools
+        questions:
+          - type: recognition
+            prompt: Which Sysinternals tool provides detailed information about processes, including DLLs loaded, handles, and network connections?
+            answer: Process Explorer
+            explanation: Process Explorer is an advanced Task Manager replacement from the Sysinternals Suite. It shows DLL loading, handle information, process trees, and can verify digital signatures. It is invaluable for identifying malicious processes and DLL injection.
+            choices:
+              - Autoruns
+              - Process Explorer
+              - TCPView
+              - BgInfo
+      - concept: The Autoruns tool for persistence detection
+        questions:
+          - type: recognition
+            prompt: What does the Sysinternals Autoruns tool display?
+            answer: All programs and components configured to run at system startup or user login
+            explanation: Autoruns shows all auto-start locations including registry Run keys, scheduled tasks, services, drivers, Winlogon entries, and browser extensions. It is one of the most effective tools for discovering malware persistence mechanisms on Windows.
+            choices:
+              - A list of all files modified in the last 24 hours
+              - All programs and components configured to run at system startup or user login
+              - Real-time network traffic and open connections
+              - A list of installed Windows updates
+      - concept: Windows Defender Firewall advanced configuration
+        questions:
+          - type: recognition
+            prompt: Which tool provides the most granular control over Windows Defender Firewall rules, including inbound, outbound, and connection security rules?
+            answer: Windows Defender Firewall with Advanced Security (wf.msc)
+            explanation: Windows Defender Firewall with Advanced Security (wf.msc) provides granular control over inbound rules, outbound rules, and connection security rules (IPsec). It allows filtering by program, port, protocol, IP address, and domain profile.
+            choices:
+              - Windows Settings > Firewall
+              - Windows Defender Firewall with Advanced Security (wf.msc)
+              - Control Panel > System
+              - netsh interface show
+      - concept: Local Security Policy and secpol.msc
+        questions:
+          - type: recognition
+            prompt: What can be configured using the Local Security Policy editor (secpol.msc) on a Windows system?
+            answer: Password policies, account lockout policies, audit policies, and user rights assignments
+            explanation: The Local Security Policy (secpol.msc) configures security settings including password complexity requirements, account lockout thresholds, audit policies for event logging, and user rights assignments such as who can log on remotely or shut down the system.
+            choices:
+              - Network adapter IP addresses and DNS settings
+              - Password policies, account lockout policies, audit policies, and user rights assignments
+              - Disk partitioning and volume management
+              - Printer sharing and queue management
+  - name: Shell Scripting
+    complexityWeight: 1.4
+    nodes:
+      - concept: The shebang line (#!/bin/bash) in shell scripts
+        questions:
+          - type: recognition
+            prompt: What does the line '#!/bin/bash' at the top of a script file indicate?
+            answer: It specifies the interpreter that should execute the script
+            explanation: "The shebang (#!) line tells the operating system which interpreter to use to execute the script. #!/bin/bash specifies the Bash shell, #!/usr/bin/python3 specifies Python 3. Without it, the script runs in the current shell, which may behave differently."
+            choices:
+              - It is a comment that documents the script author
+              - It specifies the interpreter that should execute the script
+              - It imports the bash library functions
+              - It sets the script's file permissions to executable
+      - concept: Variables and environment variables in Bash
+        questions:
+          - type: recognition
+            prompt: In Bash scripting, how do you access the value of an environment variable named MY_VAR?
+            answer: $MY_VAR
+            explanation: In Bash, variables are referenced with the $ prefix (e.g., $MY_VAR or ${MY_VAR}). The %VARIABLE% syntax is used in Windows CMD, not Bash. Environment variables like $PATH, $HOME, and $USER are important for understanding the execution environment.
+            choices:
+              - "%MY_VAR%"
+              - $MY_VAR
+              - "{{MY_VAR}}"
+              - "@MY_VAR"
+      - concept: Command piping and redirection
+        questions:
+          - type: recognition
+            prompt: In a Linux shell, what does the pipe operator (|) do?
+            answer: Sends the standard output of one command as standard input to the next command
+            explanation: The pipe operator (|) chains commands together by sending stdout of the left command as stdin of the right command. For example, 'cat /var/log/syslog | grep error' filters log lines containing 'error'. Piping is fundamental to shell scripting and log analysis.
+            choices:
+              - Redirects error output to a file
+              - Sends the standard output of one command as standard input to the next command
+              - Runs two commands in parallel
+              - Copies a file from one directory to another
+      - concept: The grep command for pattern matching
+        questions:
+          - type: recognition
+            prompt: What does the grep command do in Linux?
+            answer: Searches text for lines matching a pattern or regular expression
+            explanation: grep (Global Regular Expression Print) searches input for lines matching a specified pattern. It is essential for log analysis and threat hunting. Common flags include -i (case insensitive), -r (recursive), -v (invert match), and -E (extended regex).
+            choices:
+              - Compresses files using the GZIP algorithm
+              - Searches text for lines matching a pattern or regular expression
+              - Displays the group membership of a user
+              - Graphs system performance metrics
+      - concept: The awk command for text processing
+        questions:
+          - type: recognition
+            prompt: What is awk primarily used for in shell scripting?
+            answer: Pattern scanning and processing of structured text data, especially columnar output
+            explanation: awk is a powerful text-processing language that excels at parsing columnar data. For example, 'awk '{print $1, $4}' access.log' extracts the first and fourth fields from a web server log. It is widely used in security for log parsing and data extraction.
+            choices:
+              - Compiling C programs
+              - Pattern scanning and processing of structured text data, especially columnar output
+              - Managing system services
+              - Encrypting files for secure storage
+      - concept: Conditional statements (if/then/else) in Bash
+        questions:
+          - type: recognition
+            prompt: What is the correct syntax for an if statement in Bash?
+            answer: if [ condition ]; then commands; fi
+            explanation: "Bash if statements use the syntax: if [ condition ]; then commands; elif [ condition ]; then commands; else commands; fi. The square brackets are actually a command (test), and spaces inside them are required. Double brackets [[ ]] provide extended test features."
+            choices:
+              - if (condition) { commands }
+              - if [ condition ]; then commands; fi
+              - if condition do commands end
+              - IF condition THEN commands ENDIF
+      - concept: Loops (for, while) in Bash
+        questions:
+          - type: recognition
+            prompt: Which Bash loop iterates over a list of items such as files or IP addresses?
+            answer: for item in list; do commands; done
+            explanation: "The Bash for loop iterates over a list: 'for ip in 192.168.1.{1..254}; do ping -c 1 $ip; done' pings every host in a subnet. For loops are commonly used in security scripts for host enumeration, log processing, and batch operations."
+            choices:
+              - foreach item in list; do commands; done
+              - for item in list; do commands; done
+              - loop item in list; execute commands; end
+              - iterate item over list { commands }
+      - concept: Exit codes and error handling
+        questions:
+          - type: recognition
+            prompt: In Bash, what does an exit code of 0 indicate?
+            answer: The command completed successfully
+            explanation: By convention, an exit code of 0 means success, and any non-zero value indicates an error. The special variable $? holds the exit code of the last command. Proper error handling in scripts (set -e, checking $?) is important for reliable automation.
+            choices:
+              - The command encountered a fatal error
+              - The command completed successfully
+              - The command was not found
+              - The command requires elevated privileges
+      - concept: PowerShell basics and cmdlets
+        questions:
+          - type: recognition
+            prompt: What naming convention do PowerShell cmdlets follow?
+            answer: Verb-Noun (e.g., Get-Process)
+            explanation: PowerShell cmdlets follow a Verb-Noun naming convention (Get-Process, Set-ExecutionPolicy, Invoke-WebRequest). This consistent pattern makes commands discoverable. Get-Command and Get-Help are essential for finding and understanding available cmdlets.
+            choices:
+              - lowercase-with-dashes (e.g., get-process)
+              - Verb-Noun (e.g., Get-Process)
+              - ALLCAPS (e.g., GETPROCESS)
+              - camelCase (e.g., getProcess)
+      - concept: PowerShell execution policies
+        questions:
+          - type: recognition
+            prompt: What does the PowerShell execution policy 'Restricted' prevent?
+            answer: Running any PowerShell scripts (.ps1 files)
+            explanation: The 'Restricted' execution policy (the default on Windows clients) prevents running .ps1 script files but allows individual commands. Attackers often bypass execution policies using techniques like Bypass flag, encoded commands, or piping scripts to PowerShell.
+            choices:
+              - Running individual commands in the PowerShell console
+              - Running any PowerShell scripts (.ps1 files)
+              - Importing PowerShell modules
+              - Using PowerShell Remoting
+      - concept: The sed command for stream editing
+        questions:
+          - type: recognition
+            prompt: What is the sed command used for in Linux shell scripting?
+            answer: Performing search-and-replace and other text transformations on a stream of text
+            explanation: sed (stream editor) performs text transformations on input streams. 'sed s/old/new/g file.txt' replaces all occurrences of 'old' with 'new'. It is commonly used in scripts to modify configuration files, sanitize log data, and process text output.
+            choices:
+              - Securely deleting files from disk
+              - Performing search-and-replace and other text transformations on a stream of text
+              - Setting environment variables for the current session
+              - Sending email notifications from scripts
+      - concept: Command substitution in Bash
+        questions:
+          - type: recognition
+            prompt: In Bash, what does the syntax $(command) do?
+            answer: It runs the command and substitutes its output into the surrounding command
+            explanation: Command substitution $(command) executes the enclosed command and replaces the expression with its stdout. For example, 'echo "Today is $(date)"' embeds the current date. The older backtick syntax `command` is equivalent but harder to nest and read.
+            choices:
+              - It defines a new function named 'command'
+              - It runs the command and substitutes its output into the surrounding command
+              - It runs the command in a subshell without capturing output
+              - It creates a variable named after the command

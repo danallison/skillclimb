@@ -10,6 +10,7 @@ import { domainsRouter } from "./routes/domains.js";
 import { usersRouter } from "./routes/users.js";
 import { placementRouter } from "./routes/placement.js";
 import { hintsRouter } from "./routes/hints.js";
+import { skilltreesRouter } from "./routes/skilltrees.js";
 
 const app = express();
 const port = process.env.PORT ?? 3001;
@@ -26,6 +27,7 @@ app.use("/api/domains", domainsRouter(handle));
 app.use("/api/users", usersRouter(handle));
 app.use("/api/placement", placementRouter(handle));
 app.use("/api/hints", hintsRouter(handle));
+app.use("/api/skilltrees", skilltreesRouter(handle));
 
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok" });

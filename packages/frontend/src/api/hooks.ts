@@ -65,10 +65,17 @@ export interface ReviewResponse {
 
 export interface DomainResponse {
   id: string;
+  skilltreeId: string;
   tier: number;
   name: string;
   description: string;
   displayOrder: number;
+}
+
+export interface SkillTreeResponse {
+  id: string;
+  name: string;
+  createdAt: string;
 }
 
 export interface UserResponse {
@@ -128,6 +135,13 @@ export function useCreateUser() {
   });
 }
 
+export function useSkillTrees() {
+  return useQuery({
+    queryKey: ["skilltrees"],
+    queryFn: () => fetchJson<SkillTreeResponse[]>("/skilltrees"),
+  });
+}
+
 export function useDomains() {
   return useQuery({
     queryKey: ["domains"],
@@ -137,10 +151,10 @@ export function useDomains() {
 
 export function useCreateSession() {
   return useMutation({
-    mutationFn: (userId: string) =>
+    mutationFn: ({ userId, skilltreeId }: { userId: string; skilltreeId?: string }) =>
       fetchJson<SessionResponse>("/sessions", {
         method: "POST",
-        body: JSON.stringify({ userId }),
+        body: JSON.stringify({ userId, skilltreeId }),
       }),
   });
 }
@@ -153,10 +167,11 @@ export function useSession(sessionId: string | null) {
   });
 }
 
-export function useProgress(userId: string | null) {
+export function useProgress(userId: string | null, skilltreeId?: string | null) {
+  const params = skilltreeId ? `?skilltreeId=${skilltreeId}` : "";
   return useQuery({
-    queryKey: ["progress", userId],
-    queryFn: () => fetchJson<ProgressResponse>(`/users/${userId}/progress`),
+    queryKey: ["progress", userId, skilltreeId],
+    queryFn: () => fetchJson<ProgressResponse>(`/users/${userId}/progress${params}`),
     enabled: !!userId,
   });
 }
@@ -234,10 +249,10 @@ export interface CalibrationResponse {
 
 export function useStartPlacement() {
   return useMutation({
-    mutationFn: (userId: string) =>
+    mutationFn: ({ userId, skilltreeId }: { userId: string; skilltreeId?: string }) =>
       fetchJson<PlacementStartResponse>("/placement", {
         method: "POST",
-        body: JSON.stringify({ userId }),
+        body: JSON.stringify({ userId, skilltreeId }),
       }),
   });
 }
@@ -269,10 +284,11 @@ export function usePlacement(placementId: string | null) {
   });
 }
 
-export function useCalibration(userId: string | null) {
+export function useCalibration(userId: string | null, skilltreeId?: string | null) {
+  const params = skilltreeId ? `?skilltreeId=${skilltreeId}` : "";
   return useQuery({
-    queryKey: ["calibration", userId],
-    queryFn: () => fetchJson<CalibrationResponse>(`/users/${userId}/calibration`),
+    queryKey: ["calibration", userId, skilltreeId],
+    queryFn: () => fetchJson<CalibrationResponse>(`/users/${userId}/calibration${params}`),
     enabled: !!userId,
   });
 }

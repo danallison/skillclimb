@@ -8,6 +8,20 @@
       "when": 1771446469489,
       "tag": "0000_plain_pestilence",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1771546469489,
+      "tag": "0001_add_packs",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1771646469489,
+      "tag": "0002_rename_packs_to_skilltrees",
+      "breakpoints": true
     }
   ]
 }

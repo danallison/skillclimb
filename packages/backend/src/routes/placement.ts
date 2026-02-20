@@ -17,13 +17,13 @@ export function placementRouter(handle: EffectHandler) {
     "/",
     handle((req) =>
       Effect.gen(function* () {
-        const { userId } = req.body;
+        const { userId, skilltreeId } = req.body;
         if (!userId) {
           return yield* Effect.fail(
             new ValidationError({ message: "userId is required" }),
           );
         }
-        const result = yield* startPlacement(userId);
+        const result = yield* startPlacement(userId, skilltreeId);
         return new HttpResponse(201, result);
       }),
     ),

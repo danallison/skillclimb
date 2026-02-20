@@ -1,0 +1,94 @@
+name: Cybersecurity
+id: cybersecurity
+tierBases:
+  0: -2
+  1: -0.5
+  2: 1
+  3: 2
+  4: 3
+domains:
+  - networking-fundamentals
+  - security-principles
+  - operating-systems
+  - cryptography
+  - identity-access
+  - network-defense
+  - threat-landscape
+prerequisites:
+  cryptography:
+    - security-principles
+  identity-access:
+    - security-principles
+  network-defense:
+    - networking-fundamentals
+  threat-landscape:
+    - security-principles
+placeholders:
+  - name: Programming Fundamentals
+    tier: 0
+    description: Scripting with Python and Bash, data structures, and basic algorithms for security tooling
+    displayOrder: 4
+  - name: Web Application Security
+    tier: 1
+    description: OWASP Top 10, injection attacks, authentication flaws, and secure development practices
+    displayOrder: 6
+  - name: System Administration
+    tier: 1
+    description: Hardening, patch management, logging, and secure configuration of servers and endpoints
+    displayOrder: 7
+  - name: Penetration Testing
+    tier: 2
+    description: Reconnaissance, scanning, exploitation, post-exploitation, and reporting methodologies
+    displayOrder: 10
+  - name: SOC Operations
+    tier: 2
+    description: Security monitoring, SIEM, incident triage, alert analysis, and threat hunting
+    displayOrder: 11
+  - name: Digital Forensics
+    tier: 2
+    description: Evidence collection, disk and memory forensics, timeline analysis, and chain of custody
+    displayOrder: 12
+  - name: Cloud Security
+    tier: 2
+    description: AWS/Azure/GCP security controls, shared responsibility, IAM policies, and cloud-native threats
+    displayOrder: 13
+  - name: Malware Analysis
+    tier: 2
+    description: Static and dynamic analysis, reverse engineering, behavioral indicators, and sandboxing
+    displayOrder: 14
+  - name: Exploit Development
+    tier: 3
+    description: Buffer overflows, ROP chains, shellcode, and vulnerability research techniques
+    displayOrder: 15
+  - name: Threat Intelligence
+    tier: 3
+    description: MITRE ATT&CK, threat actor profiling, IOC analysis, and intelligence-driven defense
+    displayOrder: 16
+  - name: Incident Response
+    tier: 3
+    description: IR planning, containment, eradication, recovery, and post-incident analysis
+    displayOrder: 17
+  - name: Security Architecture
+    tier: 3
+    description: Zero trust, defense in depth, secure design patterns, and enterprise security frameworks
+    displayOrder: 18
+  - name: AI Security
+    tier: 3
+    description: Adversarial ML, LLM security, AI for SOC automation, and AI governance
+    displayOrder: 19
+  - name: Red Team Operations
+    tier: 4
+    description: Advanced adversary simulation, C2 frameworks, evasion techniques, and physical security
+    displayOrder: 20
+  - name: Application Security Engineering
+    tier: 4
+    description: Secure SDLC, threat modeling, code review, SAST/DAST, and DevSecOps pipelines
+    displayOrder: 21
+  - name: GRC & Compliance
+    tier: 4
+    description: Risk frameworks, NIST, ISO 27001, SOC 2, regulatory compliance, and audit preparation
+    displayOrder: 22
+  - name: ICS/OT Security
+    tier: 4
+    description: SCADA systems, industrial protocols, air-gapped networks, and critical infrastructure defense
+    displayOrder: 23

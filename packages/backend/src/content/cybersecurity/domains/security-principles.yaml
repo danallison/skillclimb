@@ -1,0 +1,646 @@
+name: Security Principles
+tier: 0
+description: Foundational cybersecurity concepts including the CIA triad, authentication, access control, risk assessment, threat modeling, common attacks, security controls, and cryptography basics.
+topics:
+  - name: CIA Triad
+    nodes:
+      - concept: Confidentiality
+        questions:
+          - type: recognition
+            prompt: Which element of the CIA triad ensures that information is accessible only to those authorized to view it?
+            answer: Confidentiality
+            explanation: Confidentiality ensures that sensitive information is accessed only by authorized individuals. Encryption, access controls, and data classification are common mechanisms for enforcing confidentiality.
+            choices:
+              - Confidentiality
+              - Integrity
+              - Availability
+              - Accountability
+          - type: cued_recall
+            prompt: Which element of the CIA triad is concerned with preventing unauthorized disclosure of information?
+            answer: Confidentiality
+            explanation: Confidentiality ensures that sensitive information is accessed only by authorized individuals. Encryption, access controls, and data classification are common mechanisms for enforcing confidentiality.
+            acceptableAnswers:
+              - confidentiality
+              - Confidentiality
+            hints:
+              - Think about what it means to keep a secret.
+              - This principle is enforced through encryption and access controls.
+          - type: free_recall
+            prompt: Explain what confidentiality means in the context of the CIA triad and describe at least two mechanisms used to enforce it.
+            answer: Confidentiality is the principle that information should only be accessible to those who are authorized to view it. It prevents unauthorized disclosure of sensitive data. Common mechanisms for enforcing confidentiality include encryption (converting data into an unreadable format without the proper key), access controls (restricting who can access resources based on roles or permissions), and data classification (labeling data by sensitivity level to apply appropriate protections).
+            explanation: Confidentiality ensures that sensitive information is accessed only by authorized individuals. Encryption, access controls, and data classification are common mechanisms for enforcing confidentiality.
+            hints:
+              - Think about what happens when sensitive data falls into the wrong hands.
+              - Consider both technical controls (like encryption) and administrative controls (like classification policies).
+            rubric: A good answer should define confidentiality as preventing unauthorized access or disclosure, and identify at least two enforcement mechanisms such as encryption, access controls, data classification, or data masking.
+            keyPoints:
+              - Confidentiality prevents unauthorized disclosure of information
+              - Encryption transforms data so only authorized parties can read it
+              - Access controls restrict who can view or modify resources
+              - Data classification categorizes information by sensitivity level
+              - Other mechanisms include data masking and secure communication channels
+      - concept: Integrity
+        questions:
+          - type: recognition
+            prompt: A hospital discovers that a patient's medication dosage was silently altered in the database. Which element of the CIA triad was violated?
+            answer: Integrity
+            explanation: Integrity ensures that data remains accurate and unaltered except by authorized changes. Hash functions, digital signatures, and checksums are used to detect unauthorized modifications.
+            choices:
+              - Integrity
+              - Confidentiality
+              - Availability
+              - Non-repudiation
+          - type: cued_recall
+            prompt: Which element of the CIA triad ensures that data has not been tampered with or altered by unauthorized parties?
+            answer: Integrity
+            explanation: Integrity ensures that data remains accurate and unaltered except by authorized changes. Hash functions, digital signatures, and checksums are used to detect unauthorized modifications.
+            acceptableAnswers:
+              - integrity
+              - Integrity
+              - data integrity
+            hints:
+              - Think about what guarantees that data remains accurate and trustworthy.
+              - Hash functions and digital signatures are commonly used to verify this property.
+          - type: free_recall
+            prompt: Explain what integrity means in the CIA triad and describe how organizations detect or prevent unauthorized data modifications.
+            answer: "Integrity in the CIA triad means ensuring that data remains accurate, complete, and unaltered except through authorized processes. Organizations use several mechanisms to protect integrity: hash functions generate a fixed-size fingerprint of data that changes if even one bit is modified, digital signatures combine hashing with asymmetric encryption to verify both the source and integrity of data, checksums provide a simpler verification that data has not been corrupted, and version control and audit logs track all changes to detect unauthorized modifications."
+            explanation: Integrity ensures that data remains accurate and unaltered except by authorized changes. Hash functions, digital signatures, and checksums are used to detect unauthorized modifications.
+            hints:
+              - Consider what would happen if someone silently changed a financial record or medical file.
+              - Think about cryptographic tools that can detect even the smallest change to data.
+            rubric: A good answer should define integrity as ensuring data accuracy and preventing unauthorized modification, and describe at least two detection or prevention mechanisms such as hashing, digital signatures, checksums, or audit trails.
+            keyPoints:
+              - Integrity ensures data accuracy and prevents unauthorized modification
+              - Hash functions detect changes by producing a unique fingerprint of data
+              - Digital signatures verify both the source and integrity of data
+              - Checksums provide basic verification that data has not been corrupted
+              - Audit logs and version control track changes over time
+      - concept: Availability
+        questions:
+          - type: recognition
+            prompt: A distributed denial-of-service (DDoS) attack takes a company's website offline for several hours. Which element of the CIA triad is primarily affected?
+            answer: Availability
+            explanation: Availability ensures that systems and data are accessible to authorized users when needed. DDoS attacks directly target availability by overwhelming resources so legitimate users cannot access the service.
+            choices:
+              - Availability
+              - Confidentiality
+              - Integrity
+              - Authentication
+          - type: cued_recall
+            prompt: Which element of the CIA triad is compromised when authorized users are unable to access a system or its data when they need it?
+            answer: Availability
+            explanation: Availability ensures that systems and data are accessible to authorized users when needed. DDoS attacks directly target availability by overwhelming resources so legitimate users cannot access the service.
+            acceptableAnswers:
+              - availability
+              - Availability
+            hints:
+              - Think about what happens during a DDoS attack or a major system outage.
+              - This principle is about ensuring systems are up and running when needed.
+          - type: free_recall
+            prompt: Explain what availability means in the CIA triad and describe common threats to availability along with defenses against them.
+            answer: Availability is the principle that systems, networks, and data must be accessible to authorized users whenever they are needed. Common threats to availability include distributed denial-of-service (DDoS) attacks that overwhelm resources with traffic, hardware failures, natural disasters, and ransomware that locks users out of their data. Defenses include redundancy and failover systems, load balancing to distribute traffic, regular backups and disaster recovery plans, DDoS mitigation services, and uninterruptible power supplies (UPS) to handle power outages.
+            explanation: Availability ensures that systems and data are accessible to authorized users when needed. DDoS attacks directly target availability by overwhelming resources so legitimate users cannot access the service.
+            hints:
+              - Think about what could prevent you from accessing a critical system and what safeguards could help.
+              - Consider both intentional attacks and unintentional failures that affect system uptime.
+            rubric: A good answer should define availability as ensuring timely access for authorized users, identify at least two threats (such as DDoS, hardware failure, or natural disasters), and describe at least two defensive measures.
+            keyPoints:
+              - Availability ensures authorized users can access systems and data when needed
+              - DDoS attacks are a primary threat that overwhelms resources with traffic
+              - Redundancy and failover systems help maintain uptime during failures
+              - Regular backups and disaster recovery plans protect against data loss
+              - Load balancing distributes traffic to prevent any single point of overload
+      - concept: CIA Triad overview
+        questions:
+          - type: recognition
+            prompt: What are the three components of the CIA triad in information security?
+            answer: Confidentiality, Integrity, Availability
+            explanation: The CIA triad is the foundational model in information security. Confidentiality protects data from unauthorized disclosure, integrity ensures data accuracy, and availability ensures systems are accessible when needed.
+            choices:
+              - Confidentiality, Integrity, Availability
+              - Control, Identity, Authentication
+              - Compliance, Investigation, Authorization
+              - Containment, Isolation, Assessment
+          - type: cued_recall
+            prompt: Name the three components of the CIA triad, the foundational model of information security.
+            answer: Confidentiality, Integrity, and Availability
+            explanation: The CIA triad is the foundational model in information security. Confidentiality protects data from unauthorized disclosure, integrity ensures data accuracy, and availability ensures systems are accessible when needed.
+            acceptableAnswers:
+              - Confidentiality, Integrity, Availability
+              - confidentiality, integrity, availability
+              - confidentiality integrity availability
+              - C I A
+            hints:
+              - The acronym CIA stands for three words, each representing a core security goal.
+              - One is about keeping secrets, one is about accuracy, and one is about uptime.
+          - type: free_recall
+            prompt: Describe the CIA triad and explain how each of its three components contributes to a comprehensive information security strategy.
+            answer: "The CIA triad is the foundational model of information security, consisting of three core principles: Confidentiality ensures that sensitive information is only accessible to authorized individuals, using mechanisms like encryption, access controls, and data classification. Integrity ensures that data remains accurate and unaltered except through authorized processes, using tools like hash functions, digital signatures, and audit trails. Availability ensures that systems and data are accessible to authorized users when needed, supported by redundancy, backups, disaster recovery planning, and DDoS mitigation. Together, these three principles guide the design and evaluation of security policies and controls."
+            explanation: The CIA triad is the foundational model in information security. Confidentiality protects data from unauthorized disclosure, integrity ensures data accuracy, and availability ensures systems are accessible when needed.
+            hints:
+              - Think of three words that start with C, I, and A.
+              - Consider what could go wrong if any one of these three properties were violated.
+            rubric: A good answer should name all three components, define each one clearly, and explain how they work together to form a comprehensive security model. Bonus for providing examples of mechanisms that support each component.
+            keyPoints:
+              - Confidentiality prevents unauthorized disclosure of information
+              - Integrity ensures data remains accurate and unmodified by unauthorized parties
+              - Availability ensures systems and data are accessible when needed
+              - The three components together form the foundational model of information security
+              - Each component is supported by specific technical and administrative controls
+      - concept: Non-repudiation
+        questions:
+          - type: recognition
+            prompt: Which security property prevents a sender from denying that they sent a message?
+            answer: Non-repudiation
+            explanation: Non-repudiation provides proof of the origin and integrity of data, making it impossible for the sender to deny having sent it. Digital signatures are the primary mechanism for achieving non-repudiation.
+            choices:
+              - Non-repudiation
+              - Confidentiality
+              - Availability
+              - Obfuscation
+          - type: cued_recall
+            prompt: What security property ensures that someone cannot deny having performed an action, such as sending a message or signing a document?
+            answer: Non-repudiation
+            explanation: Non-repudiation provides proof of the origin and integrity of data, making it impossible for the sender to deny having sent it. Digital signatures are the primary mechanism for achieving non-repudiation.
+            acceptableAnswers:
+              - non-repudiation
+              - Non-repudiation
+              - nonrepudiation
+            hints:
+              - This property is closely related to accountability and proof of origin.
+              - Digital signatures are the primary cryptographic mechanism for achieving this.
+          - type: free_recall
+            prompt: Explain the concept of non-repudiation in cybersecurity, why it matters, and how it is typically achieved.
+            answer: "Non-repudiation is the security property that ensures a party involved in a communication or transaction cannot deny having performed that action. It provides irrefutable proof of origin and delivery. This matters because in legal, financial, and contractual contexts, parties must be held accountable for their actions. Non-repudiation is primarily achieved through digital signatures, which use asymmetric cryptography: the sender signs a message with their private key, and anyone can verify the signature using the sender's public key. Since only the sender possesses their private key, they cannot plausibly deny having created the signature. Audit logs, timestamps, and certificates from a Public Key Infrastructure (PKI) further support non-repudiation."
+            explanation: Non-repudiation provides proof of the origin and integrity of data, making it impossible for the sender to deny having sent it. Digital signatures are the primary mechanism for achieving non-repudiation.
+            hints:
+              - Think about what would happen in a legal dispute if someone could deny signing a contract.
+              - Consider how asymmetric cryptography (public/private key pairs) can prove who created a message.
+            rubric: A good answer should define non-repudiation as the inability to deny an action, explain its importance for accountability, and describe the role of digital signatures (and optionally PKI or audit logs) in achieving it.
+            keyPoints:
+              - Non-repudiation prevents a party from denying they performed an action
+              - It provides proof of origin and delivery of data
+              - Digital signatures are the primary mechanism for achieving non-repudiation
+              - It is essential for legal, financial, and contractual accountability
+              - PKI, audit logs, and timestamps provide additional non-repudiation support
+  - name: Authentication & Authorization
+    complexityWeight: 1.2
+    nodes:
+      - concept: Authentication vs. authorization
+        questions:
+          - type: recognition
+            prompt: What is the primary difference between authentication and authorization?
+            answer: Authentication verifies identity; authorization determines access permissions
+            explanation: Authentication (AuthN) confirms who a user is, while authorization (AuthZ) determines what that verified user is allowed to do. Authentication must occur before authorization.
+            choices:
+              - Authentication verifies identity; authorization determines access permissions
+              - Authentication determines access permissions; authorization verifies identity
+              - Authentication encrypts data; authorization decrypts data
+              - Authentication and authorization are the same process
+      - concept: Multi-factor authentication (MFA)
+        questions:
+          - type: recognition
+            prompt: Which combination represents true multi-factor authentication?
+            answer: A password and a one-time code from an authenticator app
+            explanation: "True MFA requires factors from different categories: something you know (password), something you have (authenticator app), or something you are (biometric). A password plus a security question are both 'something you know,' so that is single-factor."
+            choices:
+              - A password and a one-time code from an authenticator app
+              - A password and a security question
+              - A fingerprint scan and a retina scan
+              - A PIN and a password
+      - concept: Authentication factors
+        questions:
+          - type: recognition
+            prompt: A fingerprint scanner used for login is an example of which authentication factor?
+            answer: Something you are
+            explanation: Biometric identifiers like fingerprints, retina patterns, and facial geometry fall under the 'something you are' factor. This category relies on inherent physical or behavioral characteristics unique to the individual.
+            choices:
+              - Something you are
+              - Something you know
+              - Something you have
+              - Somewhere you are
+      - concept: OAuth 2.0
+        questions:
+          - type: recognition
+            prompt: What is the primary purpose of OAuth 2.0?
+            answer: Delegated authorization — allowing a third-party application to access resources on behalf of a user
+            explanation: OAuth 2.0 is an authorization framework that enables third-party applications to obtain limited access to a user's resources without exposing their credentials. It issues access tokens rather than sharing passwords.
+            choices:
+              - Delegated authorization — allowing a third-party application to access resources on behalf of a user
+              - Encrypting data at rest on a database server
+              - Scanning networks for open ports and vulnerabilities
+              - Establishing a VPN tunnel between two networks
+      - concept: Single sign-on (SSO)
+        questions:
+          - type: recognition
+            prompt: What is a primary benefit of single sign-on (SSO) for an organization?
+            answer: Users authenticate once and gain access to multiple applications without re-entering credentials
+            explanation: SSO allows users to log in once and access multiple related systems. This reduces password fatigue, lowers help-desk costs for password resets, and can improve security by centralizing authentication policy enforcement.
+            choices:
+              - Users authenticate once and gain access to multiple applications without re-entering credentials
+              - Each application maintains its own independent credential store
+              - Users must create unique passwords for every application
+              - It eliminates the need for any form of authentication
+      - concept: Principle of least privilege
+        questions:
+          - type: recognition
+            prompt: What does the principle of least privilege state?
+            answer: Users should be granted only the minimum access necessary to perform their job functions
+            explanation: The principle of least privilege limits each user's access rights to the bare minimum needed for their role. This reduces the attack surface and limits the potential damage from compromised accounts or insider threats.
+            choices:
+              - Users should be granted only the minimum access necessary to perform their job functions
+              - All users should have administrator-level access to simplify management
+              - Privileges should be assigned based on seniority within the organization
+              - Access rights should be reviewed only during annual audits
+  - name: Access Control
+    complexityWeight: 1.3
+    nodes:
+      - concept: Role-based access control (RBAC)
+        questions:
+          - type: recognition
+            prompt: In role-based access control (RBAC), how are permissions assigned?
+            answer: Permissions are assigned to roles, and users are assigned to roles
+            explanation: RBAC assigns permissions to defined roles (e.g., 'editor,' 'auditor') rather than to individual users. Users inherit permissions through their role assignments, simplifying administration in large organizations.
+            choices:
+              - Permissions are assigned to roles, and users are assigned to roles
+              - Permissions are assigned directly to individual users
+              - The resource owner decides who can access each resource
+              - A central authority assigns security labels to data and users
+      - concept: Mandatory access control (MAC)
+        questions:
+          - type: recognition
+            prompt: Which access control model uses security labels (e.g., Top Secret, Secret, Confidential) enforced by a central authority?
+            answer: Mandatory Access Control (MAC)
+            explanation: MAC assigns security labels to both subjects and objects, and a central authority enforces access rules based on those labels. It is commonly used in military and government environments where strict data classification is required.
+            choices:
+              - Mandatory Access Control (MAC)
+              - Discretionary Access Control (DAC)
+              - Role-Based Access Control (RBAC)
+              - Attribute-Based Access Control (ABAC)
+      - concept: Discretionary access control (DAC)
+        questions:
+          - type: recognition
+            prompt: In discretionary access control (DAC), who determines access to a resource?
+            answer: The resource owner
+            explanation: "In DAC, the owner of a resource decides who is granted access. Standard Unix file permissions are a classic example: the file owner can set read, write, and execute permissions for owner, group, and others."
+            choices:
+              - The resource owner
+              - A central security administrator
+              - The operating system kernel exclusively
+              - An automated risk scoring engine
+      - concept: Attribute-based access control (ABAC)
+        questions:
+          - type: recognition
+            prompt: Which access control model evaluates policies based on attributes of the user, resource, action, and environment?
+            answer: Attribute-Based Access Control (ABAC)
+            explanation: ABAC makes access decisions by evaluating attributes (user department, resource sensitivity, time of day, location, etc.) against policies. This provides fine-grained, context-aware access control beyond what static roles can express.
+            choices:
+              - Attribute-Based Access Control (ABAC)
+              - Role-Based Access Control (RBAC)
+              - Mandatory Access Control (MAC)
+              - Rule-Based Access Control
+      - concept: Separation of duties
+        questions:
+          - type: recognition
+            prompt: What is the goal of separation of duties in access control?
+            answer: To require more than one person to complete a critical task, preventing fraud or error
+            explanation: Separation of duties divides critical functions among multiple people so that no single individual can complete a high-risk action alone. For example, the person who requests a payment should not be the same person who approves it.
+            choices:
+              - To require more than one person to complete a critical task, preventing fraud or error
+              - To ensure all employees share the same access level for transparency
+              - To assign all critical functions to the most senior employee
+              - To allow any employee to substitute for any other in an emergency
+  - name: Risk Assessment
+    complexityWeight: 1.4
+    nodes:
+      - concept: Risk definition
+        questions:
+          - type: recognition
+            prompt: In cybersecurity, risk is most accurately defined as the combination of which two factors?
+            answer: The likelihood of a threat exploiting a vulnerability and the resulting impact
+            explanation: Risk is commonly expressed as Risk = Likelihood x Impact. Likelihood refers to the probability of a threat exploiting a specific vulnerability, and impact refers to the resulting harm to the organization.
+            choices:
+              - The likelihood of a threat exploiting a vulnerability and the resulting impact
+              - The number of firewalls deployed and their configuration complexity
+              - The cost of security software and the number of IT staff
+              - The number of users and the number of devices on the network
+      - concept: Vulnerability vs. threat vs. exploit
+        questions:
+          - type: recognition
+            prompt: An unpatched software flaw in a web server is best described as which of the following?
+            answer: A vulnerability
+            explanation: A vulnerability is a weakness in a system that could be exploited. A threat is an actor or event that could exploit a vulnerability. An exploit is the specific technique or code used to take advantage of a vulnerability.
+            choices:
+              - A vulnerability
+              - A threat
+              - An exploit
+              - A risk
+      - concept: Risk mitigation strategies
+        questions:
+          - type: recognition
+            prompt: An organization decides to purchase cybersecurity insurance to handle potential data breach costs. Which risk response strategy is this?
+            answer: Risk transfer
+            explanation: Risk transfer shifts the financial burden of a risk to a third party, such as an insurance provider. Other strategies include avoidance (eliminating the activity), mitigation (reducing likelihood or impact), and acceptance (acknowledging and absorbing the risk).
+            choices:
+              - Risk transfer
+              - Risk avoidance
+              - Risk acceptance
+              - Risk mitigation
+      - concept: Quantitative risk analysis
+        questions:
+          - type: recognition
+            prompt: In quantitative risk analysis, what does Annual Loss Expectancy (ALE) represent?
+            answer: The expected monetary loss from a specific risk over one year
+            explanation: ALE is calculated as Single Loss Expectancy (SLE) multiplied by the Annual Rate of Occurrence (ARO). It provides a dollar figure that helps organizations justify security investments by comparing ALE to the cost of countermeasures.
+            choices:
+              - The expected monetary loss from a specific risk over one year
+              - The total IT security budget for the year
+              - The number of security incidents expected per year
+              - The percentage of assets vulnerable to attack
+      - concept: Qualitative risk analysis
+        questions:
+          - type: recognition
+            prompt: Which characteristic best distinguishes qualitative risk analysis from quantitative risk analysis?
+            answer: Qualitative analysis uses subjective ratings (e.g., High/Medium/Low) rather than precise monetary values
+            explanation: Qualitative risk analysis categorizes risks using descriptive scales rather than exact dollar amounts. It is faster to perform and useful when precise data is unavailable, though it is less objective than quantitative analysis.
+            choices:
+              - Qualitative analysis uses subjective ratings (e.g., High/Medium/Low) rather than precise monetary values
+              - Qualitative analysis always produces more accurate results
+              - Qualitative analysis requires actuarial data and historical loss records
+              - Qualitative analysis is only used in the financial services industry
+  - name: Threat Modeling
+    complexityWeight: 1.5
+    nodes:
+      - concept: STRIDE model
+        questions:
+          - type: recognition
+            prompt: In the STRIDE threat model, what does the 'S' stand for?
+            answer: Spoofing
+            explanation: STRIDE stands for Spoofing, Tampering, Repudiation, Information Disclosure, Denial of Service, and Elevation of Privilege. Developed at Microsoft, it is a widely used framework for systematically identifying threats to a system.
+            choices:
+              - Spoofing
+              - Sniffing
+              - Scanning
+              - Sandboxing
+      - concept: Threat modeling purpose
+        questions:
+          - type: recognition
+            prompt: What is the primary goal of threat modeling during the software development lifecycle?
+            answer: To identify and prioritize potential security threats before they are exploited
+            explanation: Threat modeling is a proactive process performed during design and development to identify potential threats, attack vectors, and vulnerabilities. Addressing threats early is far cheaper and more effective than fixing them after deployment.
+            choices:
+              - To identify and prioritize potential security threats before they are exploited
+              - To perform penetration testing on production systems
+              - To generate compliance reports for regulatory audits
+              - To create marketing materials about the product's security
+      - concept: Attack surface
+        questions:
+          - type: recognition
+            prompt: What does 'attack surface' refer to in cybersecurity?
+            answer: The total number of points where an unauthorized user could attempt to enter or extract data from a system
+            explanation: The attack surface encompasses all the ways an attacker could interact with and potentially exploit a system, including open ports, APIs, user input fields, and running services. Reducing the attack surface is a key security practice.
+            choices:
+              - The total number of points where an unauthorized user could attempt to enter or extract data from a system
+              - The physical area of a data center that is vulnerable to natural disasters
+              - The number of antivirus signatures in a threat database
+              - The user interface of a security monitoring dashboard
+      - concept: Data flow diagrams in threat modeling
+        questions:
+          - type: recognition
+            prompt: In threat modeling, why are data flow diagrams (DFDs) commonly used?
+            answer: To visualize how data moves through a system and identify trust boundaries where threats may arise
+            explanation: DFDs map processes, data stores, external entities, and data flows. Trust boundaries on a DFD mark where data crosses between different privilege levels, and these boundaries are prime locations for identifying threats.
+            choices:
+              - To visualize how data moves through a system and identify trust boundaries where threats may arise
+              - To design the user interface layout of an application
+              - To calculate the exact financial impact of each threat
+              - To schedule penetration testing activities
+      - concept: DREAD risk rating
+        questions:
+          - type: recognition
+            prompt: Which of the following is a factor evaluated in the DREAD threat rating model?
+            answer: Reproducibility
+            explanation: DREAD stands for Damage potential, Reproducibility, Exploitability, Affected users, and Discoverability. Each factor is rated on a scale, and the scores are combined to prioritize which threats to address first.
+            choices:
+              - Reproducibility
+              - Resilience
+              - Redundancy
+              - Regression
+  - name: Common Attack Types
+    complexityWeight: 1.3
+    nodes:
+      - concept: Phishing
+        questions:
+          - type: recognition
+            prompt: An employee receives an email that appears to be from their bank, asking them to click a link and enter their login credentials on a fake website. What type of attack is this?
+            answer: Phishing
+            explanation: Phishing uses deceptive emails, messages, or websites that impersonate legitimate entities to trick victims into revealing sensitive information like passwords or financial details. It exploits human trust rather than technical vulnerabilities.
+            choices:
+              - Phishing
+              - Brute force attack
+              - SQL injection
+              - Denial of service
+      - concept: SQL injection
+        questions:
+          - type: recognition
+            prompt: An attacker enters `' OR '1'='1` into a login form's username field to bypass authentication. What type of attack is this?
+            answer: SQL injection
+            explanation: SQL injection inserts malicious SQL code into input fields that are improperly sanitized, allowing attackers to manipulate database queries. Parameterized queries (prepared statements) are the primary defense against SQL injection.
+            choices:
+              - SQL injection
+              - Cross-site scripting (XSS)
+              - Buffer overflow
+              - DNS spoofing
+      - concept: Cross-site scripting (XSS)
+        questions:
+          - type: recognition
+            prompt: An attacker injects a malicious JavaScript snippet into a forum post. When other users view the post, the script executes in their browsers. What type of attack is this?
+            answer: Cross-site scripting (XSS)
+            explanation: XSS attacks inject client-side scripts into web pages viewed by other users. The stored (persistent) variant embeds the malicious script in the application's database, affecting all users who view the compromised content.
+            choices:
+              - Cross-site scripting (XSS)
+              - SQL injection
+              - Man-in-the-middle
+              - Privilege escalation
+      - concept: Man-in-the-middle (MITM) attack
+        questions:
+          - type: recognition
+            prompt: An attacker secretly intercepts and relays communications between two parties who believe they are communicating directly with each other. What type of attack is this?
+            answer: Man-in-the-middle (MITM)
+            explanation: In a MITM attack, the attacker positions themselves between two communicating parties to eavesdrop or alter the traffic. TLS/SSL encryption and certificate pinning are key defenses against MITM attacks.
+            choices:
+              - Man-in-the-middle (MITM)
+              - Phishing
+              - Denial of service
+              - Brute force
+      - concept: Social engineering
+        questions:
+          - type: recognition
+            prompt: An attacker calls an employee pretending to be from the IT help desk and convinces them to reveal their password. This is an example of what type of attack?
+            answer: Social engineering
+            explanation: Social engineering manipulates people into breaking security procedures or divulging confidential information. It targets human psychology rather than technical systems and includes techniques like pretexting, baiting, and tailgating.
+            choices:
+              - Social engineering
+              - Brute force attack
+              - Zero-day exploit
+              - Buffer overflow
+      - concept: Ransomware
+        questions:
+          - type: recognition
+            prompt: Malware that encrypts a victim's files and demands payment for the decryption key is known as what?
+            answer: Ransomware
+            explanation: Ransomware encrypts the victim's data and demands a ransom, usually in cryptocurrency, for the decryption key. Regular offline backups, network segmentation, and prompt patching are critical defenses against ransomware.
+            choices:
+              - Ransomware
+              - Spyware
+              - Adware
+              - Rootkit
+  - name: Security Controls
+    complexityWeight: 1.2
+    nodes:
+      - concept: Preventive controls
+        questions:
+          - type: recognition
+            prompt: A firewall that blocks unauthorized inbound traffic is an example of what type of security control?
+            answer: Preventive control
+            explanation: Preventive controls stop security incidents before they occur. Firewalls, encryption, access control lists, and security awareness training are all examples of controls designed to prevent unauthorized activity.
+            choices:
+              - Preventive control
+              - Detective control
+              - Corrective control
+              - Compensating control
+      - concept: Detective controls
+        questions:
+          - type: recognition
+            prompt: An intrusion detection system (IDS) that monitors network traffic for suspicious patterns is an example of what type of security control?
+            answer: Detective control
+            explanation: Detective controls identify and alert on security events that have occurred or are in progress. IDS, log monitoring, security audits, and file integrity monitoring are detective controls that help organizations discover breaches.
+            choices:
+              - Detective control
+              - Preventive control
+              - Corrective control
+              - Deterrent control
+      - concept: Defense in depth
+        questions:
+          - type: recognition
+            prompt: What is the principle of defense in depth?
+            answer: Layering multiple security controls so that if one fails, others still provide protection
+            explanation: Defense in depth uses multiple overlapping layers of security — physical, technical, and administrative — so that the compromise of any single control does not result in a full breach. It is a cornerstone of resilient security architecture.
+            choices:
+              - Layering multiple security controls so that if one fails, others still provide protection
+              - Investing the entire security budget in the single strongest control available
+              - Focusing all security efforts on the network perimeter
+              - Deploying the same security control at every layer of the network
+      - concept: Administrative controls
+        questions:
+          - type: recognition
+            prompt: Which of the following is an example of an administrative (managerial) security control?
+            answer: A security awareness training program for employees
+            explanation: Administrative controls are policies, procedures, and training programs that guide human behavior. They include security policies, background checks, incident response plans, and awareness training.
+            choices:
+              - A security awareness training program for employees
+              - A firewall blocking inbound traffic on port 23
+              - An antivirus scanner running on all workstations
+              - A biometric door lock on the server room
+      - concept: Compensating controls
+        questions:
+          - type: recognition
+            prompt: When an organization cannot implement a primary security control, what type of control serves as an alternative to address the same risk?
+            answer: Compensating control
+            explanation: Compensating controls are alternative measures deployed when the primary control is not feasible. For example, if a legacy system cannot support encryption, enhanced monitoring and network segmentation might serve as compensating controls.
+            choices:
+              - Compensating control
+              - Deterrent control
+              - Directive control
+              - Recovery control
+  - name: Cryptography Basics
+    complexityWeight: 1.6
+    nodes:
+      - concept: Symmetric encryption
+        questions:
+          - type: recognition
+            prompt: Which type of encryption uses the same key for both encrypting and decrypting data?
+            answer: Symmetric encryption
+            explanation: Symmetric encryption uses a single shared secret key for both encryption and decryption. AES (Advanced Encryption Standard) is the most widely used symmetric algorithm. It is fast but requires secure key distribution.
+            choices:
+              - Symmetric encryption
+              - Asymmetric encryption
+              - Hash functions
+              - Digital signatures
+      - concept: Asymmetric encryption
+        questions:
+          - type: recognition
+            prompt: In asymmetric encryption, which key is used to encrypt a message intended for a specific recipient?
+            answer: The recipient's public key
+            explanation: In asymmetric encryption, the sender encrypts data with the recipient's public key. Only the recipient's corresponding private key can decrypt it. RSA and elliptic curve cryptography (ECC) are common asymmetric algorithms.
+            choices:
+              - The recipient's public key
+              - The sender's private key
+              - The recipient's private key
+              - A shared symmetric key
+      - concept: Hash functions
+        questions:
+          - type: recognition
+            prompt: Which property of a cryptographic hash function means it is computationally infeasible to find two different inputs that produce the same hash output?
+            answer: Collision resistance
+            explanation: Collision resistance means it should be extremely difficult to find two distinct inputs that hash to the same output. SHA-256 and SHA-3 are modern hash functions designed with strong collision resistance.
+            choices:
+              - Collision resistance
+              - Reversibility
+              - Key derivation
+              - Homomorphism
+      - concept: Digital signatures
+        questions:
+          - type: recognition
+            prompt: When creating a digital signature, which key does the signer use?
+            answer: The signer's private key
+            explanation: A digital signature is created by encrypting a hash of the message with the signer's private key. Recipients verify it using the signer's public key. This provides authentication, integrity, and non-repudiation.
+            choices:
+              - The signer's private key
+              - The signer's public key
+              - The recipient's public key
+              - A shared symmetric key
+      - concept: TLS/SSL
+        questions:
+          - type: recognition
+            prompt: What is the primary purpose of TLS (Transport Layer Security) in web communications?
+            answer: To encrypt data in transit between a client and a server
+            explanation: TLS encrypts the communication channel between a client (e.g., browser) and a server, ensuring confidentiality and integrity of data in transit. It uses a combination of asymmetric encryption for key exchange and symmetric encryption for data transfer.
+            choices:
+              - To encrypt data in transit between a client and a server
+              - To compress web pages for faster loading
+              - To authenticate users with biometric data
+              - To block malware downloads from the internet
+      - concept: Public key infrastructure (PKI)
+        questions:
+          - type: recognition
+            prompt: What role does a Certificate Authority (CA) play in public key infrastructure (PKI)?
+            answer: It issues and vouches for the authenticity of digital certificates that bind public keys to identities
+            explanation: A Certificate Authority is a trusted third party that verifies the identity of entities and issues digital certificates. These certificates bind a public key to an identity, enabling others to trust that the key genuinely belongs to the claimed owner.
+            choices:
+              - It issues and vouches for the authenticity of digital certificates that bind public keys to identities
+              - It generates symmetric encryption keys for all users on a network
+              - It scans websites for malware and phishing content
+              - It provides physical access control to data centers
+      - concept: Encryption at rest vs. in transit
+        questions:
+          - type: recognition
+            prompt: Full-disk encryption on a laptop protects data in which state?
+            answer: At rest
+            explanation: Data at rest refers to data stored on a device (disk, database, backup tape). Full-disk encryption like BitLocker or LUKS protects data at rest by encrypting the entire storage volume, guarding against data theft if the device is lost or stolen.
+            choices:
+              - At rest
+              - In transit
+              - In use
+              - In processing
+      - concept: Key exchange problem
+        questions:
+          - type: recognition
+            prompt: The Diffie-Hellman algorithm is primarily used to solve which cryptographic problem?
+            answer: Securely exchanging cryptographic keys over an insecure channel
+            explanation: Diffie-Hellman allows two parties to establish a shared secret key over a public channel without ever transmitting the key itself. This solved the fundamental problem of symmetric key distribution and is foundational to modern secure communications.
+            choices:
+              - Securely exchanging cryptographic keys over an insecure channel
+              - Compressing large files for efficient storage
+              - Generating random passwords for user accounts
+              - Detecting unauthorized modifications to a file

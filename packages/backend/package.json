@@ -18,7 +18,8 @@
     "effect": "^3.19.18",
     "express": "^5.0.1",
     "postgres": "^3.4.5",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.0",
+    "yaml": "^2.8.2"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",

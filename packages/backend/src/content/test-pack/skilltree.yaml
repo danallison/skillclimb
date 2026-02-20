@@ -1,0 +1,9 @@
+name: Test Pack
+id: test-pack
+tierBases:
+  0: -2
+  1: 0
+domains:
+  - general-knowledge
+prerequisites: {}
+placeholders: []

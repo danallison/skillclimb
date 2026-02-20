@@ -67,6 +67,7 @@ interface PlacementAnswerResult {
 
 export const startPlacement = (
   userId: string,
+  skilltreeId?: string,
 ): Effect.Effect<
   PlacementStartResult,
   ValidationError | DatabaseError,
@@ -87,8 +88,15 @@ export const startPlacement = (
       );
     }
 
-    // Fetch all nodes with difficulty
-    const allNodes = yield* query((db) => db.select().from(nodes));
+    // Fetch all nodes, filtered by skill tree if provided
+    let allNodes = yield* query((db) => db.select().from(nodes));
+    if (skilltreeId) {
+      const stDomains = yield* query((db) =>
+        db.select().from(domains).where(eq(domains.skilltreeId, skilltreeId)),
+      );
+      const stDomainIds = new Set(stDomains.map((d) => d.id));
+      allNodes = allNodes.filter((n) => stDomainIds.has(n.domainId));
+    }
     if (allNodes.length === 0) {
       return yield* Effect.fail(
         new ValidationError({ message: "No nodes available for placement test" }),
@@ -117,6 +125,7 @@ export const startPlacement = (
         .insert(placementTests)
         .values({
           userId,
+          skilltreeId: skilltreeId ?? null,
           status: "in_progress",
           currentTheta: 0,
           currentSE: 4.0,
@@ -211,9 +220,18 @@ export const submitPlacementAnswer = (
     // Check termination
     const done = shouldTerminate(newState, DEFAULT_PLACEMENT_CONFIG);
 
+    // Fetch nodes scoped to skill tree if placement has skilltreeId
+    let allNodes = yield* query((db) => db.select().from(nodes));
+    if (placement.skilltreeId) {
+      const stDomains = yield* query((db) =>
+        db.select().from(domains).where(eq(domains.skilltreeId, placement.skilltreeId!)),
+      );
+      const stDomainIds = new Set(stDomains.map((d) => d.id));
+      allNodes = allNodes.filter((n) => stDomainIds.has(n.domainId));
+    }
+
     if (done) {
       // Classify all nodes
-      const allNodes = yield* query((db) => db.select().from(nodes));
       const allItems = nodesToIRTItems(allNodes);
 
       const now = new Date();
@@ -305,7 +323,6 @@ export const submitPlacementAnswer = (
     }
 
     // Not done — select next item
-    const allNodes = yield* query((db) => db.select().from(nodes));
     const answeredNodeIds = new Set(newResponses.map((r) => r.nodeId));
     const availableItems = nodesToIRTItems(
       allNodes.filter((n) => !answeredNodeIds.has(n.id)),
@@ -368,7 +385,14 @@ export const getPlacement = (placementId: string) =>
 
     // If in progress, also return the next question
     if (placement.status === "in_progress") {
-      const allNodes = yield* query((db) => db.select().from(nodes));
+      let allNodes = yield* query((db) => db.select().from(nodes));
+      if (placement.skilltreeId) {
+        const stDomains = yield* query((db) =>
+          db.select().from(domains).where(eq(domains.skilltreeId, placement.skilltreeId!)),
+        );
+        const stDomainIds = new Set(stDomains.map((d) => d.id));
+        allNodes = allNodes.filter((n) => stDomainIds.has(n.domainId));
+      }
       const answeredNodeIds = new Set(
         (placement.responses as IRTResponse[]).map((r) => r.nodeId),
       );

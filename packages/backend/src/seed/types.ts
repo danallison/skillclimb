@@ -28,7 +28,7 @@ export interface SeedNode {
   }>;
 }
 
-export interface ContentPack {
+export interface SkillTreeDef {
   name: string;
   id: string;
   tierBases: Record<number, number>;

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-SkillClimb is a generic test-driven learning platform built on spaced repetition, desirable difficulties, and adaptive assessment. It works with arbitrary skill trees via a content pack system. The cybersecurity content pack is the first and primary content pack. The full platform specification lives in `SKILLCLIMB.md`. The cybersecurity content pack specification lives in `CYBERCLIMB.md`.
+SkillClimb is a generic test-driven learning platform built on spaced repetition, desirable difficulties, and adaptive assessment. It works with arbitrary skill trees via a skill tree system. The cybersecurity skill tree is the first and primary skill tree. The full platform specification lives in `SKILLCLIMB.md`. The cybersecurity skill tree specification lives in `CYBERCLIMB.md`.
 
 ## Tech Stack
 
@@ -29,13 +29,13 @@ Key subsystems:
 - **Confidence Calibration** — tracks self-rated confidence vs. actual performance
 - **Prerequisite Graph** — domains form a DAG; unlock at 60% mastery of prerequisites
 
-## Content Pack System
+## Skill Tree System
 
-Content packs live in `packages/backend/src/content/<pack-id>/`. Each pack has:
-- `index.ts` — exports a `ContentPack` object (manifest with tier bases, domain data, prerequisites, placeholder domains)
+Skill trees live in `packages/backend/src/content/<skilltree-id>/`. Each skill tree has:
+- `skilltree.yaml` — manifest with tier bases, domain data, prerequisites, placeholder domains
 - `domains/` — individual domain seed files with topic/node data
 
-The seed script (`npm run seed`) auto-discovers and loads all content packs. Use `npm run seed -- --pack <pack-id>` to seed a specific pack.
+The seed script (`npm run seed`) auto-discovers and loads all skill trees. Use `npm run seed -- --skilltree <skilltree-id>` to seed a specific skill tree.
 
 ## Core Data Model
 

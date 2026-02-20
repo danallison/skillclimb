@@ -3,6 +3,7 @@ import { eq, inArray } from "drizzle-orm";
 import {
   learnerNodes,
   nodes as nodesTable,
+  domains,
   sessions,
 } from "../db/schema.js";
 import { dbRowToLearnerState, dbRowToNode } from "../db/mappers.js";
@@ -25,14 +26,25 @@ export interface SessionWithItems {
 
 export const createSession = (
   userId: string,
+  skilltreeId?: string,
 ): Effect.Effect<SessionWithItems, DatabaseError, Database> =>
   Effect.gen(function* () {
     const now = new Date();
 
     // 1. READ all learner nodes for this user
-    const learnerRows = yield* query((db) =>
+    let learnerRows = yield* query((db) =>
       db.select().from(learnerNodes).where(eq(learnerNodes.userId, userId)),
     );
+
+    // If skilltreeId provided, filter learnerNodes to skill tree's domains
+    let skilltreeDomainIds: Set<string> | null = null;
+    if (skilltreeId) {
+      const stDomains = yield* query((db) =>
+        db.select().from(domains).where(eq(domains.skilltreeId, skilltreeId)),
+      );
+      skilltreeDomainIds = new Set(stDomains.map((d) => d.id));
+      learnerRows = learnerRows.filter((r) => skilltreeDomainIds!.has(r.domainId));
+    }
 
     // 2. READ corresponding nodes
     const nodeIds = learnerRows.map((r) => r.nodeId);
