@@ -293,13 +293,14 @@ The platform handles all SRS scheduling, session building, placement testing, pr
 
 | Layer | Technology | Rationale |
 |-------|-----------|-----------|
-| Frontend | React + TypeScript | Component model suits skill tree UI; strong ecosystem for data viz |
-| State Mgmt | Zustand + React Query | Lightweight, suits offline-first SRS with server sync |
+| Web Frontend | React + TypeScript | Component model suits skill tree UI; strong ecosystem for data viz |
+| Mobile App | React Native + Expo | Native iOS/Android app; primary interface for daily SRS sessions |
+| State Mgmt | Zustand + React Query | Lightweight, works across web and mobile; server sync |
 | Backend API | Express + TypeScript | Fast iteration; tsx for development |
 | Database | PostgreSQL (Drizzle ORM) | JSONB for flexible question/answer schemas; strong query planner |
 | AI Tutor | Claude API | Elaboration evaluation, adaptive hint generation, explanation quality |
 | Lab Environment | Docker containers | Isolated, disposable environments for practical challenges |
-| Monorepo | npm workspaces | Three packages: `@skillclimb/core`, `@skillclimb/backend`, `@skillclimb/frontend` |
+| Monorepo | npm workspaces | Four packages: `@skillclimb/core`, `@skillclimb/backend`, `@skillclimb/frontend`, `@skillclimb/mobile` |
 
 ### Data Model (Core Entities)
 
@@ -324,19 +325,30 @@ Domain logic lives in `@skillclimb/core` as pure functions with no side effects:
 - **Progress** (`progress/progress.ts`) — mastery tracking and progress calculation
 - **Calibration** (`calibration/calibration.ts`) — confidence calibration analytics
 
-All I/O, database access, API calls, and state mutations are pushed to the outer shell: backend services (`@skillclimb/backend`) and frontend components (`@skillclimb/frontend`).
+All I/O, database access, API calls, and state mutations are pushed to the outer shell: backend services (`@skillclimb/backend`), web frontend components (`@skillclimb/frontend`), and mobile app screens (`@skillclimb/mobile`).
 
-### Offline-First SRS
+### Web and Mobile Clients
 
-The SRS state is stored locally in the browser (IndexedDB via Dexie.js) and synced to the server when online. This ensures learners can complete review sessions without network connectivity—critical for learning consistency. Conflict resolution uses a last-write-wins strategy on the server with client-side timestamps, appropriate for the single-user-per-account access pattern.
+SkillClimb has two client applications sharing the same backend API:
+
+- **Web app** (`@skillclimb/frontend`) — React + TypeScript. Used for desktop features like labs, content authoring, and full skill tree exploration. Also serves as the fallback for users who don't install the mobile app.
+- **Mobile app** (`@skillclimb/mobile`) — React Native + Expo. The primary interface for most users most of the time. Optimized for daily SRS review sessions, with offline support and push notifications for review reminders.
+
+Both clients share `@skillclimb/core` for all domain logic (SRS calculations, scoring, progress, IRT). API interaction patterns (React Query hooks, auth state) follow the same conventions in both clients but are implemented separately due to platform differences (React DOM vs React Native).
+
+### Offline-First SRS (Mobile)
+
+The mobile app stores SRS state locally using SQLite and syncs to the server when connectivity is available. This ensures learners can complete review sessions without network connectivity — critical for learning consistency. Conflict resolution uses a last-write-wins strategy on the server with client-side timestamps, appropriate for the single-user-per-account access pattern. The web app does not support offline mode; it requires an active connection.
 
 ---
 
 ## Implementation Roadmap
 
-The roadmap is organized as ordered phases. Each phase produces a usable product; subsequent phases add depth and sophistication.
+The roadmap is organized as two parallel tracks: **Platform** (engineering features and capabilities) and **Content** (domain seeding, question authoring, instructional material). Both tracks can progress independently — platform features can be built without waiting for content, and content can be authored on top of existing platform capabilities.
 
-### Phase 1: Foundation ✅
+### Platform Track
+
+#### P1: Foundation ✅
 
 Establish core data models, SRS engine, and basic question delivery.
 
@@ -344,9 +356,8 @@ Establish core data models, SRS engine, and basic question delivery.
 2. Build the SM-2 algorithm module with domain_weight modifications and unit tests validating interval calculations.
 3. Implement the session builder that selects review items based on due dates, interleaving priorities, and prerequisite reinforcement.
 4. Create a minimal React frontend: single-question view with answer input, confidence rating, and feedback display.
-5. Seed the database with initial skill tree domains.
 
-### Phase 2: Assessment and Placement ✅
+#### P2: Assessment and Placement ✅
 
 Build the adaptive testing engine and placement flow.
 
@@ -354,36 +365,105 @@ Build the adaptive testing engine and placement flow.
 2. Build the placement test flow: 40–60 adaptive questions that estimate competency across all tiers.
 3. Create the skill tree map visualization with domain states, prerequisite edges, and mastery color-coding.
 4. Implement the confidence calibration tracking system and the four-quadrant analysis.
-5. Expand skill tree coverage.
 
-### Phase 3: AI Tutor and Content Depth
+#### P3: Adaptive Learning and AI Tutor
 
-Integrate the LLM tutor and expand content across the full skill tree.
+Integrate the LLM tutor, instructional content delivery, and progressive question types.
 
-1. Integrate Anthropic API for elaboration evaluation, Socratic hints, and misconception detection.
-2. Build the elaboration prompt system with free-form answer UI and AI feedback display.
-3. Implement adaptive difficulty escalation across question types (recognition → cued recall → free recall → application).
-4. Expand skill trees to cover intermediate and advanced domains.
-5. Build the second-attempt hint system for incorrect answers.
+1. Integrate Anthropic API for elaboration evaluation, Socratic hints, and second-attempt hints. ✅
+2. Build the elaboration prompt system with free-form answer UI and AI feedback display. ✅
+3. Build the second-attempt hint system for incorrect answers. ✅
+4. Implement adaptive difficulty escalation across question types (recognition → cued recall → free recall → application).
+5. Build the instructional content delivery system: when a learner fails a node repeatedly, deliver micro-lessons, worked examples, or concept maps before the next review. Use hand-authored content where available, with AI-generated lessons as a fallback.
+6. Implement misconception detection: the AI analyzes patterns of wrong answers across reviews to identify systematic misconceptions and generates targeted correction content.
+7. Add knowledge decay visualization: mastered domains gradually fade from green toward amber as SRS due dates approach.
 
-### Phase 4: Labs and Advanced Features
+#### P4: Authentication
 
-Add practical lab environments and advanced analytics.
+Replace placeholder auth with real authentication that works across web and mobile.
+
+1. Implement OAuth authentication (Google/GitHub) to replace email-only login.
+2. Set up shared auth infrastructure (token management, session persistence) usable by both web and mobile clients.
+
+#### P5: Mobile App (React Native / Expo)
+
+Build the mobile app as the primary interface for daily learning. Full feature parity with the web app.
+
+1. Scaffold Expo app as `@skillclimb/mobile` in the monorepo, sharing `@skillclimb/core` for all domain logic.
+2. Build all core views: login, skill tree selection, skill tree map, progress dashboard, study sessions (question card, confidence rating, feedback, hints, AI feedback), placement test, calibration dashboard, session summary.
+3. Implement offline-first SRS with SQLite storage and background server sync, enabling review sessions without network connectivity.
+4. Add push notifications for review reminders via Expo notifications.
+5. Dev builds via Expo for initial testing and distribution.
+
+#### P6: Labs and Advanced Features
+
+Add practical lab environments, advanced analytics, and cross-domain challenges. Labs are web-only (Docker environments require a desktop browser); analytics and challenge mode are available on both web and mobile.
 
 1. Build Docker-based lab environments for practical challenges (hands-on exercises defined by skill trees).
-2. Implement the analytics dashboard: session summaries, retention curves, calibration trends, domain progress.
+2. Implement the analytics dashboard: session summaries, retention curves, calibration trends, domain progress over time.
 3. Build cross-domain challenge mode with scenario generation.
-4. Implement offline-first SRS with IndexedDB and server sync.
+4. Implement adaptive scenario generation: the AI generates novel application-level scenarios based on the learner's current skill profile, ensuring practice material stays fresh and contextually varied.
 
-### Phase 5: Polish and Launch
+#### P7: Gamification and Launch
 
-Refine the experience, add gamification, and prepare for launch.
+Refine the experience, add motivation mechanics, and prepare for public launch.
 
-1. Implement streak tracking, mastery badges, calibration score, and optional leaderboard.
-2. Build notification system for review reminders with learner-preferred timing.
-3. Performance optimization: lazy loading of skill tree, question prefetching, SRS calculation caching.
-4. User testing with beta users; iterate on question quality and difficulty calibration.
-5. Launch publicly as a web application.
+1. Implement streak tracking with freeze system (one missed day per week without breaking streak).
+2. Build mastery badges that decay if nodes fall below mastery threshold due to missed reviews.
+3. Add calibration score (0–100) as a visible achievement metric.
+4. Build notification system for review reminders with learner-preferred timing.
+5. Performance optimization: lazy loading of skill tree, question prefetching, SRS calculation caching.
+6. Optional leaderboard for cross-domain challenge scores.
+7. Publish to Apple App Store and Google Play via Expo's build service.
+8. User testing with beta users; iterate on question quality and difficulty calibration.
+9. Launch publicly.
+
+### Content Track
+
+Content creation proceeds independently from platform engineering. Each content phase can begin as soon as the necessary platform features exist.
+
+#### C1: Foundation Domains ✅
+
+Seed initial domains with question templates.
+
+- 7 cybersecurity domains seeded: Networking Fundamentals, Operating Systems, Security Principles, Cryptography, Threat Landscape, Identity & Access Management, Network Defense.
+- Each domain has topics, nodes, and recognition/cued recall/free recall question templates.
+
+#### C2: Question Depth
+
+Add question type variety and improve quality across existing domains.
+
+- Add application-level question templates to all seeded domains.
+- Ensure every node has at least recognition and cued recall templates.
+- Review and improve explanation quality across all question templates.
+
+#### C3: Domain Expansion
+
+Seed remaining domains across all tiers.
+
+- Seed remaining T1 domain: Web Application Security.
+- Seed T2 domains: Penetration Testing, SOC Operations, Digital Forensics, Cloud Security, System Administration, Malware Analysis.
+- Seed T0 domain: Programming Fundamentals.
+- Seed T3 domains: Exploit Development, Threat Intelligence, Incident Response, Security Architecture.
+- Target: ~600 nodes total across T0–T3.
+
+#### C4: Instructional Content (requires P3)
+
+Author micro-lessons and worked examples for nodes where learners commonly struggle.
+
+- Write micro-lessons (2–5 minutes each) for high-failure-rate nodes across seeded domains.
+- Create worked examples with step-by-step reasoning for complex topics.
+- Build concept maps showing connections between related nodes across domains.
+- AI-generated lessons serve as fallback for nodes without hand-authored content.
+
+#### C5: Advanced and Specialized Content (requires P6 for labs)
+
+Build content for advanced tiers, labs, and cross-domain challenges.
+
+- Seed T4 AI Security domains: Adversarial ML, LLM Security, AI for SOC, AI Governance.
+- Author red team challenge scenarios for tier transitions (T1→T2, T2→T3, T3→T4).
+- Create lab exercise definitions for Docker-based practical challenges.
+- Target: ~1,200 nodes total across all tiers.
 
 ---
 

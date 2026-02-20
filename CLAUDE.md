@@ -8,10 +8,11 @@ SkillClimb is a generic test-driven learning platform built on spaced repetition
 
 ## Tech Stack
 
-- **Frontend:** React + TypeScript, Zustand + React Query
+- **Web Frontend:** React + TypeScript, Zustand + React Query
+- **Mobile App:** React Native + Expo (planned — `@skillclimb/mobile`)
 - **Backend:** Express + TypeScript (tsx for dev)
 - **Database:** PostgreSQL (Drizzle ORM)
-- **Monorepo:** npm workspaces — `@skillclimb/core`, `@skillclimb/backend`, `@skillclimb/frontend`
+- **Monorepo:** npm workspaces — `@skillclimb/core`, `@skillclimb/backend`, `@skillclimb/frontend`, `@skillclimb/mobile` (planned)
 
 ## Development Strategy
 

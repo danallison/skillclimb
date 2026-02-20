@@ -212,37 +212,42 @@ Red team challenges are scored on multiple dimensions: completeness (objectives 
 
 ## Content Creation Roadmap
 
-Content creation maps to the platform's implementation phases (see `SKILLCLIMB.md`). The code in `packages/backend/src/content/cybersecurity/` is the source of truth for what content currently exists.
+Content creation follows the Content Track in `SKILLCLIMB.md`. The code in `packages/backend/src/content/cybersecurity/` is the source of truth for what content currently exists.
 
-### Current State (Phases 1–2 Complete)
+### C1: Foundation Domains ✅
 
-7 domains fully seeded with topics, nodes, and recognition-level question templates:
+7 domains fully seeded with topics, nodes, and recognition/cued recall/free recall question templates:
 - T0: Networking Fundamentals, Operating Systems
 - T1: Security Principles, Cryptography, Threat Landscape, Identity & Access Management, Network Defense
 
 13 additional domains defined as placeholders in the skill tree.
 
-### Phase 3: Core Content Expansion
+### C2: Question Depth
 
-- Seed remaining T1 domain: Web Application Security
-- Seed high-priority T2 domains: Penetration Testing, SOC Operations
-- Add cued recall and free recall question templates to existing domains
-- Target: ~600 nodes total across T0–T2
+- Add application-level question templates to all 7 seeded domains.
+- Ensure every node has at least recognition and cued recall templates.
+- Review and improve explanation quality across all question templates.
 
-### Phase 4: Advanced Content and Labs
+### C3: Domain Expansion
 
-- Seed remaining T2 domains: Digital Forensics, Cloud Security, System Administration, Malware Analysis
-- Build lab environments for practical challenges
-- Create red team challenges for T1→T2 and T2→T3 transitions
-- Seed T3 domains: Exploit Development, Threat Intelligence, Incident Response, Security Architecture
-- Target: ~1,000 nodes total
+- Seed remaining T1 domain: Web Application Security.
+- Seed T0 domain: Programming Fundamentals.
+- Seed T2 domains: Penetration Testing, SOC Operations, Digital Forensics, Cloud Security, System Administration, Malware Analysis.
+- Seed T3 domains: Exploit Development, Threat Intelligence, Incident Response, Security Architecture.
+- Target: ~600 nodes total across T0–T3.
 
-### Phase 5: AI Security and Polish
+### C4: Instructional Content
 
-- Seed T4 AI Security domains: Adversarial ML, LLM Security, AI for SOC, AI Governance (~200 nodes)
-- Complete application and practical question types across all domains
-- Create T3→T4 red team challenges
-- Target: ~1,200 nodes total across all tiers
+- Write micro-lessons (2–5 minutes each) for high-failure-rate nodes across seeded domains.
+- Create worked examples with step-by-step reasoning for complex topics (subnetting, TLS handshake, threat modeling, etc.).
+- Build concept maps showing connections between related nodes across domains.
+
+### C5: Advanced and Specialized Content
+
+- Seed T4 AI Security domains: Adversarial ML, LLM Security, AI for SOC, AI Governance (~200 nodes).
+- Author red team challenge scenarios for tier transitions (T1→T2, T2→T3, T3→T4).
+- Create lab exercise definitions for Docker-based practical challenges.
+- Target: ~1,200 nodes total across all tiers.
 
 ---
 
