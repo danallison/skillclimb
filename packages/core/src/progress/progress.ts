@@ -3,6 +3,8 @@ import { isDue } from "../srs/sm2.js";
 import { getCalibrationQuadrant } from "../scoring/scoring.js";
 import { groupBy, createQuadrantCounts, countProgress } from "../utils.js";
 
+const MS_PER_DAY = 86_400_000;
+
 export interface DomainProgress {
   domainId: string;
   totalNodes: number;
@@ -250,6 +252,74 @@ export function computeOverallProgress(
     domains,
     nextSession,
   };
+}
+
+// === Struggling detection (instructional content delivery) ===
+
+/**
+ * Determine if a learner is struggling with a node.
+ * Triggers when easiness is very low or when repetitions were reset to 0
+ * after a failure (interval > 0 but repetitions reset).
+ */
+export function isStruggling(state: LearnerNodeState): boolean {
+  return state.easiness < 1.8 || (state.repetitions === 0 && state.interval > 0);
+}
+
+// === Domain freshness (knowledge decay visualization) ===
+
+export interface DomainFreshness {
+  domainId: string;
+  freshness: number; // 0.0 (fully decayed) to 1.0 (fully fresh)
+}
+
+/**
+ * Compute per-domain freshness from mastered learner node states.
+ * Freshness represents how "fresh" mastered knowledge is — 1.0 means all
+ * mastered nodes are well within their review interval, 0.0 means they're
+ * all heavily overdue.
+ *
+ * Non-mastered nodes are excluded. Domains with no mastered nodes get 1.0.
+ */
+export function computeDomainFreshness(
+  states: LearnerNodeState[],
+  now: Date,
+): DomainFreshness[] {
+  const byDomain = groupBy(states, (s) => s.domainId);
+  const results: DomainFreshness[] = [];
+
+  for (const [domainId, domainStates] of byDomain) {
+    const masteredStates = domainStates.filter(
+      (s) => isMastered(s) && s.interval > 0,
+    );
+
+    if (masteredStates.length === 0) {
+      results.push({ domainId, freshness: 1.0 });
+      continue;
+    }
+
+    let totalFreshness = 0;
+    for (const s of masteredStates) {
+      const intervalMs = s.interval * MS_PER_DAY;
+      const dueTime = s.dueDate.getTime();
+      const nowTime = now.getTime();
+
+      if (dueTime > nowTime) {
+        // Not yet due — freshness based on remaining time relative to interval
+        totalFreshness += Math.min(1, (dueTime - nowTime) / intervalMs);
+      } else {
+        // Overdue — freshness decays based on how overdue relative to interval
+        const overdueDays = (nowTime - dueTime) / MS_PER_DAY;
+        totalFreshness += Math.max(0, 1 - overdueDays / s.interval);
+      }
+    }
+
+    results.push({
+      domainId,
+      freshness: totalFreshness / masteredStates.length,
+    });
+  }
+
+  return results;
 }
 
 /**

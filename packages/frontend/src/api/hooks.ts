@@ -48,9 +48,11 @@ export interface SessionItemResponse {
     easiness: number;
     interval: number;
     repetitions: number;
+    misconceptions?: string[];
   };
   questionTemplate: QuestionTemplateResponse;
   priority: number;
+  needsLesson?: boolean;
 }
 
 export interface ReviewResponse {
@@ -105,6 +107,7 @@ export interface DomainProgressResponse {
   notStarted: number;
   masteryPercentage: number;
   hasContent: boolean;
+  freshness?: number;
   topics: TopicProgressResponse[];
 }
 
@@ -308,7 +311,7 @@ export interface AIFeedbackResponse {
 
 export function useEvaluateAnswer() {
   return useMutation({
-    mutationFn: (data: { nodeId: string; response: string }) =>
+    mutationFn: (data: { nodeId: string; response: string; userId?: string }) =>
       fetchJson<AIFeedbackResponse | null>("/reviews/evaluate", {
         method: "POST",
         body: JSON.stringify(data),
@@ -326,6 +329,23 @@ export function useRequestHint() {
   });
 }
 
+export interface MicroLessonResponse {
+  title: string;
+  content: string;
+  keyTakeaways: string[];
+  source: "static" | "ai" | "fallback";
+}
+
+export function useRequestMicroLesson() {
+  return useMutation({
+    mutationFn: (data: { nodeId: string; userId: string }) =>
+      fetchJson<MicroLessonResponse>("/lessons", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+  });
+}
+
 export function useSubmitReview() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -335,6 +355,7 @@ export function useSubmitReview() {
       score: number;
       confidence: number;
       response: string;
+      misconceptions?: string[];
     }) =>
       fetchJson<ReviewResponse>("/reviews", {
         method: "POST",

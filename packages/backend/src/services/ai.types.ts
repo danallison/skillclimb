@@ -13,6 +13,7 @@ export interface AIEvaluationInput {
   keyPoints: string[];
   rubric: string;
   learnerResponse: string;
+  previousMisconceptions?: string[];
 }
 
 export interface AIHintInput {
@@ -20,4 +21,18 @@ export interface AIHintInput {
   prompt: string;
   learnerResponse: string;
   correctAnswer: string;
+}
+
+export interface AIMicroLessonInput {
+  concept: string;
+  correctAnswer: string;
+  explanation: string;
+  keyPoints: string[];
+  misconceptions: string[];
+}
+
+export interface AIMicroLesson {
+  title: string;
+  content: string;
+  keyTakeaways: string[];
 }

@@ -13,6 +13,7 @@ import {
   buildSession,
   DEFAULT_SESSION_CONFIG,
   selectQuestionType,
+  isStruggling,
 } from "@skillclimb/core";
 import type { SessionResult } from "@skillclimb/core";
 
@@ -132,6 +133,7 @@ export const getSession = (
         learnerState: state,
         questionTemplate: template,
         priority: 0,
+        needsLesson: isStruggling(state),
       };
     });
 

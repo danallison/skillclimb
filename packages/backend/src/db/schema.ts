@@ -84,6 +84,7 @@ export const learnerNodes = pgTable(
       .$type<Array<{ confidence: number; wasCorrect: boolean; timestamp: string }>>()
       .default([]),
     domainWeight: real("domain_weight").notNull().default(1.0),
+    misconceptions: jsonb("misconceptions").notNull().$type<string[]>().default([]),
   },
   (table) => [primaryKey({ columns: [table.userId, table.nodeId] })],
 );

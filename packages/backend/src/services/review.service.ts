@@ -22,6 +22,7 @@ export const submitReview = (
   score: number,
   confidence: number,
   response: string,
+  misconceptions?: string[],
 ): Effect.Effect<ReviewResult, NotFoundError | DatabaseError, Database> =>
   Effect.gen(function* () {
     // 1. READ learner node state from DB
@@ -71,6 +72,12 @@ export const submitReview = (
       }),
     );
 
+    // Merge new misconceptions (deduplicated) with existing ones
+    const existingMisconceptions = (currentState.misconceptions ?? []) as string[];
+    const mergedMisconceptions = misconceptions && misconceptions.length > 0
+      ? [...new Set([...existingMisconceptions, ...misconceptions])]
+      : existingMisconceptions;
+
     yield* query((db) =>
       db
         .update(learnerNodes)
@@ -80,6 +87,7 @@ export const submitReview = (
           repetitions: nextState.repetitions,
           dueDate: nextState.dueDate,
           confidenceHistory: serializedHistory,
+          misconceptions: mergedMisconceptions,
         })
         .where(
           and(eq(learnerNodes.userId, userId), eq(learnerNodes.nodeId, nodeId)),

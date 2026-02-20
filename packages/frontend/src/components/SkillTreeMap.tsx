@@ -64,6 +64,7 @@ export default function SkillTreeMap({ domains }: Props) {
             totalNodes: d.totalNodes,
             hasContent: d.hasContent,
             isRecommended: recommended?.domainId === d.domainId,
+            freshness: d.freshness ?? 1.0,
           },
         });
 

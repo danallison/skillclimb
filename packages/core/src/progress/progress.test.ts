@@ -2,11 +2,13 @@ import { describe, it, expect } from "vitest";
 import {
   isMastered,
   isStarted,
+  isStruggling,
   computeNextSession,
   computeDomainProgress,
   computeOverallProgress,
   computeSessionSummary,
   computeTierProgress,
+  computeDomainFreshness,
 } from "./progress.js";
 import type { LearnerNodeState } from "../types.js";
 
@@ -57,6 +59,34 @@ describe("isStarted", () => {
 
   it("returns true if has interval (even after reset)", () => {
     expect(isStarted(makeState("n1", "d1", { interval: 1 }))).toBe(true);
+  });
+});
+
+describe("isStruggling", () => {
+  it("returns true for very low easiness", () => {
+    expect(isStruggling(makeState("n1", "d1", { easiness: 1.5, repetitions: 2, interval: 3 }))).toBe(true);
+    expect(isStruggling(makeState("n1", "d1", { easiness: 1.3, repetitions: 1, interval: 1 }))).toBe(true);
+  });
+
+  it("returns true when repetitions reset to 0 but interval > 0 (failure reset)", () => {
+    expect(isStruggling(makeState("n1", "d1", { easiness: 2.5, repetitions: 0, interval: 5 }))).toBe(true);
+  });
+
+  it("returns false for healthy nodes", () => {
+    expect(isStruggling(makeState("n1", "d1", { easiness: 2.5, repetitions: 3, interval: 10 }))).toBe(false);
+    expect(isStruggling(makeState("n1", "d1", { easiness: 2.0, repetitions: 1, interval: 1 }))).toBe(false);
+  });
+
+  it("returns false for brand new nodes (reps=0, interval=0)", () => {
+    expect(isStruggling(makeState("n1", "d1"))).toBe(false);
+  });
+
+  it("returns false at exactly easiness = 1.8 (boundary)", () => {
+    expect(isStruggling(makeState("n1", "d1", { easiness: 1.8, repetitions: 1, interval: 1 }))).toBe(false);
+  });
+
+  it("returns true at easiness just below 1.8", () => {
+    expect(isStruggling(makeState("n1", "d1", { easiness: 1.79, repetitions: 1, interval: 1 }))).toBe(true);
   });
 });
 
@@ -203,5 +233,122 @@ describe("computeTierProgress", () => {
     const result = computeTierProgress(domains);
     expect(result[0].tier).toBe(0);
     expect(result[1].tier).toBe(2);
+  });
+});
+
+describe("computeDomainFreshness", () => {
+  const MS_PER_DAY = 86_400_000;
+
+  it("returns 1.0 for domains with all fresh mastered nodes", () => {
+    const states = [
+      makeState("n1", "d1", {
+        repetitions: 5, easiness: 2.5, interval: 10,
+        dueDate: new Date(now.getTime() + 10 * MS_PER_DAY), // due in 10 days, interval 10
+      }),
+      makeState("n2", "d1", {
+        repetitions: 3, easiness: 2.0, interval: 5,
+        dueDate: new Date(now.getTime() + 5 * MS_PER_DAY), // due in 5 days, interval 5
+      }),
+    ];
+    const result = computeDomainFreshness(states, now);
+    expect(result).toHaveLength(1);
+    expect(result[0].freshness).toBe(1.0);
+  });
+
+  it("returns near 0 for domains with heavily overdue mastered nodes", () => {
+    const states = [
+      makeState("n1", "d1", {
+        repetitions: 5, easiness: 2.5, interval: 5,
+        dueDate: new Date(now.getTime() - 20 * MS_PER_DAY), // 20 days overdue, interval 5
+      }),
+    ];
+    const result = computeDomainFreshness(states, now);
+    expect(result[0].freshness).toBe(0);
+  });
+
+  it("returns mixed freshness for partially overdue nodes", () => {
+    const states = [
+      makeState("n1", "d1", {
+        repetitions: 5, easiness: 2.5, interval: 10,
+        dueDate: new Date(now.getTime() + 10 * MS_PER_DAY), // fully fresh (1.0)
+      }),
+      makeState("n2", "d1", {
+        repetitions: 3, easiness: 2.0, interval: 10,
+        dueDate: new Date(now.getTime() - 5 * MS_PER_DAY), // 5 days overdue on 10-day interval (0.5)
+      }),
+    ];
+    const result = computeDomainFreshness(states, now);
+    expect(result[0].freshness).toBeCloseTo(0.75, 2);
+  });
+
+  it("returns 1.0 for domains with no mastered nodes", () => {
+    const states = [
+      makeState("n1", "d1", { repetitions: 1, easiness: 2.5, interval: 1 }),
+      makeState("n2", "d1"), // not started
+    ];
+    const result = computeDomainFreshness(states, now);
+    expect(result[0].freshness).toBe(1.0);
+  });
+
+  it("returns empty array for empty input", () => {
+    const result = computeDomainFreshness([], now);
+    expect(result).toHaveLength(0);
+  });
+
+  it("returns 1.0 when node is exactly at due date (boundary)", () => {
+    const states = [
+      makeState("n1", "d1", {
+        repetitions: 5, easiness: 2.5, interval: 10,
+        dueDate: now, // exactly at due date — 0 remaining, so overdue branch with 0 days overdue → 1.0
+      }),
+    ];
+    const result = computeDomainFreshness(states, now);
+    expect(result[0].freshness).toBe(1.0);
+  });
+
+  it("clamps freshness to 1.0 when remaining time exceeds interval", () => {
+    // Due far in the future relative to interval (e.g. reviewed early)
+    const states = [
+      makeState("n1", "d1", {
+        repetitions: 5, easiness: 2.5, interval: 5,
+        dueDate: new Date(now.getTime() + 20 * MS_PER_DAY), // 20 days remaining on 5-day interval
+      }),
+    ];
+    const result = computeDomainFreshness(states, now);
+    expect(result[0].freshness).toBe(1.0); // clamped via Math.min(1, ...)
+  });
+
+  it("handles multiple domains independently", () => {
+    const states = [
+      makeState("n1", "d1", {
+        repetitions: 5, easiness: 2.5, interval: 10,
+        dueDate: new Date(now.getTime() + 10 * MS_PER_DAY), // fully fresh
+      }),
+      makeState("n2", "d2", {
+        repetitions: 3, easiness: 2.0, interval: 5,
+        dueDate: new Date(now.getTime() - 20 * MS_PER_DAY), // heavily overdue → 0
+      }),
+    ];
+    const result = computeDomainFreshness(states, now);
+    const d1 = result.find((d) => d.domainId === "d1")!;
+    const d2 = result.find((d) => d.domainId === "d2")!;
+    expect(d1.freshness).toBe(1.0);
+    expect(d2.freshness).toBe(0);
+  });
+
+  it("excludes non-mastered nodes from freshness calculation", () => {
+    const states = [
+      makeState("n1", "d1", {
+        repetitions: 5, easiness: 2.5, interval: 10,
+        dueDate: new Date(now.getTime() + 10 * MS_PER_DAY), // fresh mastered
+      }),
+      makeState("n2", "d1", {
+        repetitions: 1, easiness: 2.5, interval: 1,
+        dueDate: new Date(now.getTime() - 30 * MS_PER_DAY), // very overdue but not mastered
+      }),
+    ];
+    const result = computeDomainFreshness(states, now);
+    // Only n1 counts — it's fully fresh
+    expect(result[0].freshness).toBe(1.0);
   });
 });

@@ -16,6 +16,7 @@ import { HttpResponse, type EffectHandler } from "../effectHandler.js";
 import {
   computeOverallProgress,
   computeTopicProgress,
+  computeDomainFreshness,
   computeCalibrationAnalysis,
   CORRECT_SCORE_THRESHOLD,
 } from "@skillclimb/core";
@@ -134,6 +135,11 @@ export function usersRouter(handle: EffectHandler) {
           overall.domains.map((dp) => [dp.domainId, dp]),
         );
 
+        const freshnessList = computeDomainFreshness(states, now);
+        const freshnessMap = new Map(
+          freshnessList.map((f) => [f.domainId, f.freshness]),
+        );
+
         const domainDetails = allDomains.map((domain) => {
           const dp = progressByDomain.get(domain.id);
           const domainTopics = topicProgress
@@ -158,6 +164,7 @@ export function usersRouter(handle: EffectHandler) {
             notStarted: dp?.notStarted ?? 0,
             masteryPercentage: dp?.masteryPercentage ?? 0,
             hasContent: (dp?.totalNodes ?? 0) > 0,
+            freshness: freshnessMap.get(domain.id) ?? 1.0,
             topics: domainTopics,
           };
         });

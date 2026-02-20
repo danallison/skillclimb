@@ -27,6 +27,7 @@ export interface QuestionTemplate {
   hints?: string[];               // all types: for second-attempt hint system
   rubric?: string;                // free_recall: what a good answer covers
   keyPoints?: string[];           // free_recall: key points for AI evaluation
+  microLesson?: string;           // optional hand-authored micro-lesson content
 }
 
 export interface Node {
@@ -49,6 +50,7 @@ export interface LearnerNodeState {
   dueDate: Date;
   confidenceHistory: CalibrationEntry[];
   domainWeight: number; // 0.5–2.0
+  misconceptions?: string[];
 }
 
 export interface CalibrationEntry {
@@ -95,6 +97,7 @@ export interface SessionItem {
   learnerState: LearnerNodeState;
   questionTemplate: QuestionTemplate;
   priority: number;
+  needsLesson?: boolean;
 }
 
 export interface SessionResult {

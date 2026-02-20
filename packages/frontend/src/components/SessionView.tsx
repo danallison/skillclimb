@@ -1,9 +1,12 @@
+import { useEffect, useRef } from "react";
 import { useSessionStore } from "../store/sessionStore.js";
+import { useRequestMicroLesson } from "../api/hooks.js";
 import { colors } from "../styles/theme.js";
 import QuestionCard from "./QuestionCard.js";
 import ConfidenceRating from "./ConfidenceRating.js";
 import FeedbackDisplay from "./FeedbackDisplay.js";
 import HintDisplay from "./HintDisplay.js";
+import MicroLessonDisplay from "./MicroLessonDisplay.js";
 import SessionSummary from "./SessionSummary.js";
 
 interface Props {
@@ -11,7 +14,31 @@ interface Props {
 }
 
 export default function SessionView({ onFinished }: Props) {
-  const { session, currentItemIndex, phase } = useSessionStore();
+  const { session, currentItemIndex, phase, userId, setLessonContent, setPhase } = useSessionStore();
+  const requestLesson = useRequestMicroLesson();
+  const lessonChecked = useRef<number>(-1);
+
+  // Fetch micro-lesson for struggling items when moving to a new item
+  useEffect(() => {
+    if (!session || !userId) return;
+    if (currentItemIndex >= session.items.length) return;
+    if (lessonChecked.current === currentItemIndex) return;
+    lessonChecked.current = currentItemIndex;
+
+    const item = session.items[currentItemIndex];
+    if (item.needsLesson && phase === "answering") {
+      setPhase("lesson");
+      requestLesson.mutateAsync({
+        nodeId: item.node.id,
+        userId,
+      }).then((lesson) => {
+        setLessonContent(lesson);
+      }).catch(() => {
+        // On failure, skip to answering
+        setPhase("answering");
+      });
+    }
+  }, [currentItemIndex, session, userId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!session) return null;
 
@@ -74,6 +101,9 @@ export default function SessionView({ onFinished }: Props) {
           }}
         />
       </div>
+
+      {/* Lesson phase — micro-lesson before question */}
+      {phase === "lesson" && <MicroLessonDisplay />}
 
       {/* Answering phase (first attempt) */}
       {phase === "answering" && <QuestionCard key={`${currentItemIndex}-1`} item={item} />}

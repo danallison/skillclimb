@@ -160,6 +160,7 @@ export default function FeedbackDisplay() {
       evaluateAnswer.mutateAsync({
         nodeId: item.node.id,
         response: selectedAnswer!,
+        userId: userId!,
       }).then((result) => {
         setAiLoading(false);
         if (result) {
@@ -216,6 +217,7 @@ export default function FeedbackDisplay() {
       score,
       confidence: confidenceRating!,
       response: selectedAnswer!,
+      misconceptions: aiFeedback?.misconceptions,
     }).then((result) => {
       recordReview({
         nodeId: item.node.id,

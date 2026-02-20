@@ -1,9 +1,9 @@
 import { Router } from "express";
 import { Effect } from "effect";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { submitReview } from "../services/review.service.js";
 import { query } from "../services/Database.js";
-import { nodes } from "../db/schema.js";
+import { nodes, learnerNodes } from "../db/schema.js";
 import { AIService } from "../services/AIService.js";
 import { ValidationError, NotFoundError } from "../errors.js";
 import { HttpResponse, type EffectHandler } from "../effectHandler.js";
@@ -16,7 +16,7 @@ export function reviewsRouter(handle: EffectHandler) {
     "/evaluate",
     handle((req) =>
       Effect.gen(function* () {
-        const { nodeId, response } = req.body;
+        const { nodeId, response, userId } = req.body;
 
         if (!nodeId || !response) {
           return yield* Effect.fail(
@@ -35,6 +35,22 @@ export function reviewsRouter(handle: EffectHandler) {
           );
         }
 
+        // Look up previous misconceptions if userId provided
+        let previousMisconceptions: string[] = [];
+        if (userId) {
+          const [learnerNode] = yield* query((db) =>
+            db
+              .select()
+              .from(learnerNodes)
+              .where(
+                and(eq(learnerNodes.userId, userId), eq(learnerNodes.nodeId, nodeId)),
+              ),
+          );
+          if (learnerNode) {
+            previousMisconceptions = (learnerNode.misconceptions ?? []) as string[];
+          }
+        }
+
         const templates = (node.questionTemplates ?? []) as QuestionTemplate[];
         const template =
           templates.find((t) => t.type === "free_recall") ?? templates[0];
@@ -51,6 +67,7 @@ export function reviewsRouter(handle: EffectHandler) {
             keyPoints: template.keyPoints ?? [],
             rubric: template.rubric ?? "",
             learnerResponse: response,
+            previousMisconceptions,
           })
           .pipe(Effect.catchTag("AIRequestError", () => Effect.succeed(null)));
 
@@ -63,7 +80,7 @@ export function reviewsRouter(handle: EffectHandler) {
     "/",
     handle((req) =>
       Effect.gen(function* () {
-        const { userId, nodeId, score, confidence, response } = req.body;
+        const { userId, nodeId, score, confidence, response, misconceptions } = req.body;
 
         if (!userId || !nodeId || score == null || confidence == null) {
           return yield* Effect.fail(
@@ -93,6 +110,7 @@ export function reviewsRouter(handle: EffectHandler) {
           score,
           confidence,
           response ?? "",
+          misconceptions,
         );
         return new HttpResponse(201, result);
       }),

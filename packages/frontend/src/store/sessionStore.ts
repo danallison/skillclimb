@@ -17,6 +17,7 @@ interface ReviewRecord extends CoreReviewRecord {
 }
 
 type SessionPhase =
+  | "lesson"
   | "answering"
   | "confidence"
   | "feedback"
@@ -41,6 +42,7 @@ interface SessionStore {
   phase: SessionPhase;
   attemptNumber: 1 | 2;
   hintText: string | null;
+  lessonContent: { title: string; content: string; keyTakeaways: string[] } | null;
 
   setUserId: (id: string) => void;
   setSelectedSkillTreeId: (id: string | null) => void;
@@ -54,6 +56,8 @@ interface SessionStore {
   nextItem: () => void;
   setPhase: (phase: SessionPhase) => void;
   showHint: (hint: string) => void;
+  setLessonContent: (lesson: { title: string; content: string; keyTakeaways: string[] }) => void;
+  dismissLesson: () => void;
   resetForSecondAttempt: () => void;
   reset: () => void;
   logout: () => void;
@@ -74,6 +78,7 @@ export const useSessionStore = create<SessionStore>((set) => ({
   phase: "answering",
   attemptNumber: 1,
   hintText: null,
+  lessonContent: null,
 
   setUserId: (id) => {
     localStorage.setItem(STORAGE_KEYS.userId, id);
@@ -91,7 +96,7 @@ export const useSessionStore = create<SessionStore>((set) => ({
     localStorage.setItem(STORAGE_KEYS.sessionId, session.id);
     localStorage.setItem(STORAGE_KEYS.itemIndex, "0");
     localStorage.setItem(STORAGE_KEYS.reviewHistory, "[]");
-    set({ session, savedSessionId: null, savedItemIndex: 0, currentItemIndex: 0, reviewHistory: [], phase: "answering", attemptNumber: 1, hintText: null });
+    set({ session, savedSessionId: null, savedItemIndex: 0, currentItemIndex: 0, reviewHistory: [], phase: "answering", attemptNumber: 1, hintText: null, lessonContent: null });
   },
   resumeSession: (session, itemIndex) => {
     const isComplete = itemIndex >= session.items.length;
@@ -108,6 +113,7 @@ export const useSessionStore = create<SessionStore>((set) => ({
       phase: isComplete ? "summary" : "answering",
       attemptNumber: 1,
       hintText: null,
+      lessonContent: null,
     });
   },
   selectAnswer: (answer) => set({ selectedAnswer: answer }),
@@ -139,10 +145,13 @@ export const useSessionStore = create<SessionStore>((set) => ({
         phase: isComplete ? "summary" : "answering",
         attemptNumber: 1,
         hintText: null,
+        lessonContent: null,
       };
     }),
   setPhase: (phase) => set({ phase }),
   showHint: (hint) => set({ phase: "hint", hintText: hint }),
+  setLessonContent: (lesson) => set({ phase: "lesson", lessonContent: lesson }),
+  dismissLesson: () => set({ phase: "answering", lessonContent: null }),
   resetForSecondAttempt: () =>
     set({
       phase: "second_attempt",
@@ -169,6 +178,7 @@ export const useSessionStore = create<SessionStore>((set) => ({
       phase: "answering",
       attemptNumber: 1,
       hintText: null,
+      lessonContent: null,
     });
   },
   logout: () => {
@@ -192,6 +202,7 @@ export const useSessionStore = create<SessionStore>((set) => ({
       phase: "answering",
       attemptNumber: 1,
       hintText: null,
+      lessonContent: null,
     });
   },
 }));

@@ -1,6 +1,7 @@
 import type { LearnerNodeState, Node, SessionConfig, SessionItem, SessionResult } from "../types.js";
 import { isDue, daysOverdue } from "../srs/sm2.js";
 import { selectQuestionType } from "../question/questionType.js";
+import { isStruggling } from "../progress/progress.js";
 
 /**
  * Calculate priority score for a single learner node.
@@ -95,7 +96,13 @@ export function buildSession(
     const template =
       node.questionTemplates.find((t) => t.type === selectedType) ?? node.questionTemplates[0];
 
-    candidates.push({ node, learnerState: state, questionTemplate: template, priority });
+    candidates.push({
+      node,
+      learnerState: state,
+      questionTemplate: template,
+      priority,
+      needsLesson: isStruggling(state),
+    });
   }
 
   // Sort by priority (highest first)

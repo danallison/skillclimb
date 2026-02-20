@@ -11,6 +11,7 @@ interface DomainNodeData {
   totalNodes: number;
   hasContent: boolean;
   isRecommended: boolean;
+  freshness: number;
 }
 
 const TIER_LABELS: Record<number, string> = {
@@ -21,15 +22,33 @@ const TIER_LABELS: Record<number, string> = {
   4: "T4",
 };
 
-function getNodeColor(hasContent: boolean, masteryPercentage: number): string {
+function interpolateColor(hexA: string, hexB: string, t: number): string {
+  const parse = (hex: string) => [
+    parseInt(hex.slice(1, 3), 16),
+    parseInt(hex.slice(3, 5), 16),
+    parseInt(hex.slice(5, 7), 16),
+  ];
+  const a = parse(hexA);
+  const b = parse(hexB);
+  const lerp = (v0: number, v1: number, f: number) => Math.round(v0 + (v1 - v0) * f);
+  const r = lerp(a[0], b[0], t);
+  const g = lerp(a[1], b[1], t);
+  const bl = lerp(a[2], b[2], t);
+  return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${bl.toString(16).padStart(2, "0")}`;
+}
+
+function getNodeColor(hasContent: boolean, masteryPercentage: number, freshness: number): string {
   if (!hasContent) return colors.lockedGray;
-  if (masteryPercentage >= MASTERY_THRESHOLD_PERCENT) return colors.green;
+  if (masteryPercentage >= MASTERY_THRESHOLD_PERCENT) {
+    // Interpolate green → amber as freshness decays (1.0 = green, 0.0 = amber)
+    return interpolateColor(colors.amber, colors.green, freshness);
+  }
   if (masteryPercentage >= 20) return colors.amber;
   return colors.red;
 }
 
 function DomainNode({ data }: { data: DomainNodeData }) {
-  const nodeColor = getNodeColor(data.hasContent, data.masteryPercentage);
+  const nodeColor = getNodeColor(data.hasContent, data.masteryPercentage, data.freshness);
   const borderColor = data.isRecommended ? colors.cyan : nodeColor;
   const opacity = data.hasContent ? 1 : 0.5;
 

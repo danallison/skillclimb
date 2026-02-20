@@ -205,6 +205,46 @@ describe("buildSession", () => {
     expect(result.items[0].node.id).toBe("n2");
   });
 
+  it("sets needsLesson=true for struggling items", () => {
+    const nodes = [makeNode("n1", "d1")];
+    // Low easiness triggers isStruggling
+    const states = [
+      makeState("n1", "d1", { easiness: 1.5, repetitions: 2, interval: 3, dueDate: new Date("2025-01-10") }),
+    ];
+
+    const result = buildSession(config, states, nodes, now);
+    expect(result.items[0].needsLesson).toBe(true);
+  });
+
+  it("sets needsLesson=true for failure-reset items (reps=0, interval>0)", () => {
+    const nodes = [makeNode("n1", "d1")];
+    const states = [
+      makeState("n1", "d1", { easiness: 2.5, repetitions: 0, interval: 5, dueDate: new Date("2025-01-10") }),
+    ];
+
+    const result = buildSession(config, states, nodes, now);
+    expect(result.items[0].needsLesson).toBe(true);
+  });
+
+  it("sets needsLesson=false for healthy items", () => {
+    const nodes = [makeNode("n1", "d1")];
+    const states = [
+      makeState("n1", "d1", { easiness: 2.5, repetitions: 1, interval: 1, dueDate: new Date("2025-01-10") }),
+    ];
+
+    const result = buildSession(config, states, nodes, now);
+    expect(result.items[0].needsLesson).toBe(false);
+  });
+
+  it("sets needsLesson=false for brand new items", () => {
+    const nodes = [makeNode("n1", "d1")];
+    // Default: reps=0, interval=0 — new, not struggling
+    const states = [makeState("n1", "d1")];
+
+    const result = buildSession(config, states, nodes, now);
+    expect(result.items[0].needsLesson).toBe(false);
+  });
+
   it("returns empty session when no items are due", () => {
     const nodes = [makeNode("n1", "d1")];
     const states = [

@@ -16,6 +16,7 @@ export function dbRowToLearnerState(row: typeof learnerNodes.$inferSelect): Lear
       timestamp: new Date(e.timestamp),
     })),
     domainWeight: row.domainWeight,
+    misconceptions: (row.misconceptions ?? []) as string[],
   };
 }
 
