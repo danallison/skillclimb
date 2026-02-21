@@ -41,6 +41,7 @@ export function placementRouter(handle: EffectHandler) {
 
         const result = yield* submitPlacementAnswer(
           placementId,
+          req.userId!,
           nodeId,
           selectedAnswer ?? null,
           confidence ?? 3,
@@ -56,7 +57,7 @@ export function placementRouter(handle: EffectHandler) {
     handle((req) =>
       Effect.gen(function* () {
         const id = req.params.id as string;
-        const placement = yield* getPlacement(id);
+        const placement = yield* getPlacement(id, req.userId!);
         if (!placement) {
           return yield* Effect.fail(
             new NotFoundError({
@@ -75,7 +76,7 @@ export function placementRouter(handle: EffectHandler) {
     "/:id/abandon",
     handle((req) =>
       Effect.gen(function* () {
-        yield* abandonPlacement(req.params.id as string);
+        yield* abandonPlacement(req.params.id as string, req.userId!);
         return new HttpResponse(200, { status: "abandoned" });
       }),
     ),

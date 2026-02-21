@@ -24,7 +24,7 @@ export function sessionsRouter(handle: EffectHandler) {
     handle((req) =>
       Effect.gen(function* () {
         const id = req.params.id as string;
-        const session = yield* getSession(id);
+        const session = yield* getSession(id, req.userId!);
         if (!session) {
           return yield* Effect.fail(
             new NotFoundError({ entity: "Session", id }),

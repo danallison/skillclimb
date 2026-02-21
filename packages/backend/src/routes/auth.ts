@@ -13,8 +13,11 @@ import {
 } from "../services/auth.service.js";
 import { db } from "../db/connection.js";
 import { users, oauthAccounts, learnerNodes, nodes } from "../db/schema.js";
+// Type that accepts both the db connection and a transaction client
+type DbClient = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 const router = Router();
+const isProduction = process.env.NODE_ENV === "production";
 
 // --- Google OAuth ---
 
@@ -29,12 +32,14 @@ router.get("/login/google", (_req, res) => {
 
   res.cookie("oauth_state", state, {
     httpOnly: true,
+    secure: isProduction,
     maxAge: 10 * 60 * 1000,
     sameSite: "lax",
     path: "/",
   });
   res.cookie("code_verifier", codeVerifier, {
     httpOnly: true,
+    secure: isProduction,
     maxAge: 10 * 60 * 1000,
     sameSite: "lax",
     path: "/",
@@ -95,6 +100,7 @@ router.get("/login/github", (_req, res) => {
 
   res.cookie("oauth_state", state, {
     httpOnly: true,
+    secure: isProduction,
     maxAge: 10 * 60 * 1000,
     sameSite: "lax",
     path: "/",
@@ -122,6 +128,9 @@ router.get("/callback/github", async (req, res) => {
     const userResponse = await fetch("https://api.github.com/user", {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
+    if (!userResponse.ok) {
+      throw new Error(`GitHub user API returned ${userResponse.status}`);
+    }
     const githubUser = (await userResponse.json()) as {
       id: number;
       name: string | null;
@@ -132,6 +141,9 @@ router.get("/callback/github", async (req, res) => {
     const emailResponse = await fetch("https://api.github.com/user/emails", {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
+    if (!emailResponse.ok) {
+      throw new Error(`GitHub emails API returned ${emailResponse.status}`);
+    }
     const emails = (await emailResponse.json()) as Array<{
       email: string;
       primary: boolean;
@@ -139,8 +151,7 @@ router.get("/callback/github", async (req, res) => {
     }>;
     const primaryEmail =
       emails.find((e) => e.primary && e.verified)?.email ??
-      emails.find((e) => e.verified)?.email ??
-      emails[0]?.email;
+      emails.find((e) => e.verified)?.email;
 
     if (!primaryEmail) {
       res.redirect(`${appUrl}?error=no_email`);
@@ -254,108 +265,120 @@ async function upsertOAuthUser(
   email: string,
   name: string | null,
 ): Promise<string> {
-  // 1. Check for existing oauth_account
-  const [existingOAuth] = await db
-    .select()
-    .from(oauthAccounts)
-    .where(
-      and(
-        eq(oauthAccounts.provider, provider),
-        eq(oauthAccounts.providerAccountId, providerAccountId),
-      ),
-    );
+  return db.transaction(async (tx) => {
+    // 1. Check for existing oauth_account
+    const [existingOAuth] = await tx
+      .select()
+      .from(oauthAccounts)
+      .where(
+        and(
+          eq(oauthAccounts.provider, provider),
+          eq(oauthAccounts.providerAccountId, providerAccountId),
+        ),
+      );
 
-  if (existingOAuth) {
-    // Update name if we have one and user doesn't
-    if (name) {
-      await db
-        .update(users)
-        .set({ name })
-        .where(and(eq(users.id, existingOAuth.userId), isNull(users.name)));
+    if (existingOAuth) {
+      // Update name if we have one and user doesn't
+      if (name) {
+        await tx
+          .update(users)
+          .set({ name })
+          .where(and(eq(users.id, existingOAuth.userId), isNull(users.name)));
+      }
+      return existingOAuth.userId;
     }
-    return existingOAuth.userId;
-  }
 
-  // 2. Check for existing user by email (account linking)
-  const [existingUser] = await db
-    .select()
-    .from(users)
-    .where(eq(users.email, email));
+    // 2. Check for existing user by email (account linking)
+    const [existingUser] = await tx
+      .select()
+      .from(users)
+      .where(eq(users.email, email));
 
-  if (existingUser) {
-    // Link this OAuth provider to the existing user
-    await db.insert(oauthAccounts).values({
-      userId: existingUser.id,
+    if (existingUser) {
+      // Link this OAuth provider to the existing user
+      await tx.insert(oauthAccounts).values({
+        userId: existingUser.id,
+        provider,
+        providerAccountId,
+        email,
+      });
+      // Update name if missing
+      if (name && !existingUser.name) {
+        await tx
+          .update(users)
+          .set({ name })
+          .where(eq(users.id, existingUser.id));
+      }
+      return existingUser.id;
+    }
+
+    // 3. Create new user + oauth_account + initialize learner nodes
+    const [newUser] = await tx
+      .insert(users)
+      .values({ email, name })
+      .returning();
+
+    await tx.insert(oauthAccounts).values({
+      userId: newUser.id,
       provider,
       providerAccountId,
       email,
     });
-    // Update name if missing
-    if (name && !existingUser.name) {
-      await db
-        .update(users)
-        .set({ name })
-        .where(eq(users.id, existingUser.id));
-    }
-    return existingUser.id;
-  }
 
-  // 3. Create new user + oauth_account + initialize learner nodes
-  const [newUser] = await db
-    .insert(users)
-    .values({ email, name })
-    .returning();
+    await initializeLearnerNodes(newUser.id, tx);
 
-  await db.insert(oauthAccounts).values({
-    userId: newUser.id,
-    provider,
-    providerAccountId,
-    email,
+    return newUser.id;
   });
-
-  await initializeLearnerNodes(newUser.id);
-
-  return newUser.id;
 }
 
 async function upsertDevUser(email: string): Promise<string> {
-  // Check for existing user by email
-  const [existingUser] = await db
-    .select()
-    .from(users)
-    .where(eq(users.email, email));
+  return db.transaction(async (tx) => {
+    // Check for existing user by email
+    const [existingUser] = await tx
+      .select()
+      .from(users)
+      .where(eq(users.email, email));
 
-  if (existingUser) {
-    return existingUser.id;
-  }
+    if (existingUser) {
+      return existingUser.id;
+    }
 
-  // Create new user + initialize learner nodes
-  const [newUser] = await db
-    .insert(users)
-    .values({ email })
-    .returning();
+    // Create new user + initialize learner nodes
+    const [newUser] = await tx
+      .insert(users)
+      .values({ email })
+      .returning();
 
-  await initializeLearnerNodes(newUser.id);
+    await initializeLearnerNodes(newUser.id, tx);
 
-  return newUser.id;
+    return newUser.id;
+  });
 }
 
-export async function initializeLearnerNodes(userId: string): Promise<void> {
-  const allNodes = await db.select().from(nodes);
-  if (allNodes.length > 0) {
-    await db.insert(learnerNodes).values(
-      allNodes.map((node) => ({
-        userId,
-        nodeId: node.id,
-        domainId: node.domainId,
-        easiness: 2.5,
-        interval: 0,
-        repetitions: 0,
-        dueDate: new Date(),
-        confidenceHistory: [],
-        domainWeight: 1.0,
-      })),
-    );
+const BATCH_SIZE = 500;
+
+export async function initializeLearnerNodes(
+  userId: string,
+  client: DbClient | typeof db = db,
+): Promise<void> {
+  const allNodes = await client.select().from(nodes);
+  if (allNodes.length === 0) return;
+
+  const rows = allNodes.map((node) => ({
+    userId,
+    nodeId: node.id,
+    domainId: node.domainId,
+    easiness: 2.5,
+    interval: 0,
+    repetitions: 0,
+    dueDate: new Date(),
+    confidenceHistory: [] as Array<{ confidence: number; wasCorrect: boolean; timestamp: string }>,
+    domainWeight: 1.0,
+  }));
+
+  for (let i = 0; i < rows.length; i += BATCH_SIZE) {
+    const batch = rows.slice(i, i + BATCH_SIZE);
+    await client.insert(learnerNodes).values(batch).onConflictDoNothing();
   }
 }
 

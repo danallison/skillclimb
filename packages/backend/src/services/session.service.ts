@@ -1,5 +1,5 @@
 import { Effect } from "effect";
-import { eq, inArray } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
 import {
   learnerNodes,
   nodes as nodesTable,
@@ -92,10 +92,13 @@ export const createSession = (
 
 export const getSession = (
   sessionId: string,
+  userId: string,
 ): Effect.Effect<SessionWithItems | null, DatabaseError, Database> =>
   Effect.gen(function* () {
     const [session] = yield* query((db) =>
-      db.select().from(sessions).where(eq(sessions.id, sessionId)),
+      db.select().from(sessions).where(
+        and(eq(sessions.id, sessionId), eq(sessions.userId, userId)),
+      ),
     );
     if (!session) return null;
 

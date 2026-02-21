@@ -125,6 +125,51 @@ describe("GET /api/sessions/:id", () => {
     expect(res.status).toBe(404);
   });
 
+  it("returns 404 when accessing another user's session", async () => {
+    const ownerUserId = "user-A";
+    const otherUserId = "user-B";
+    const sessionId = "session-1";
+    const nodeId = "node-1";
+    const node = makeNode({
+      id: nodeId,
+      domainId: "domain-1",
+      questionTemplates: [
+        {
+          type: "recognition",
+          prompt: "What is TCP?",
+          choices: ["A protocol", "A language"],
+          correctAnswer: "A protocol",
+          explanation: "TCP is a protocol",
+        },
+      ],
+    });
+    const learnerNode = makeLearnerNode({
+      userId: ownerUserId,
+      nodeId,
+      domainId: "domain-1",
+    });
+    const sessionRow = makeSession({
+      id: sessionId,
+      userId: ownerUserId,
+      nodeIds: [nodeId],
+      itemCount: 1,
+    });
+
+    const app = createTestApp({
+      sessions: [sessionRow],
+      nodes: [node],
+      learner_nodes: [learnerNode],
+    });
+    // Authenticate as a different user
+    const cookie = await authCookie(otherUserId);
+
+    const res = await request(app)
+      .get(`/api/sessions/${sessionId}`)
+      .set("Cookie", cookie);
+
+    expect(res.status).toBe(404);
+  });
+
   it("returns 401 without auth", async () => {
     const app = createTestApp();
 

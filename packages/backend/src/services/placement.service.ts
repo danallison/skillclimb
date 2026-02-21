@@ -1,5 +1,5 @@
 import { Effect } from "effect";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import {
   nodes,
   learnerNodes,
@@ -151,6 +151,7 @@ export const startPlacement = (
 
 export const submitPlacementAnswer = (
   placementId: string,
+  userId: string,
   nodeId: string,
   selectedAnswer: string | null,
   confidence: number,
@@ -165,7 +166,7 @@ export const submitPlacementAnswer = (
       db
         .select()
         .from(placementTests)
-        .where(eq(placementTests.id, placementId)),
+        .where(and(eq(placementTests.id, placementId), eq(placementTests.userId, userId))),
     );
 
     if (!placement) {
@@ -372,13 +373,13 @@ export const submitPlacementAnswer = (
     };
   });
 
-export const getPlacement = (placementId: string) =>
+export const getPlacement = (placementId: string, userId: string) =>
   Effect.gen(function* () {
     const [placement] = yield* query((db) =>
       db
         .select()
         .from(placementTests)
-        .where(eq(placementTests.id, placementId)),
+        .where(and(eq(placementTests.id, placementId), eq(placementTests.userId, userId))),
     );
 
     if (!placement) return null;
@@ -429,10 +430,26 @@ export const getPlacement = (placementId: string) =>
     return placement;
   });
 
-export const abandonPlacement = (placementId: string) =>
-  query((db) =>
-    db
-      .update(placementTests)
-      .set({ status: "abandoned" })
-      .where(eq(placementTests.id, placementId)),
-  ).pipe(Effect.asVoid);
+export const abandonPlacement = (
+  placementId: string,
+  userId: string,
+): Effect.Effect<void, NotFoundError | DatabaseError, Database> =>
+  Effect.gen(function* () {
+    const [placement] = yield* query((db) =>
+      db
+        .select()
+        .from(placementTests)
+        .where(and(eq(placementTests.id, placementId), eq(placementTests.userId, userId))),
+    );
+    if (!placement) {
+      return yield* Effect.fail(
+        new NotFoundError({ entity: "Placement test", id: placementId }),
+      );
+    }
+    yield* query((db) =>
+      db
+        .update(placementTests)
+        .set({ status: "abandoned" })
+        .where(eq(placementTests.id, placementId)),
+    );
+  });

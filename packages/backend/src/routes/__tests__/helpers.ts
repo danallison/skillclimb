@@ -11,6 +11,7 @@ import { skilltreesRouter } from "../skilltrees.js";
 import { domainsRouter } from "../domains.js";
 import { reviewsRouter } from "../reviews.js";
 import { sessionsRouter } from "../sessions.js";
+import { placementRouter } from "../placement.js";
 import { hintsRouter } from "../hints.js";
 import { lessonsRouter } from "../lessons.js";
 import * as schema from "../../db/schema.js";
@@ -138,6 +139,24 @@ export function makeReview(
   };
 }
 
+export function makePlacement(
+  overrides: Partial<typeof schema.placementTests.$inferSelect> = {},
+) {
+  return {
+    id: nextId(),
+    userId: "user-1",
+    skilltreeId: null,
+    status: "in_progress",
+    currentTheta: 0,
+    currentSE: 4.0,
+    responses: [] as any[],
+    result: null,
+    startedAt: new Date(),
+    completedAt: null,
+    ...overrides,
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Mock database
 // ---------------------------------------------------------------------------
@@ -152,6 +171,55 @@ function getTableName(table: any): string {
   return "unknown";
 }
 
+/**
+ * Extract {columnName: value} pairs from a drizzle SQL expression (eq/and).
+ * Enables the mock DB to filter rows like the real DB would.
+ *
+ * Drizzle eq() produces queryChunks: [StringChunk, Column, StringChunk(" = "), Param, StringChunk]
+ * Drizzle and() wraps children: [StringChunk("("), SQL(join), StringChunk(")")]
+ */
+function extractEqConditions(expr: any): Record<string, any> {
+  const conditions: Record<string, any> = {};
+  if (!expr || !expr.queryChunks) return conditions;
+
+  const chunks = expr.queryChunks;
+
+  // Try to extract a single eq: look for a Column followed by Param
+  // StringChunks (operators/delimiters) appear between them and should be skipped
+  let foundColumn: string | null = null;
+  for (const chunk of chunks) {
+    // Column objects have a .name and a .table property
+    if (chunk.name && chunk.table) {
+      foundColumn = chunk.name as string;
+    } else if (foundColumn && chunk.encoder) {
+      // This is a Param — it has .value and .encoder
+      conditions[foundColumn] = chunk.value;
+      foundColumn = null;
+    } else if (chunk.queryChunks) {
+      // Nested SQL — recurse
+      Object.assign(conditions, extractEqConditions(chunk));
+      foundColumn = null;
+    }
+    // Skip StringChunks (operators like " = ", delimiters like "(", ")")
+  }
+
+  return conditions;
+}
+
+function filterRows(rows: any[], expr: any): any[] {
+  const conditions = extractEqConditions(expr);
+  if (Object.keys(conditions).length === 0) return rows;
+
+  return rows.filter((row) =>
+    Object.entries(conditions).every(([col, val]) => {
+      // Map SQL column names (snake_case) to fixture keys (camelCase)
+      const camelCol = col.replace(/_([a-z])/g, (_, c: string) => c.toUpperCase());
+      const rowVal = camelCol in row ? row[camelCol] : row[col];
+      return rowVal === val;
+    }),
+  );
+}
+
 export interface MockFixtures {
   [tableName: string]: any[];
 }
@@ -161,7 +229,7 @@ export interface MockFixtures {
  *
  * Supported patterns:
  *   db.select().from(TABLE)                    → fixtures[table]
- *   db.select().from(TABLE).where(...)         → fixtures[table]
+ *   db.select().from(TABLE).where(...)         → filtered fixtures[table]
  *   db.select().from(TABLE).orderBy(...)       → fixtures[table]
  *   db.insert(TABLE).values(DATA).returning()  → [DATA]  (or fixtures[table])
  *   db.insert(TABLE).values(DATA)              → void
@@ -180,10 +248,10 @@ export function createMockDb(fixtures: MockFixtures = {}) {
         const rows = getRows(name);
         // Make the base promise-like AND chainable
         const result = Promise.resolve(rows);
-        (result as any).where = () => Promise.resolve(rows);
+        (result as any).where = (expr: any) => Promise.resolve(filterRows(rows, expr));
         (result as any).orderBy = () => {
           const ordered = Promise.resolve(rows);
-          (ordered as any).where = () => Promise.resolve(rows);
+          (ordered as any).where = (expr: any) => Promise.resolve(filterRows(rows, expr));
           return ordered;
         };
         return result;
@@ -211,6 +279,7 @@ export function createMockDb(fixtures: MockFixtures = {}) {
             );
           };
           (result as any).onConflictDoNothing = () => result;
+          (result as any).onConflictDoUpdate = () => result;
           return result;
         },
       };
@@ -274,6 +343,7 @@ export function createTestApp(
   app.use("/api/domains", domainsRouter(handle));
   app.use("/api/reviews", reviewsRouter(handle));
   app.use("/api/sessions", sessionsRouter(handle));
+  app.use("/api/placement", placementRouter(handle));
   app.use("/api/hints", hintsRouter(handle));
   app.use("/api/lessons", lessonsRouter(handle));
 

@@ -78,6 +78,7 @@ export const nodes = pgTable("nodes", {
         hints?: string[];
         rubric?: string;
         keyPoints?: string[];
+        microLesson?: string;
       }>
     >()
     .default([]),
