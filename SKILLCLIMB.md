@@ -465,7 +465,19 @@ Replace placeholder auth with real authentication that works across web and mobi
 1. Implement OAuth authentication (Google/GitHub) to replace email-only login.
 2. Set up shared auth infrastructure (token management, session persistence) usable by both web and mobile clients.
 
-#### P5: Mobile App (React Native / Expo)
+#### P5: Gamification ✅
+
+Add learning-science-grounded motivation mechanics across all layers.
+
+1. Implement streak tracking with weekly freeze system and heat map calendar. ✅
+2. Build mastery badges with freshness-based decay (fresh/fading/lost). ✅
+3. Add calibration score (0–100) as a visible achievement metric. ✅
+4. Build session momentum indicator (rolling 5-item accuracy window with target difficulty zone). ✅
+5. Implement milestone detection (node mastery, domain thresholds, overdue recovery). ✅
+6. Build learning velocity tracking (4-week rolling average with trend). ✅
+7. Build knowledge profile dashboard unifying all metrics (streaks, badges, velocity, retention, calibration). ✅
+
+#### P6: Mobile App (React Native / Expo)
 
 Build the mobile app as the primary interface for daily learning. Full feature parity with the web app.
 
@@ -475,7 +487,7 @@ Build the mobile app as the primary interface for daily learning. Full feature p
 4. Add push notifications for review reminders via Expo notifications.
 5. Dev builds via Expo for initial testing and distribution.
 
-#### P6: Labs and Advanced Features
+#### P7: Labs and Advanced Features
 
 Add practical lab environments, advanced analytics, and cross-domain challenges. Labs are web-only (Docker environments require a desktop browser); analytics and challenge mode are available on both web and mobile.
 
@@ -484,19 +496,16 @@ Add practical lab environments, advanced analytics, and cross-domain challenges.
 3. Build cross-domain challenge mode with scenario generation.
 4. Implement adaptive scenario generation: the AI generates novel application-level scenarios based on the learner's current skill profile, ensuring practice material stays fresh and contextually varied.
 
-#### P7: Gamification and Launch
+#### P8: Launch
 
-Refine the experience, add motivation mechanics, and prepare for public launch.
+Refine the experience and prepare for public launch.
 
-1. Implement streak tracking with freeze system (one missed day per week without breaking streak).
-2. Build mastery badges that decay if nodes fall below mastery threshold due to missed reviews.
-3. Add calibration score (0–100) as a visible achievement metric.
-4. Build notification system for review reminders with learner-preferred timing.
-5. Performance optimization: lazy loading of skill tree, question prefetching, SRS calculation caching.
-6. Optional leaderboard for cross-domain challenge scores.
-7. Publish to Apple App Store and Google Play via Expo's build service.
-8. User testing with beta users; iterate on question quality and difficulty calibration.
-9. Launch publicly.
+1. Build notification system for review reminders with learner-preferred timing.
+2. Performance optimization: lazy loading of skill tree, question prefetching, SRS calculation caching.
+3. Optional leaderboard for cross-domain challenge scores.
+4. Publish to Apple App Store and Google Play via Expo's build service.
+5. User testing with beta users; iterate on question quality and difficulty calibration.
+6. Launch publicly.
 
 ### Content Track
 
