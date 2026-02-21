@@ -1,0 +1,1 @@
+ALTER TABLE "study_days" DROP COLUMN "session_count";

@@ -226,23 +226,103 @@ AI tutor calls are reserved for high-value interactions: free recall evaluation,
 
 ## Gamification and Motivation Design
 
-Gamification in SkillClimb is designed to reinforce effective learning behaviors, not to create addictive feedback loops. Every reward mechanism maps to a genuine learning outcome.
+### Design Philosophy
 
-### Streak and Consistency
+Every metric visible to the learner must correspond to a real learning outcome. The gamification layer is a **mirror** — it helps learners see their own learning state more clearly. It is not a slot machine.
 
-Daily review streaks are tracked and celebrated, because the single most important factor in SRS effectiveness is session consistency. The system sends reminders calibrated to the learner's preferred study time. Missing a day does not reset the streak counter entirely; instead, a "freeze" system allows one missed day per week without breaking the streak, reducing anxiety while maintaining habit formation.
+No arbitrary points. No XP. No artificial scarcity. No leaderboards as primary motivation. If a number is shown, it answers a question a self-directed learner should be asking: *How much do I know? How consistently am I studying? How fast am I progressing? How well am I maintaining what I've learned? How accurate is my self-assessment?*
 
-### Mastery Badges
+### Learning Theory Foundations
 
-Completing all nodes in a domain at the "mastered" SRS level earns a domain badge. Badges decay if nodes fall below mastery threshold due to missed reviews, reinforcing that expertise requires ongoing maintenance.
+Each gamification feature is grounded in specific, well-established learning science:
 
-### Calibration Score
+**Self-Determination Theory** (Deci & Ryan, 1985) — Sustained intrinsic motivation requires three psychological needs: autonomy, competence, and relatedness. SkillClimb's gamification focuses on competence feedback — showing learners objective evidence of their growing capability. Extrinsic rewards (points, badges-as-trophies) can undermine intrinsic motivation through the overjustification effect; SkillClimb avoids this by ensuring every visible metric reflects genuine learning state.
 
-A visible calibration score (0–100) reflects how accurately the learner predicts their own performance. Improving this score is framed as a primary achievement because accurate self-assessment is itself a high-value professional skill.
+**Habit Formation** (Fogg Behavior Model; Clear, 2018) — SRS effectiveness is directly proportional to session consistency. The most important behavioral variable is not intensity but regularity. Visual consistency tracking supports habit formation through measurement, not punishment. The system makes the pattern visible so learners can self-correct.
 
-### Challenge Mode
+**Goal-Setting Theory** (Locke & Latham, 1990) — Specific, challenging-but-attainable goals with clear feedback improve performance. Domain mastery is a natural goal unit — large enough to be meaningful, small enough to be achievable. Milestones at 25/50/75/100% provide intermediate feedback on progress toward these goals.
 
-Periodic cross-domain synthesis challenges present scenarios that require combining knowledge from multiple domains under time pressure. These are unlocked at tier transitions and serve as both assessments and motivation milestones. Top scores are displayed on an optional leaderboard. Skill trees define the specific challenge scenarios relevant to their domain.
+**Metacognition** (Flavell, 1979; Dunlosky et al., 2013) — Awareness of one's own learning state improves learning. Every dashboard element externalizes an internal learning state. The knowledge profile makes metacognition visible — learners can see what they know, what they're forgetting, and how fast they're progressing without relying on subjective self-assessment alone.
+
+**Flow** (Csikszentmihalyi, 1990) — Optimal engagement requires clear goals, immediate feedback, and challenge matched to skill. The target accuracy zone (60–80%) is where learning is most efficient — not 100%. The momentum indicator provides immediate within-session feedback on challenge-skill balance.
+
+**Desirable Difficulties** (Bjork, 1994) — Struggle is productive. Conditions that make learning harder in the short term (spacing, interleaving, retrieval practice) improve long-term retention. The system normalizes difficulty and reframes struggle as a sign of effective learning, not failure.
+
+**Loss Aversion** (Kahneman & Tversky, 1979) — People work harder to maintain what they have than to acquire something new. Badge decay aligns this cognitive bias with a real phenomenon — knowledge genuinely erodes without review. Maintaining a mastery badge requires exactly the reviews that maintain actual knowledge.
+
+### Anti-Patterns We Explicitly Avoid
+
+**No arbitrary points or XP.** Extrinsic reward systems can crowd out intrinsic motivation (the overjustification effect). When learners study to earn points rather than to learn, removing the points removes the motivation. Every number in SkillClimb measures a real learning outcome.
+
+**No streak-breaking punishment.** Binary streak systems trigger the "what-the-hell effect" — a single lapse leads to total abandonment ("I already lost my streak, why bother?"). SkillClimb's freeze system (one missed day per calendar week) prevents this while still tracking consistency honestly. The system never says "you lost your streak"; it says "you've studied 14 of the last 21 days."
+
+**No leaderboards as primary motivation.** Social comparison can undermine autonomy and shift learners from mastery goals to performance goals. When the goal becomes "beat others" rather than "learn the material," learners avoid challenge and optimize for appearance. Leaderboards may be offered as opt-in for relatedness needs but are never the primary feedback mechanism.
+
+**No artificial urgency.** Countdown timers, limited-time rewards, and expiring bonuses create anxiety, not learning. SRS already has natural urgency — items are due when they're due. Adding artificial deadlines on top of evidence-based scheduling contradicts the system's own logic.
+
+**No rewarding 100% accuracy.** This would incentivize avoiding challenge — the opposite of desirable difficulties. The most productive sessions are NOT the ones where the learner gets everything right. Getting 100% means questions are too easy, which means less learning. The target zone is 60–80% accuracy.
+
+### Feature Specifications
+
+#### Consistency Tracking (Streaks + Heat Map)
+
+Track daily study activity. Display a current-streak counter, longest-streak counter, and a 90-day heat map calendar (like GitHub's contribution graph). One missed day per calendar week doesn't break the streak (freeze system).
+
+The streak visualizes a real phenomenon — SRS effectiveness is directly proportional to session consistency. The heat map shows density of effort over time, not a binary counter.
+
+*Theory: Habit formation, Self-Determination Theory (self-efficacy through visible consistency), loss aversion (aligned with real learning outcomes).*
+
+#### Mastery Badges with Decay
+
+When all nodes in a domain reach mastered status (`repetitions >= 3 AND easiness >= 2.0`), the domain earns a mastery badge. The badge has three visual states based on freshness:
+- **Fresh** (freshness > 0.7) — knowledge is current
+- **Fading** (freshness 0.3–0.7) — reviews are approaching due
+- **Lost** (any node drops below mastery) — knowledge has degraded
+
+A badge means "you have demonstrated durable recall of every concept in this domain." Badge decay represents a real phenomenon — without review, mastery erodes.
+
+*Theory: Metacognition (high-level summary), goal-setting (domain mastery as specific attainable goal), loss aversion (maintaining the badge requires the reviews that actually maintain knowledge).*
+
+#### Session Momentum Indicator
+
+During a study session, show a small indicator tracking rolling accuracy over the last 5 items:
+- **Building** (3+ correct of last 5) — subtle positive indicator
+- **Steady** (2 correct of last 5) — neutral
+- **Struggling** (0–1 correct of last 5) — "Hard questions build stronger memory"
+
+At session end, show whether the session was in the target difficulty zone (60–80% accuracy). The most productive sessions are the ones where the learner is challenged, not the ones where they get everything right.
+
+*Theory: Flow (immediate feedback on challenge-skill balance), desirable difficulties (normalizing struggle), zone of proximal development.*
+
+#### Milestones (Informative Micro-Feedback)
+
+Brief, factual acknowledgments when real learning events occur during a session:
+- **Node mastered** — "Mastered: [concept]. This is now in your long-term memory." (when repetitions reaches 3 with easiness >= 2.0)
+- **Domain milestone** — "[Domain]: 50% mastered." (when a review pushes a domain past 25/50/75/100%)
+- **Overdue recovery** — "You remembered [concept] after [N] days." (when a significantly overdue item is answered correctly)
+
+No confetti, no fanfare — just clear acknowledgment of real SRS state transitions.
+
+*Theory: Flow (immediate relevant feedback), Self-Determination Theory (acknowledging genuine competence growth).*
+
+#### Knowledge Profile Dashboard
+
+A unified view bringing together all metrics:
+- **Knowledge summary** — Total mastered, tier completion %, domain badges earned/fading
+- **Consistency** — Current/longest streak + heat map calendar
+- **Learning velocity** — Nodes mastered per week (rolling 4-week average), trend direction
+- **Retention strength** — Average freshness across all mastered domains (0–100%)
+- **Calibration score** — How accurately the learner predicts their own performance (0–100)
+
+Every number answers a question a self-directed learner should be asking.
+
+*Theory: Metacognition (metacognition made visible), Self-Determination Theory (objective evidence of growth satisfies competence need), goal-setting (velocity provides feedback on rate).*
+
+#### Calibration Score
+
+A visible calibration score (0–100) reflects how accurately the learner predicts their own performance. Improving this score is framed as a primary achievement because accurate self-assessment is itself a high-value professional skill. The calibration dashboard provides detailed breakdowns by domain and over time, with actionable insights.
+
+*Theory: Metacognition (learning to assess one's own knowledge is a meta-skill that transfers across all domains).*
 
 ---
 
@@ -509,3 +589,9 @@ The skill tree architecture means SkillClimb can grow into any domain where stru
 - Kornell, N. & Bjork, R.A. (2008). Learning concepts and categories: Is spacing the enemy of induction? *Psychological Science, 19*(6), 585–592.
 - Wozniak, P.A. & Gorzelanczyk, E.J. (1994). Optimization of repetition spacing in the practice of learning. *Acta Neurobiologiae Experimentalis, 54*, 59–68.
 - Dunlosky, J. et al. (2013). Improving students' learning with effective learning techniques. *Psychological Science in the Public Interest, 14*(1), 4–58.
+- Deci, E.L. & Ryan, R.M. (1985). *Intrinsic Motivation and Self-Determination in Human Behavior.* Plenum Press.
+- Clear, J. (2018). *Atomic Habits: An Easy & Proven Way to Build Good Habits & Break Bad Ones.* Avery.
+- Locke, E.A. & Latham, G.P. (1990). *A Theory of Goal Setting and Task Performance.* Prentice-Hall.
+- Flavell, J.H. (1979). Metacognition and cognitive monitoring: A new area of cognitive–developmental inquiry. *American Psychologist, 34*(10), 906–911.
+- Csikszentmihalyi, M. (1990). *Flow: The Psychology of Optimal Experience.* Harper & Row.
+- Kahneman, D. & Tversky, A. (1979). Prospect theory: An analysis of decision under risk. *Econometrica, 47*(2), 263–291.

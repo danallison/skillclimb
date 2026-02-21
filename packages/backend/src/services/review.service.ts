@@ -1,6 +1,6 @@
 import { Effect } from "effect";
-import { eq, and } from "drizzle-orm";
-import { learnerNodes, reviews } from "../db/schema.js";
+import { eq, and, sql } from "drizzle-orm";
+import { learnerNodes, reviews, studyDays, domains, nodes } from "../db/schema.js";
 import { dbRowToLearnerState } from "../db/mappers.js";
 import { query, Database } from "./Database.js";
 import { NotFoundError, DatabaseError } from "../errors.js";
@@ -9,12 +9,18 @@ import {
   getCalibrationQuadrant,
   updateCalibration,
   CORRECT_SCORE_THRESHOLD,
+  detectMilestones,
 } from "@skillclimb/core";
 import type {
   CalibrationHistory,
   ReviewResult,
   CalibrationEntry,
+  Milestone,
 } from "@skillclimb/core";
+
+export interface ReviewResultWithMilestones extends ReviewResult {
+  milestones: Milestone[];
+}
 
 export const submitReview = (
   userId: string,
@@ -23,7 +29,7 @@ export const submitReview = (
   confidence: number,
   response: string,
   misconceptions?: string[],
-): Effect.Effect<ReviewResult, NotFoundError | DatabaseError, Database> =>
+): Effect.Effect<ReviewResultWithMilestones, NotFoundError | DatabaseError, Database> =>
   Effect.gen(function* () {
     // 1. READ learner node state from DB
     const [row] = yield* query((db) =>
@@ -105,13 +111,65 @@ export const submitReview = (
       }),
     );
 
+    // 6. Upsert study_days — track daily activity (UTC date, consistent with streak computation)
+    const todayStr = now.toISOString().slice(0, 10);
+    yield* query((db) =>
+      db
+        .insert(studyDays)
+        .values({ userId, date: todayStr, reviewCount: 1 })
+        .onConflictDoUpdate({
+          target: [studyDays.userId, studyDays.date],
+          set: { reviewCount: sql`${studyDays.reviewCount} + 1` },
+        }),
+    );
+
+    // 7. Detect milestones (pure)
+    const fullNextState = {
+      ...nextState,
+      confidenceHistory: updatedCalibration.entries,
+    };
+
+    // Fetch domain-level states for milestone detection + domain name
+    const domainId = currentState.domainId;
+    const domainRows = yield* query((db) =>
+      db
+        .select()
+        .from(learnerNodes)
+        .where(
+          and(eq(learnerNodes.userId, userId), eq(learnerNodes.domainId, domainId)),
+        ),
+    );
+    // Map domain states, substituting the just-updated node with nextState
+    const domainStates = domainRows.map((r) =>
+      r.nodeId === nodeId ? fullNextState : dbRowToLearnerState(r),
+    );
+
+    const [domainRow] = yield* query((db) =>
+      db.select().from(domains).where(eq(domains.id, domainId)),
+    );
+    const domainName = domainRow?.name ?? "Unknown";
+
+    // Get concept name from the node
+    const [nodeRow] = yield* query((db) =>
+      db.select().from(nodes).where(eq(nodes.id, nodeId)),
+    );
+    const conceptName = nodeRow?.concept ?? "this concept";
+
+    const milestones = detectMilestones(
+      currentState,
+      fullNextState,
+      domainStates,
+      domainName,
+      conceptName,
+      wasCorrect,
+      now,
+    );
+
     return {
       previousState: currentState,
-      nextState: {
-        ...nextState,
-        confidenceHistory: updatedCalibration.entries,
-      },
+      nextState: fullNextState,
       wasCorrect,
       calibrationQuadrant: quadrant,
+      milestones,
     };
   });

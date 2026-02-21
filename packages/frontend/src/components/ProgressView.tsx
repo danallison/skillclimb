@@ -5,6 +5,7 @@ import { computeTierProgress, formatNextSession } from "@skillclimb/core";
 import { colors, buttonStyles } from "../styles/theme.js";
 import SkillTreeMap from "./SkillTreeMap.js";
 import CalibrationDashboard from "./CalibrationDashboard.js";
+import KnowledgeProfileView from "./KnowledgeProfileView.js";
 
 interface Props {
   skilltreeId?: string;
@@ -154,7 +155,23 @@ function DomainCard({ domain }: { domain: DomainProgressResponse }) {
           marginBottom: "0.75rem",
         }}
       >
-        <span style={{ fontWeight: 600, fontSize: "1.1rem" }}>{domain.name}</span>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          <span style={{ fontWeight: 600, fontSize: "1.1rem" }}>{domain.name}</span>
+          {domain.badge && domain.badge !== "none" && (
+            <span
+              style={{
+                fontSize: "0.7rem",
+                padding: "0.15rem 0.5rem",
+                borderRadius: "4px",
+                background: domain.badge === "fresh" ? colors.successBg : colors.warningBg,
+                color: domain.badge === "fresh" ? colors.green : colors.amber,
+                fontWeight: 600,
+              }}
+            >
+              {domain.badge === "fresh" ? "Mastered" : "Review due"}
+            </span>
+          )}
+        </div>
         <span style={{ color: colors.cyan, fontWeight: 600 }}>{domain.masteryPercentage}%</span>
       </div>
 
@@ -182,7 +199,7 @@ function DomainCard({ domain }: { domain: DomainProgressResponse }) {
 
 export default function ProgressView({ skilltreeId, onStartSession, onStartPlacement, onChangeSkillTree, onBack }: Props) {
   const { data, isLoading, error } = useProgress(skilltreeId);
-  const [progressView, setProgressView] = useState<"list" | "map" | "calibration">("map");
+  const [progressView, setProgressView] = useState<"list" | "map" | "calibration" | "profile">("map");
 
   if (isLoading) {
     return <div style={{ textAlign: "center", padding: "3rem", color: colors.textMuted }}>Loading...</div>;
@@ -205,6 +222,15 @@ export default function ProgressView({ skilltreeId, onStartSession, onStartPlace
     );
   }
 
+  if (progressView === "profile") {
+    return (
+      <KnowledgeProfileView
+        skilltreeId={skilltreeId}
+        onBack={() => setProgressView("map")}
+      />
+    );
+  }
+
   const hasItemsDue = data.nextSession.dueNow > 0;
 
   return (
@@ -212,6 +238,12 @@ export default function ProgressView({ skilltreeId, onStartSession, onStartPlace
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
         <h1 style={{ marginBottom: 0 }}>Skill Tree</h1>
         <div style={{ display: "flex", gap: "0.5rem" }}>
+          <button
+            onClick={() => setProgressView("profile")}
+            style={{ ...buttonStyles.secondary, padding: "0.4rem 0.8rem" }}
+          >
+            Profile
+          </button>
           <button
             onClick={() => setProgressView("calibration")}
             style={{ ...buttonStyles.secondary, padding: "0.4rem 0.8rem" }}

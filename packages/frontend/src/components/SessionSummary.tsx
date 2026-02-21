@@ -1,5 +1,5 @@
 import { useSessionStore } from "../store/sessionStore.js";
-import { computeSessionSummary } from "@skillclimb/core";
+import { computeSessionSummary, computeSessionMomentum } from "@skillclimb/core";
 import { colors, buttonStyles } from "../styles/theme.js";
 import StatCard from "./StatCard.js";
 
@@ -8,14 +8,16 @@ interface Props {
 }
 
 export default function SessionSummary({ onViewProgress }: Props) {
-  const { reviewHistory, reset } = useSessionStore();
+  const { reviewHistory, sessionMilestones, reset } = useSessionStore();
 
   const summary = computeSessionSummary(reviewHistory);
   const { totalReviews: total, correctCount: correct, accuracyPercentage: percentage, calibrationCounts: quadrantCounts } = summary;
 
+  const momentumSummary = computeSessionMomentum(reviewHistory.map((r) => r.wasCorrect));
+
   return (
     <div>
-      <h1>Session Complete</h1>
+      <h1>Session Summary</h1>
 
       <div
         style={{
@@ -32,7 +34,50 @@ export default function SessionSummary({ onViewProgress }: Props) {
         <div style={{ color: colors.textMuted }}>
           {correct} of {total} correct
         </div>
+
+        {/* Target zone indicator */}
+        <div
+          style={{
+            marginTop: "0.75rem",
+            padding: "0.5rem 1rem",
+            borderRadius: "6px",
+            background: momentumSummary.inTargetZone ? colors.successBg : colors.neutralBg,
+            border: `1px solid ${momentumSummary.inTargetZone ? colors.green : colors.inputBorder}`,
+            fontSize: "0.85rem",
+            color: momentumSummary.inTargetZone ? colors.successText : colors.textMuted,
+          }}
+        >
+          {momentumSummary.message}
+        </div>
       </div>
+
+      {/* Session milestones */}
+      {sessionMilestones.length > 0 && (
+        <div style={{ marginBottom: "1.5rem" }}>
+          <h2>Learning Events</h2>
+          {sessionMilestones.map((m, i) => (
+            <div
+              key={i}
+              style={{
+                padding: "0.75rem 1rem",
+                borderRadius: "8px",
+                marginBottom: "0.5rem",
+                background: colors.cardBg,
+                borderLeft: `3px solid ${m.type === "node_mastered" ? colors.green : m.type === "domain_milestone" ? colors.cyan : colors.amber}`,
+              }}
+            >
+              <div style={{ fontSize: "0.9rem", color: colors.textPrimary }}>
+                {m.message}
+              </div>
+              {m.detail && (
+                <div style={{ fontSize: "0.8rem", color: colors.textMuted, marginTop: "0.15rem" }}>
+                  {m.detail}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
 
       <h2>Confidence Calibration</h2>
       <div

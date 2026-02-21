@@ -8,6 +8,7 @@ import FeedbackDisplay from "./FeedbackDisplay.js";
 import HintDisplay from "./HintDisplay.js";
 import MicroLessonDisplay from "./MicroLessonDisplay.js";
 import SessionSummary from "./SessionSummary.js";
+import MomentumIndicator from "./MomentumIndicator.js";
 
 interface Props {
   onFinished: () => void;
@@ -64,6 +65,7 @@ export default function SessionView({ onFinished }: Props) {
       >
         <h1 style={{ marginBottom: 0 }}>SkillClimb</h1>
         <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+          <MomentumIndicator />
           <div style={{ color: colors.textMuted, fontSize: "0.9rem" }}>{progress}</div>
           <button
             onClick={onFinished}

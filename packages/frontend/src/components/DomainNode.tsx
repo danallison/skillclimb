@@ -12,6 +12,7 @@ interface DomainNodeData {
   hasContent: boolean;
   isRecommended: boolean;
   freshness: number;
+  badge?: "fresh" | "fading" | "none";
 }
 
 const TIER_LABELS: Record<number, string> = {
@@ -67,17 +68,34 @@ function DomainNode({ data }: { data: DomainNodeData }) {
       <Handle type="target" position={Position.Left} style={{ background: colors.textDim }} />
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem" }}>
-        <span
-          style={{
-            fontSize: "0.65rem",
-            color: colors.textDim,
-            background: colors.neutralBg,
-            padding: "0.1rem 0.4rem",
-            borderRadius: "4px",
-          }}
-        >
-          {TIER_LABELS[data.tier] ?? `T${data.tier}`}
-        </span>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}>
+          <span
+            style={{
+              fontSize: "0.65rem",
+              color: colors.textDim,
+              background: colors.neutralBg,
+              padding: "0.1rem 0.4rem",
+              borderRadius: "4px",
+            }}
+          >
+            {TIER_LABELS[data.tier] ?? `T${data.tier}`}
+          </span>
+          {data.badge && data.badge !== "none" && (
+            <span
+              title={data.badge === "fresh" ? "All nodes at mastery level" : "Reviews approaching due"}
+              style={{
+                fontSize: "0.65rem",
+                padding: "0.1rem 0.35rem",
+                borderRadius: "4px",
+                background: data.badge === "fresh" ? colors.successBg : colors.warningBg,
+                color: data.badge === "fresh" ? colors.green : colors.amber,
+                fontWeight: 600,
+              }}
+            >
+              {data.badge === "fresh" ? "\u2713" : "\u00b7\u00b7"}
+            </span>
+          )}
+        </div>
         {data.hasContent && (
           <span style={{ fontSize: "0.75rem", fontWeight: 600, color: nodeColor }}>
             {data.masteryPercentage}%

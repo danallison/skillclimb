@@ -1,12 +1,14 @@
 import { create } from "zustand";
-import type { ReviewRecord as CoreReviewRecord, SelfRating } from "@skillclimb/core";
-import type { SessionResponse, ReviewResponse } from "../api/hooks.js";
+import type { ReviewRecord as CoreReviewRecord, SelfRating, MomentumInfo } from "@skillclimb/core";
+import { computeMomentum } from "@skillclimb/core";
+import type { SessionResponse, ReviewResponse, MilestoneResponse } from "../api/hooks.js";
 
 const STORAGE_KEYS = {
   selectedSkillTreeId: "skillclimb_selectedSkillTreeId",
   sessionId: "skillclimb_sessionId",
   itemIndex: "skillclimb_itemIndex",
   reviewHistory: "skillclimb_reviewHistory",
+  sessionMilestones: "skillclimb_sessionMilestones",
 } as const;
 
 interface ReviewRecord extends CoreReviewRecord {
@@ -42,6 +44,8 @@ interface SessionStore {
   attemptNumber: 1 | 2;
   hintText: string | null;
   lessonContent: { title: string; content: string; keyTakeaways: string[] } | null;
+  momentum: MomentumInfo;
+  sessionMilestones: MilestoneResponse[];
 
   setUserId: (id: string | null) => void;
   setSelectedSkillTreeId: (id: string | null) => void;
@@ -51,7 +55,7 @@ interface SessionStore {
   setSelfRating: (rating: SelfRating) => void;
   setConfidenceRating: (rating: number) => void;
   setReviewResult: (result: ReviewResponse) => void;
-  recordReview: (record: ReviewRecord) => void;
+  recordReview: (record: ReviewRecord, milestones?: MilestoneResponse[]) => void;
   nextItem: () => void;
   setPhase: (phase: SessionPhase) => void;
   showHint: (hint: string) => void;
@@ -78,6 +82,8 @@ export const useSessionStore = create<SessionStore>((set) => ({
   attemptNumber: 1,
   hintText: null,
   lessonContent: null,
+  momentum: { state: "steady", recentCorrect: 0, recentTotal: 0, message: "" },
+  sessionMilestones: [],
 
   setUserId: (id) => set({ userId: id }),
   setSelectedSkillTreeId: (id) => {
@@ -92,13 +98,20 @@ export const useSessionStore = create<SessionStore>((set) => ({
     localStorage.setItem(STORAGE_KEYS.sessionId, session.id);
     localStorage.setItem(STORAGE_KEYS.itemIndex, "0");
     localStorage.setItem(STORAGE_KEYS.reviewHistory, "[]");
-    set({ session, savedSessionId: null, savedItemIndex: 0, currentItemIndex: 0, reviewHistory: [], phase: "answering", attemptNumber: 1, hintText: null, lessonContent: null });
+    localStorage.setItem(STORAGE_KEYS.sessionMilestones, "[]");
+    set({ session, savedSessionId: null, savedItemIndex: 0, currentItemIndex: 0, reviewHistory: [], phase: "answering", attemptNumber: 1, hintText: null, lessonContent: null, momentum: { state: "steady", recentCorrect: 0, recentTotal: 0, message: "" }, sessionMilestones: [] });
   },
   resumeSession: (session, itemIndex) => {
     const isComplete = itemIndex >= session.items.length;
     let savedHistory: ReviewRecord[] = [];
     try {
       savedHistory = JSON.parse(localStorage.getItem(STORAGE_KEYS.reviewHistory) ?? "[]");
+    } catch {}
+    const recentResults = savedHistory.map((r) => r.wasCorrect);
+    const momentum = computeMomentum(recentResults);
+    let savedMilestones: MilestoneResponse[] = [];
+    try {
+      savedMilestones = JSON.parse(localStorage.getItem(STORAGE_KEYS.sessionMilestones) ?? "[]");
     } catch {}
     set({
       session,
@@ -110,17 +123,25 @@ export const useSessionStore = create<SessionStore>((set) => ({
       attemptNumber: 1,
       hintText: null,
       lessonContent: null,
+      momentum,
+      sessionMilestones: savedMilestones,
     });
   },
   selectAnswer: (answer) => set({ selectedAnswer: answer }),
   setSelfRating: (rating) => set({ selfRating: rating }),
   setConfidenceRating: (rating) => set({ confidenceRating: rating }),
   setReviewResult: (result) => set({ reviewResult: result }),
-  recordReview: (record) =>
+  recordReview: (record, milestones) =>
     set((state) => {
       const updated = [...state.reviewHistory, record];
       localStorage.setItem(STORAGE_KEYS.reviewHistory, JSON.stringify(updated));
-      return { reviewHistory: updated };
+      const recentResults = updated.map((r) => r.wasCorrect);
+      const momentum = computeMomentum(recentResults);
+      // Accumulate milestones passed explicitly from the review result
+      const newMilestones = milestones ?? [];
+      const sessionMilestones = [...state.sessionMilestones, ...newMilestones];
+      localStorage.setItem(STORAGE_KEYS.sessionMilestones, JSON.stringify(sessionMilestones));
+      return { reviewHistory: updated, momentum, sessionMilestones };
     }),
   nextItem: () =>
     set((state) => {
@@ -131,6 +152,7 @@ export const useSessionStore = create<SessionStore>((set) => ({
         localStorage.removeItem(STORAGE_KEYS.sessionId);
         localStorage.removeItem(STORAGE_KEYS.itemIndex);
         localStorage.removeItem(STORAGE_KEYS.reviewHistory);
+        localStorage.removeItem(STORAGE_KEYS.sessionMilestones);
       }
       return {
         currentItemIndex: nextIndex,
@@ -161,6 +183,7 @@ export const useSessionStore = create<SessionStore>((set) => ({
     localStorage.removeItem(STORAGE_KEYS.sessionId);
     localStorage.removeItem(STORAGE_KEYS.itemIndex);
     localStorage.removeItem(STORAGE_KEYS.reviewHistory);
+    localStorage.removeItem(STORAGE_KEYS.sessionMilestones);
     set({
       session: null,
       savedSessionId: null,
@@ -175,6 +198,8 @@ export const useSessionStore = create<SessionStore>((set) => ({
       attemptNumber: 1,
       hintText: null,
       lessonContent: null,
+      momentum: { state: "steady", recentCorrect: 0, recentTotal: 0, message: "" },
+      sessionMilestones: [],
     });
   },
   logout: () => {
@@ -182,6 +207,7 @@ export const useSessionStore = create<SessionStore>((set) => ({
     localStorage.removeItem(STORAGE_KEYS.sessionId);
     localStorage.removeItem(STORAGE_KEYS.itemIndex);
     localStorage.removeItem(STORAGE_KEYS.reviewHistory);
+    localStorage.removeItem(STORAGE_KEYS.sessionMilestones);
     set({
       userId: null,
       selectedSkillTreeId: null,
@@ -198,6 +224,8 @@ export const useSessionStore = create<SessionStore>((set) => ({
       attemptNumber: 1,
       hintText: null,
       lessonContent: null,
+      momentum: { state: "steady", recentCorrect: 0, recentTotal: 0, message: "" },
+      sessionMilestones: [],
     });
   },
 }));

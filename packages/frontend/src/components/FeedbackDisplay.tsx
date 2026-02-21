@@ -83,7 +83,7 @@ export default function FeedbackDisplay() {
           confidence: confidenceRating!,
           wasCorrect: result.wasCorrect,
           calibrationQuadrant: result.calibrationQuadrant,
-        });
+        }, result.milestones);
       }).catch((err) => {
         console.error("Failed to submit review:", err);
       });
@@ -111,7 +111,7 @@ export default function FeedbackDisplay() {
           confidence: confidenceRating!,
           wasCorrect: result.wasCorrect,
           calibrationQuadrant: result.calibrationQuadrant,
-        });
+        }, result.milestones);
       }).catch((err) => {
         console.error("Failed to submit review:", err);
       });
@@ -143,7 +143,7 @@ export default function FeedbackDisplay() {
           confidence: confidenceRating!,
           wasCorrect: result.wasCorrect,
           calibrationQuadrant: result.calibrationQuadrant,
-        });
+        }, result.milestones);
       }).catch((err) => {
         console.error("Failed to submit review:", err);
       });
@@ -193,7 +193,7 @@ export default function FeedbackDisplay() {
         confidence: confidenceRating!,
         wasCorrect: result.wasCorrect,
         calibrationQuadrant: result.calibrationQuadrant,
-      });
+      }, result.milestones);
       nextItem();
     }).catch((err) => {
       console.error("Failed to submit review:", err);
@@ -218,7 +218,7 @@ export default function FeedbackDisplay() {
         confidence: confidenceRating!,
         wasCorrect: result.wasCorrect,
         calibrationQuadrant: result.calibrationQuadrant,
-      });
+      }, result.milestones);
       nextItem();
     }).catch((err) => {
       console.error("Failed to submit review:", err);
@@ -420,6 +420,33 @@ export default function FeedbackDisplay() {
             Explanation
           </div>
           <div>{questionTemplate.explanation}</div>
+        </div>
+      )}
+
+      {/* Milestones (shown after review completes) */}
+      {reviewResult?.milestones && reviewResult.milestones.length > 0 && !holdingForHint && (
+        <div style={{ marginBottom: "1rem" }}>
+          {reviewResult.milestones.map((m, i) => (
+            <div
+              key={i}
+              style={{
+                padding: "0.75rem 1rem",
+                borderRadius: "8px",
+                marginBottom: "0.5rem",
+                background: colors.neutralBg,
+                borderLeft: `3px solid ${m.type === "node_mastered" ? colors.green : m.type === "domain_milestone" ? colors.cyan : colors.amber}`,
+              }}
+            >
+              <div style={{ fontSize: "0.9rem", fontWeight: 600, color: colors.textPrimary }}>
+                {m.message}
+              </div>
+              {m.detail && (
+                <div style={{ fontSize: "0.8rem", color: colors.textMuted, marginTop: "0.2rem" }}>
+                  {m.detail}
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       )}
 

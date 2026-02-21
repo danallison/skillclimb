@@ -85,6 +85,12 @@ export interface SessionItemResponse {
   needsLesson?: boolean;
 }
 
+export interface MilestoneResponse {
+  type: "node_mastered" | "domain_milestone" | "overdue_recovery";
+  message: string;
+  detail?: string;
+}
+
 export interface ReviewResponse {
   wasCorrect: boolean;
   calibrationQuadrant: string;
@@ -93,6 +99,7 @@ export interface ReviewResponse {
     interval: number;
     repetitions: number;
   };
+  milestones?: MilestoneResponse[];
 }
 
 export interface DomainResponse {
@@ -139,6 +146,7 @@ export interface DomainProgressResponse {
   masteryPercentage: number;
   hasContent: boolean;
   freshness?: number;
+  badge?: "fresh" | "fading" | "none";
   topics: TopicProgressResponse[];
 }
 
@@ -416,5 +424,68 @@ export function useSubmitReview() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["session"] });
     },
+  });
+}
+
+// === Gamification ===
+
+export interface StreaksResponse {
+  currentStreak: number;
+  longestStreak: number;
+  totalStudyDays: number;
+  recentSummary: string;
+  heatMap: Array<{
+    date: string;
+    reviewCount: number;
+    intensity: number;
+  }>;
+}
+
+export interface ProfileResponse {
+  totalMastered: number;
+  totalNodes: number;
+  tierCompletion: Array<{
+    tier: number;
+    mastered: number;
+    total: number;
+    percentage: number;
+  }>;
+  badges: {
+    fresh: number;
+    fading: number;
+    total: number;
+  };
+  streak: {
+    currentStreak: number;
+    longestStreak: number;
+    totalStudyDays: number;
+    recentSummary: string;
+  };
+  heatMap: Array<{
+    date: string;
+    reviewCount: number;
+    intensity: number;
+  }>;
+  velocity: {
+    nodesPerWeek: number;
+    trend: "increasing" | "stable" | "decreasing";
+    weeklyBreakdown: number[];
+  };
+  retentionStrength: number;
+  calibrationScore: number;
+}
+
+export function useStreaks() {
+  return useQuery({
+    queryKey: ["streaks"],
+    queryFn: () => fetchJson<StreaksResponse>("/users/me/streaks"),
+  });
+}
+
+export function useProfile(skilltreeId?: string | null) {
+  const params = skilltreeId ? `?skilltreeId=${skilltreeId}` : "";
+  return useQuery({
+    queryKey: ["profile", skilltreeId],
+    queryFn: () => fetchJson<ProfileResponse>(`/users/me/profile${params}`),
   });
 }
