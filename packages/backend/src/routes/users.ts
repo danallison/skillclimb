@@ -2,7 +2,6 @@ import { Router } from "express";
 import { Effect } from "effect";
 import { eq } from "drizzle-orm";
 import {
-  users,
   learnerNodes,
   nodes,
   domains,
@@ -11,7 +10,6 @@ import {
 } from "../db/schema.js";
 import { query } from "../services/Database.js";
 import { dbRowToLearnerState } from "../db/mappers.js";
-import { ValidationError, DatabaseError } from "../errors.js";
 import { HttpResponse, type EffectHandler } from "../effectHandler.js";
 import {
   computeOverallProgress,
@@ -25,68 +23,11 @@ import type { CalibrationEntry } from "@skillclimb/core";
 export function usersRouter(handle: EffectHandler) {
   const router = Router();
 
-  router.post(
-    "/",
-    handle((req) =>
-      Effect.gen(function* () {
-        const { email } = req.body;
-        if (!email) {
-          return yield* Effect.fail(
-            new ValidationError({ message: "email is required" }),
-          );
-        }
-
-        let isNew = true;
-        const createResult = yield* query((db) =>
-          db.insert(users).values({ email }).returning(),
-        ).pipe(
-          Effect.catchTag("DatabaseError", (err) => {
-            const cause = err.cause as { code?: string };
-            if (cause?.code === "23505") {
-              // unique_violation — return existing user
-              isNew = false;
-              return query((db) =>
-                db.select().from(users).where(eq(users.email, email)),
-              );
-            }
-            return Effect.fail(err);
-          }),
-        );
-
-        const user = createResult[0];
-
-        // Initialize learner nodes for new users
-        if (isNew) {
-          const allNodes = yield* query((db) => db.select().from(nodes));
-          if (allNodes.length > 0) {
-            yield* query((db) =>
-              db.insert(learnerNodes).values(
-                allNodes.map((node) => ({
-                  userId: user.id,
-                  nodeId: node.id,
-                  domainId: node.domainId,
-                  easiness: 2.5,
-                  interval: 0,
-                  repetitions: 0,
-                  dueDate: new Date(),
-                  confidenceHistory: [],
-                  domainWeight: 1.0,
-                })),
-              ),
-            );
-          }
-        }
-
-        return new HttpResponse(isNew ? 201 : 200, user);
-      }),
-    ),
-  );
-
   router.get(
-    "/:id/progress",
+    "/me/progress",
     handle((req) =>
       Effect.gen(function* () {
-        const userId = req.params.id as string;
+        const userId = req.userId!;
         const skilltreeId = req.query.skilltreeId as string | undefined;
 
         const rows = yield* query((db) =>
@@ -183,10 +124,10 @@ export function usersRouter(handle: EffectHandler) {
   );
 
   router.get(
-    "/:id/calibration",
+    "/me/calibration",
     handle((req) =>
       Effect.gen(function* () {
-        const userId = req.params.id as string;
+        const userId = req.userId!;
         const skilltreeId = req.query.skilltreeId as string | undefined;
 
         const userReviews = yield* query((db) =>

@@ -4,6 +4,26 @@ import type { IRTResponse } from "@skillclimb/core";
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
   email: text("email").notNull().unique(),
+  name: text("name"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const oauthAccounts = pgTable("oauth_accounts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull().references(() => users.id),
+  provider: text("provider").notNull(),
+  providerAccountId: text("provider_account_id").notNull(),
+  email: text("email"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (table) => [
+  unique().on(table.provider, table.providerAccountId),
+]);
+
+export const refreshTokens = pgTable("refresh_tokens", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull().references(() => users.id),
+  tokenHash: text("token_hash").notNull().unique(),
+  expiresAt: timestamp("expires_at").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

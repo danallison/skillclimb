@@ -14,13 +14,13 @@ interface Props {
 }
 
 export default function SessionView({ onFinished }: Props) {
-  const { session, currentItemIndex, phase, userId, setLessonContent, setPhase } = useSessionStore();
+  const { session, currentItemIndex, phase, setLessonContent, setPhase } = useSessionStore();
   const requestLesson = useRequestMicroLesson();
   const lessonChecked = useRef<number>(-1);
 
   // Fetch micro-lesson for struggling items when moving to a new item
   useEffect(() => {
-    if (!session || !userId) return;
+    if (!session) return;
     if (currentItemIndex >= session.items.length) return;
     if (lessonChecked.current === currentItemIndex) return;
     lessonChecked.current = currentItemIndex;
@@ -30,7 +30,6 @@ export default function SessionView({ onFinished }: Props) {
       setPhase("lesson");
       requestLesson.mutateAsync({
         nodeId: item.node.id,
-        userId,
       }).then((lesson) => {
         setLessonContent(lesson);
       }).catch(() => {
@@ -38,7 +37,7 @@ export default function SessionView({ onFinished }: Props) {
         setPhase("answering");
       });
     }
-  }, [currentItemIndex, session, userId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [currentItemIndex, session]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!session) return null;
 

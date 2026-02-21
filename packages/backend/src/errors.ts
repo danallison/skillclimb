@@ -16,3 +16,7 @@ export class ValidationError extends Data.TaggedError("ValidationError")<{
 export class AIRequestError extends Data.TaggedError("AIRequestError")<{
   cause: unknown;
 }> {}
+
+export class AuthenticationError extends Data.TaggedError("AuthenticationError")<{
+  message: string;
+}> {}

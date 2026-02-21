@@ -2,7 +2,7 @@ import { Effect, Layer } from "effect";
 import type { Request, Response } from "express";
 import type { Database } from "./services/Database.js";
 import type { AIService } from "./services/AIService.js";
-import { DatabaseError, NotFoundError, ValidationError, AIRequestError } from "./errors.js";
+import { DatabaseError, NotFoundError, ValidationError, AIRequestError, AuthenticationError } from "./errors.js";
 
 export class HttpResponse<T = unknown> {
   constructor(
@@ -20,6 +20,10 @@ function errorToResponse(error: { _tag: string }): HttpResponse {
     case "ValidationError": {
       const e = error as InstanceType<typeof ValidationError>;
       return new HttpResponse(400, { error: e.message });
+    }
+    case "AuthenticationError": {
+      const e = error as InstanceType<typeof AuthenticationError>;
+      return new HttpResponse(401, { error: e.message });
     }
     case "AIRequestError": {
       const e = error as InstanceType<typeof AIRequestError>;

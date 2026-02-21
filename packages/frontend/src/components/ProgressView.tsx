@@ -7,7 +7,6 @@ import SkillTreeMap from "./SkillTreeMap.js";
 import CalibrationDashboard from "./CalibrationDashboard.js";
 
 interface Props {
-  userId: string;
   skilltreeId?: string;
   onStartSession: () => void;
   onStartPlacement: () => void;
@@ -181,8 +180,8 @@ function DomainCard({ domain }: { domain: DomainProgressResponse }) {
   );
 }
 
-export default function ProgressView({ userId, skilltreeId, onStartSession, onStartPlacement, onChangeSkillTree, onBack }: Props) {
-  const { data, isLoading, error } = useProgress(userId, skilltreeId);
+export default function ProgressView({ skilltreeId, onStartSession, onStartPlacement, onChangeSkillTree, onBack }: Props) {
+  const { data, isLoading, error } = useProgress(skilltreeId);
   const [progressView, setProgressView] = useState<"list" | "map" | "calibration">("map");
 
   if (isLoading) {
@@ -200,7 +199,6 @@ export default function ProgressView({ userId, skilltreeId, onStartSession, onSt
   if (progressView === "calibration") {
     return (
       <CalibrationDashboard
-        userId={userId}
         skilltreeId={skilltreeId}
         onBack={() => setProgressView("map")}
       />

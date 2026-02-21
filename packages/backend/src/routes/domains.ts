@@ -4,7 +4,6 @@ import { eq } from "drizzle-orm";
 import { domains, learnerNodes } from "../db/schema.js";
 import { query } from "../services/Database.js";
 import { dbRowToLearnerState } from "../db/mappers.js";
-import { ValidationError } from "../errors.js";
 import { HttpResponse, type EffectHandler } from "../effectHandler.js";
 import { computeDomainProgress } from "@skillclimb/core";
 
@@ -31,15 +30,7 @@ export function domainsRouter(handle: EffectHandler) {
     "/:id/progress",
     handle((req) =>
       Effect.gen(function* () {
-        const { userId } = req.query;
-        if (!userId || typeof userId !== "string") {
-          return yield* Effect.fail(
-            new ValidationError({
-              message: "userId query parameter is required",
-            }),
-          );
-        }
-
+        const userId = req.userId!;
         const domainId = req.params.id as string;
 
         const rows = yield* query((db) =>

@@ -3,11 +3,41 @@ import type { QuestionTemplate } from "@skillclimb/core";
 
 const API_BASE = "/api";
 
+let isRefreshing = false;
+let refreshPromise: Promise<boolean> | null = null;
+
+async function tryRefresh(): Promise<boolean> {
+  if (isRefreshing) return refreshPromise!;
+  isRefreshing = true;
+  refreshPromise = fetch(`${API_BASE}/auth/refresh`, {
+    method: "POST",
+    credentials: "include",
+  })
+    .then((res) => res.ok)
+    .finally(() => {
+      isRefreshing = false;
+      refreshPromise = null;
+    });
+  return refreshPromise;
+}
+
 async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE}${url}`, {
+  const opts: RequestInit = {
     headers: { "Content-Type": "application/json" },
+    credentials: "include",
     ...options,
-  });
+  };
+
+  let res = await fetch(`${API_BASE}${url}`, opts);
+
+  // On 401, try refreshing the token once
+  if (res.status === 401) {
+    const refreshed = await tryRefresh();
+    if (refreshed) {
+      res = await fetch(`${API_BASE}${url}`, opts);
+    }
+  }
+
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error(body.error ?? `Request failed: ${res.status}`);
@@ -83,6 +113,7 @@ export interface SkillTreeResponse {
 export interface UserResponse {
   id: string;
   email: string;
+  name?: string | null;
 }
 
 export interface TopicProgressResponse {
@@ -128,13 +159,37 @@ export interface ProgressResponse {
 
 // Hooks
 
-export function useCreateUser() {
+export function useCurrentUser() {
+  return useQuery({
+    queryKey: ["currentUser"],
+    queryFn: () => fetchJson<UserResponse>("/auth/me"),
+    retry: false,
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useDevLogin() {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (email: string) =>
-      fetchJson<UserResponse>("/users", {
+      fetchJson<{ ok: boolean }>("/auth/dev", {
         method: "POST",
         body: JSON.stringify({ email }),
       }),
+    onSuccess: () => {
+      queryClient.resetQueries({ queryKey: ["currentUser"] });
+    },
+  });
+}
+
+export function useLogout() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () =>
+      fetchJson<{ ok: boolean }>("/auth/logout", { method: "POST" }),
+    onSuccess: () => {
+      queryClient.clear();
+    },
   });
 }
 
@@ -154,10 +209,10 @@ export function useDomains() {
 
 export function useCreateSession() {
   return useMutation({
-    mutationFn: ({ userId, skilltreeId }: { userId: string; skilltreeId?: string }) =>
+    mutationFn: ({ skilltreeId }: { skilltreeId?: string }) =>
       fetchJson<SessionResponse>("/sessions", {
         method: "POST",
-        body: JSON.stringify({ userId, skilltreeId }),
+        body: JSON.stringify({ skilltreeId }),
       }),
   });
 }
@@ -170,12 +225,11 @@ export function useSession(sessionId: string | null) {
   });
 }
 
-export function useProgress(userId: string | null, skilltreeId?: string | null) {
+export function useProgress(skilltreeId?: string | null) {
   const params = skilltreeId ? `?skilltreeId=${skilltreeId}` : "";
   return useQuery({
-    queryKey: ["progress", userId, skilltreeId],
-    queryFn: () => fetchJson<ProgressResponse>(`/users/${userId}/progress${params}`),
-    enabled: !!userId,
+    queryKey: ["progress", skilltreeId],
+    queryFn: () => fetchJson<ProgressResponse>(`/users/me/progress${params}`),
   });
 }
 
@@ -252,10 +306,10 @@ export interface CalibrationResponse {
 
 export function useStartPlacement() {
   return useMutation({
-    mutationFn: ({ userId, skilltreeId }: { userId: string; skilltreeId?: string }) =>
+    mutationFn: ({ skilltreeId }: { skilltreeId?: string }) =>
       fetchJson<PlacementStartResponse>("/placement", {
         method: "POST",
-        body: JSON.stringify({ userId, skilltreeId }),
+        body: JSON.stringify({ skilltreeId }),
       }),
   });
 }
@@ -287,12 +341,11 @@ export function usePlacement(placementId: string | null) {
   });
 }
 
-export function useCalibration(userId: string | null, skilltreeId?: string | null) {
+export function useCalibration(skilltreeId?: string | null) {
   const params = skilltreeId ? `?skilltreeId=${skilltreeId}` : "";
   return useQuery({
-    queryKey: ["calibration", userId, skilltreeId],
-    queryFn: () => fetchJson<CalibrationResponse>(`/users/${userId}/calibration${params}`),
-    enabled: !!userId,
+    queryKey: ["calibration", skilltreeId],
+    queryFn: () => fetchJson<CalibrationResponse>(`/users/me/calibration${params}`),
   });
 }
 
@@ -311,7 +364,7 @@ export interface AIFeedbackResponse {
 
 export function useEvaluateAnswer() {
   return useMutation({
-    mutationFn: (data: { nodeId: string; response: string; userId?: string }) =>
+    mutationFn: (data: { nodeId: string; response: string }) =>
       fetchJson<AIFeedbackResponse | null>("/reviews/evaluate", {
         method: "POST",
         body: JSON.stringify(data),
@@ -338,7 +391,7 @@ export interface MicroLessonResponse {
 
 export function useRequestMicroLesson() {
   return useMutation({
-    mutationFn: (data: { nodeId: string; userId: string }) =>
+    mutationFn: (data: { nodeId: string }) =>
       fetchJson<MicroLessonResponse>("/lessons", {
         method: "POST",
         body: JSON.stringify(data),
@@ -350,7 +403,6 @@ export function useSubmitReview() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data: {
-      userId: string;
       nodeId: string;
       score: number;
       confidence: number;

@@ -16,7 +16,8 @@ export function reviewsRouter(handle: EffectHandler) {
     "/evaluate",
     handle((req) =>
       Effect.gen(function* () {
-        const { nodeId, response, userId } = req.body;
+        const userId = req.userId!;
+        const { nodeId, response } = req.body;
 
         if (!nodeId || !response) {
           return yield* Effect.fail(
@@ -35,20 +36,18 @@ export function reviewsRouter(handle: EffectHandler) {
           );
         }
 
-        // Look up previous misconceptions if userId provided
+        // Look up previous misconceptions
         let previousMisconceptions: string[] = [];
-        if (userId) {
-          const [learnerNode] = yield* query((db) =>
-            db
-              .select()
-              .from(learnerNodes)
-              .where(
-                and(eq(learnerNodes.userId, userId), eq(learnerNodes.nodeId, nodeId)),
-              ),
-          );
-          if (learnerNode) {
-            previousMisconceptions = (learnerNode.misconceptions ?? []) as string[];
-          }
+        const [learnerNode] = yield* query((db) =>
+          db
+            .select()
+            .from(learnerNodes)
+            .where(
+              and(eq(learnerNodes.userId, userId), eq(learnerNodes.nodeId, nodeId)),
+            ),
+        );
+        if (learnerNode) {
+          previousMisconceptions = (learnerNode.misconceptions ?? []) as string[];
         }
 
         const templates = (node.questionTemplates ?? []) as QuestionTemplate[];
@@ -80,12 +79,13 @@ export function reviewsRouter(handle: EffectHandler) {
     "/",
     handle((req) =>
       Effect.gen(function* () {
-        const { userId, nodeId, score, confidence, response, misconceptions } = req.body;
+        const userId = req.userId!;
+        const { nodeId, score, confidence, response, misconceptions } = req.body;
 
-        if (!userId || !nodeId || score == null || confidence == null) {
+        if (!nodeId || score == null || confidence == null) {
           return yield* Effect.fail(
             new ValidationError({
-              message: "userId, nodeId, score, and confidence are required",
+              message: "nodeId, score, and confidence are required",
             }),
           );
         }

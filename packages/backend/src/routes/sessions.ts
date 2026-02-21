@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { Effect } from "effect";
 import { createSession, getSession } from "../services/session.service.js";
-import { ValidationError, NotFoundError } from "../errors.js";
+import { NotFoundError } from "../errors.js";
 import { HttpResponse, type EffectHandler } from "../effectHandler.js";
 
 export function sessionsRouter(handle: EffectHandler) {
@@ -11,12 +11,8 @@ export function sessionsRouter(handle: EffectHandler) {
     "/",
     handle((req) =>
       Effect.gen(function* () {
-        const { userId, skilltreeId } = req.body;
-        if (!userId) {
-          return yield* Effect.fail(
-            new ValidationError({ message: "userId is required" }),
-          );
-        }
+        const userId = req.userId!;
+        const { skilltreeId } = req.body;
         const session = yield* createSession(userId, skilltreeId);
         return new HttpResponse(201, session);
       }),

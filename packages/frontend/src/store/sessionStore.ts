@@ -3,7 +3,6 @@ import type { ReviewRecord as CoreReviewRecord, SelfRating } from "@skillclimb/c
 import type { SessionResponse, ReviewResponse } from "../api/hooks.js";
 
 const STORAGE_KEYS = {
-  userId: "skillclimb_userId",
   selectedSkillTreeId: "skillclimb_selectedSkillTreeId",
   sessionId: "skillclimb_sessionId",
   itemIndex: "skillclimb_itemIndex",
@@ -44,7 +43,7 @@ interface SessionStore {
   hintText: string | null;
   lessonContent: { title: string; content: string; keyTakeaways: string[] } | null;
 
-  setUserId: (id: string) => void;
+  setUserId: (id: string | null) => void;
   setSelectedSkillTreeId: (id: string | null) => void;
   setSession: (session: SessionResponse) => void;
   resumeSession: (session: SessionResponse, itemIndex: number) => void;
@@ -64,7 +63,7 @@ interface SessionStore {
 }
 
 export const useSessionStore = create<SessionStore>((set) => ({
-  userId: localStorage.getItem(STORAGE_KEYS.userId),
+  userId: null,
   selectedSkillTreeId: localStorage.getItem(STORAGE_KEYS.selectedSkillTreeId),
   savedSessionId: localStorage.getItem(STORAGE_KEYS.sessionId),
   savedItemIndex: parseInt(localStorage.getItem(STORAGE_KEYS.itemIndex) ?? "0", 10),
@@ -80,10 +79,7 @@ export const useSessionStore = create<SessionStore>((set) => ({
   hintText: null,
   lessonContent: null,
 
-  setUserId: (id) => {
-    localStorage.setItem(STORAGE_KEYS.userId, id);
-    set({ userId: id });
-  },
+  setUserId: (id) => set({ userId: id }),
   setSelectedSkillTreeId: (id) => {
     if (id) {
       localStorage.setItem(STORAGE_KEYS.selectedSkillTreeId, id);
@@ -182,7 +178,6 @@ export const useSessionStore = create<SessionStore>((set) => ({
     });
   },
   logout: () => {
-    localStorage.removeItem(STORAGE_KEYS.userId);
     localStorage.removeItem(STORAGE_KEYS.selectedSkillTreeId);
     localStorage.removeItem(STORAGE_KEYS.sessionId);
     localStorage.removeItem(STORAGE_KEYS.itemIndex);

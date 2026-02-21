@@ -17,7 +17,6 @@ import AIFeedbackDisplay from "./AIFeedbackDisplay.js";
 
 export default function FeedbackDisplay() {
   const {
-    userId,
     session,
     currentItemIndex,
     selectedAnswer,
@@ -42,7 +41,7 @@ export default function FeedbackDisplay() {
   const [hintLoading, setHintLoading] = useState(false);
   const [answerRevealed, setAnswerRevealed] = useState(false);
 
-  const ready = !!(session && userId && selectedAnswer !== null && confidenceRating !== null);
+  const ready = !!(session && selectedAnswer !== null && confidenceRating !== null);
   const isEmptyAnswer = selectedAnswer !== null && selectedAnswer.trim() === "";
   const isIdkAnswer = selectedAnswer === "__idk__";
 
@@ -72,7 +71,6 @@ export default function FeedbackDisplay() {
       setSelfRating("incorrect");
 
       submitReview.mutateAsync({
-        userId: userId!,
         nodeId: item.node.id,
         score,
         confidence: confidenceRating!,
@@ -101,7 +99,6 @@ export default function FeedbackDisplay() {
       setSelfRating(rating);
 
       submitReview.mutateAsync({
-        userId: userId!,
         nodeId: item.node.id,
         score,
         confidence: confidenceRating!,
@@ -134,7 +131,6 @@ export default function FeedbackDisplay() {
       setSelfRating(rating);
 
       submitReview.mutateAsync({
-        userId: userId!,
         nodeId: item.node.id,
         score,
         confidence: confidenceRating!,
@@ -160,7 +156,6 @@ export default function FeedbackDisplay() {
       evaluateAnswer.mutateAsync({
         nodeId: item.node.id,
         response: selectedAnswer!,
-        userId: userId!,
       }).then((result) => {
         setAiLoading(false);
         if (result) {
@@ -187,7 +182,6 @@ export default function FeedbackDisplay() {
     const score = capScoreForHintedAttempt(scoreFromSelfRating(rating), attemptNumber);
 
     submitReview.mutateAsync({
-      userId: userId!,
       nodeId: item.node.id,
       score,
       confidence: confidenceRating!,
@@ -212,7 +206,6 @@ export default function FeedbackDisplay() {
     setSelfRating(rating);
 
     submitReview.mutateAsync({
-      userId: userId!,
       nodeId: item.node.id,
       score,
       confidence: confidenceRating!,

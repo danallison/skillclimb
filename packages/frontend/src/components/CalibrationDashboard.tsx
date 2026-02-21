@@ -3,7 +3,6 @@ import { colors, buttonStyles } from "../styles/theme.js";
 import StatCard from "./StatCard.js";
 
 interface Props {
-  userId: string;
   skilltreeId?: string;
   onBack: () => void;
 }
@@ -64,8 +63,8 @@ function TrendChart({ trend }: { trend: Array<{ score: number; entryCount: numbe
   );
 }
 
-export default function CalibrationDashboard({ userId, skilltreeId, onBack }: Props) {
-  const { data, isLoading, error } = useCalibration(userId, skilltreeId);
+export default function CalibrationDashboard({ skilltreeId, onBack }: Props) {
+  const { data, isLoading, error } = useCalibration(skilltreeId);
 
   if (isLoading) {
     return <div style={{ textAlign: "center", padding: "3rem", color: colors.textMuted }}>Loading...</div>;

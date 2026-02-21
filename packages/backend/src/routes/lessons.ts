@@ -22,12 +22,13 @@ export function lessonsRouter(handle: EffectHandler) {
     "/",
     handle((req) =>
       Effect.gen(function* () {
-        const { nodeId, userId } = req.body;
+        const userId = req.userId!;
+        const { nodeId } = req.body;
 
-        if (!nodeId || !userId) {
+        if (!nodeId) {
           return yield* Effect.fail(
             new ValidationError({
-              message: "nodeId and userId are required",
+              message: "nodeId is required",
             }),
           );
         }
