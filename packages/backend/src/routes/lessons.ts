@@ -3,7 +3,7 @@ import { Effect } from "effect";
 import { and, eq } from "drizzle-orm";
 import { query } from "../services/Database.js";
 import { nodes, learnerNodes } from "../db/schema.js";
-import { AIService } from "../services/AIService.js";
+import { resolveAIForUser } from "../services/AIService.js";
 import { ValidationError, NotFoundError } from "../errors.js";
 import { HttpResponse, type EffectHandler } from "../effectHandler.js";
 import type { QuestionTemplate } from "@skillclimb/core";
@@ -69,7 +69,7 @@ export function lessonsRouter(handle: EffectHandler) {
         const misconceptions = (learnerNode?.misconceptions ?? []) as string[];
 
         // Try AI generation
-        const ai = yield* AIService;
+        const ai = yield* resolveAIForUser(userId);
         const lesson: LessonResponse = yield* ai
           .generateMicroLesson({
             concept: node.concept,

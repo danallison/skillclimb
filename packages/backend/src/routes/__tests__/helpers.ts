@@ -15,6 +15,7 @@ import { placementRouter } from "../placement.js";
 import { hintsRouter } from "../hints.js";
 import { lessonsRouter } from "../lessons.js";
 import { usersRouter } from "../users.js";
+import { aiProviderRouter } from "../ai-provider.js";
 import * as schema from "../../db/schema.js";
 
 // ---------------------------------------------------------------------------
@@ -356,6 +357,7 @@ export function createTestApp(
   app.use("/api/hints", hintsRouter(handle));
   app.use("/api/lessons", lessonsRouter(handle));
   app.use("/api/users", usersRouter(handle));
+  app.use("/api/users", aiProviderRouter(handle));
 
   return app;
 }

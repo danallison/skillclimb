@@ -4,7 +4,7 @@ import { and, eq } from "drizzle-orm";
 import { submitReview } from "../services/review.service.js";
 import { query } from "../services/Database.js";
 import { nodes, learnerNodes } from "../db/schema.js";
-import { AIService } from "../services/AIService.js";
+import { resolveAIForUser } from "../services/AIService.js";
 import { ValidationError, NotFoundError } from "../errors.js";
 import { HttpResponse, type EffectHandler } from "../effectHandler.js";
 import type { QuestionTemplate } from "@skillclimb/core";
@@ -57,7 +57,7 @@ export function reviewsRouter(handle: EffectHandler) {
           return new HttpResponse(200, null);
         }
 
-        const ai = yield* AIService;
+        const ai = yield* resolveAIForUser(userId);
         const result = yield* ai
           .evaluateFreeRecall({
             concept: node.concept,

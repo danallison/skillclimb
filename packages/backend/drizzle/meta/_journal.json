@@ -57,6 +57,13 @@
       "when": 1771804800000,
       "tag": "0007_rename_mcp_tokens_to_api_tokens",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1771751837084,
+      "tag": "0008_funny_ironclad",
+      "breakpoints": true
     }
   ]
 }

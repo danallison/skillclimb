@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, integer, real, timestamp, jsonb, primaryKey, unique } from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, integer, real, timestamp, jsonb, primaryKey, unique, boolean } from "drizzle-orm/pg-core";
 import type { IRTResponse } from "@skillclimb/core";
 
 export const users = pgTable("users", {
@@ -162,6 +162,16 @@ export const sessions = pgTable("sessions", {
       calibration?: Record<string, number>;
     }>()
     .default({}),
+});
+
+export const userAiProviders = pgTable("user_ai_providers", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull().references(() => users.id).unique(),
+  webhookUrl: text("webhook_url").notNull(),
+  enabled: boolean("enabled").notNull().default(true),
+  secret: text("secret"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
 export interface PlacementResultRow {

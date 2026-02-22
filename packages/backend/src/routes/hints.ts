@@ -3,7 +3,7 @@ import { Effect } from "effect";
 import { eq } from "drizzle-orm";
 import { nodes } from "../db/schema.js";
 import { query } from "../services/Database.js";
-import { AIService } from "../services/AIService.js";
+import { resolveAIForUser } from "../services/AIService.js";
 import { ValidationError, NotFoundError } from "../errors.js";
 import { HttpResponse, type EffectHandler } from "../effectHandler.js";
 import type { QuestionTemplate } from "@skillclimb/core";
@@ -56,7 +56,8 @@ export function hintsRouter(handle: EffectHandler) {
         }
 
         // Try AI-generated hint
-        const ai = yield* AIService;
+        const userId = req.userId!;
+        const ai = yield* resolveAIForUser(userId);
         const aiHint = yield* ai
           .generateHint({
             concept: node.concept,

@@ -5,3 +5,4 @@ export {
   resolveProvider,
   type AIServiceShape,
 } from "./ai/AIService.js";
+export { resolveAIForUser } from "./ai/resolver.js";
