@@ -1,6 +1,6 @@
 # SkillClimb
 
-A test-driven learning platform built on spaced repetition, desirable difficulties, and adaptive assessment. SkillClimb works with arbitrary skill trees — the cybersecurity skill tree is the first implementation.
+An open-source, self-hosted learning engine built on spaced repetition, desirable difficulties, and adaptive assessment. SkillClimb works with arbitrary skill trees — the cybersecurity skill tree is the first implementation.
 
 ## How It Works
 
@@ -15,7 +15,8 @@ Key subsystems:
 - **Session Builder** — Selects review items using due dates, interleaving, and prerequisite reinforcement
 - **Placement Test** — Adaptive IRT-based assessment (~40–60 questions)
 - **Confidence Calibration** — Tracks self-rated confidence vs. actual performance
-- **AI Tutor** — Evaluates free-recall responses, generates hints and micro-lessons via Claude
+- **AI Tutor** — Pluggable providers (Anthropic, OpenAI, Ollama); evaluates free-recall responses, generates hints and micro-lessons
+- **MCP Server** — Exposes learning engine to external AI agents for tutoring, session management, and content authoring
 
 ## Tech Stack
 
@@ -24,9 +25,11 @@ Key subsystems:
 | Frontend | React 19, TypeScript, Vite, Zustand, TanStack React Query |
 | Backend | Express 5, TypeScript, Effect.js |
 | Database | PostgreSQL 16, Drizzle ORM |
-| AI | Anthropic Claude API |
+| AI Providers | Anthropic (default), OpenAI, Ollama — pluggable via `AI_PROVIDER` env var |
+| MCP Server | Model Context Protocol — tutor tools, session management, learning state resources |
 | Auth | OAuth (Google/GitHub), JWT |
 | Testing | Vitest, Supertest |
+| Deployment | Docker Compose (self-hosted) |
 | Monorepo | npm workspaces |
 
 ## Project Structure
@@ -59,7 +62,8 @@ npm install
 # Create backend .env
 cat > packages/backend/.env << 'EOF'
 DATABASE_URL=postgres://postgres:postgres@localhost:5432/skillclimb
-ANTHROPIC_API_KEY=        # Optional — AI features degrade gracefully without it
+AI_PROVIDER=anthropic     # Options: anthropic, openai, ollama (or omit for no AI)
+ANTHROPIC_API_KEY=        # Required if AI_PROVIDER=anthropic
 JWT_SECRET=               # Optional — defaults to dev secret
 APP_URL=http://localhost:5173
 EOF

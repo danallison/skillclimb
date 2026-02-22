@@ -1,12 +1,12 @@
 # SKILLCLIMB
 
-**A Generic Test-Driven Learning Platform**
+**An Open-Source, Self-Hosted Learning Engine**
 
 *Built on Desirable Difficulties, Spaced Repetition, and Adaptive Assessment*
 
 ---
 
-**Platform Specification — Version 1.0 — February 2026**
+**Platform Specification — Version 2.0 — February 2026**
 
 ---
 
@@ -33,11 +33,11 @@
 
 ## Executive Summary
 
-SkillClimb is a test-driven learning platform that inverts the traditional tutorial-first model. Instead of presenting lessons followed by quizzes, SkillClimb leads with assessment: learners encounter challenging questions and practical challenges first, exposing knowledge gaps before any instruction occurs. Instruction is then delivered precisely where gaps are identified, making every minute of study maximally efficient.
+SkillClimb is an open-source, self-hosted learning engine that inverts the traditional tutorial-first model. Instead of presenting lessons followed by quizzes, SkillClimb leads with assessment: learners encounter challenging questions and practical challenges first, exposing knowledge gaps before any instruction occurs. Instruction is then delivered precisely where gaps are identified, making every minute of study maximally efficient. Run it on your own infrastructure with a single `docker compose up`.
 
 The platform is grounded in cognitive science research on durable learning, particularly the framework of desirable difficulties articulated by Robert Bjork and synthesized in the book *Make It Stick* by Peter Brown, Henry Roediger, and Mark McDaniel. A spaced repetition engine (based on a modified SM-2 algorithm) ensures that knowledge, once acquired, is retained over the long term through optimally timed review.
 
-SkillClimb works with arbitrary skill trees via a **skill tree system**. Each skill tree defines a domain of knowledge — its structure, questions, prerequisites, and progression. The platform handles all the learning science, adaptive assessment, and spaced repetition; skill trees supply the subject matter. The first and primary skill tree covers cybersecurity (see `CYBERCLIMB.md`).
+SkillClimb works with arbitrary skill trees via a **skill tree system**. Each skill tree defines a domain of knowledge — its structure, questions, prerequisites, and progression — and can be distributed as a git repository. The platform handles all the learning science, adaptive assessment, and spaced repetition; skill trees supply the subject matter. AI tutoring is powered by **pluggable providers** (Anthropic, OpenAI, or local models via Ollama), and the entire learning engine is accessible to external AI agents through an **MCP (Model Context Protocol) interface**. The first and primary skill tree covers cybersecurity (see `CYBERCLIMB.md`).
 
 Learners always know where they stand, what they don't know yet, and exactly what to do next.
 
@@ -209,9 +209,60 @@ After each session, a summary shows: items reviewed, success rate, domains cover
 
 ## AI Tutor Integration
 
-SkillClimb integrates an LLM-based tutor (via the Anthropic API) at several key points in the learning loop. The tutor is not a replacement for structured content—it is a supplement that provides personalized feedback where static content cannot.
+SkillClimb uses a **pluggable AI provider architecture** — the platform defines what AI capabilities it needs, and operators choose which provider supplies them. The default is Anthropic's Claude API, but any OpenAI-compatible API or local model (via Ollama) works out of the box. For AI agents and external tools, SkillClimb exposes its full learning engine through an **MCP (Model Context Protocol) server**, enabling any MCP-capable AI to act as a tutor, study coach, or content author.
+
+### AI Provider Contract
+
+The platform defines three AI capabilities. Each maps to a method on the `AIServiceShape` interface (see `ai.types.ts`):
+
+| Method | Input | Output | Used For |
+|--------|-------|--------|----------|
+| `evaluateFreeRecall` | learner response, correct answer, concept context | score (0–5), feedback text, misconception flags | Scoring open-ended explanations |
+| `generateHint` | question, learner's wrong answer, attempt number | Socratic hint text | Guiding learners without revealing answers |
+| `generateMicroLesson` | concept, learner history, knowledge gaps | lesson markdown | Targeted instruction after repeated failures |
+
+Providers implement this contract. The platform doesn't know or care which LLM is behind it.
+
+### Built-in Providers
+
+| Provider | Model | Config | Notes |
+|----------|-------|--------|-------|
+| **Anthropic** (default) | Claude | `AI_PROVIDER=anthropic` + `ANTHROPIC_API_KEY` | Best quality; recommended for production |
+| **OpenAI** | GPT-4o / GPT-4o-mini | `AI_PROVIDER=openai` + `OPENAI_API_KEY` | Drop-in alternative |
+| **Ollama** | Any local model | `AI_PROVIDER=ollama` + `OLLAMA_BASE_URL` | Free, private, offline-capable; quality varies by model |
+
+Set `AI_PROVIDER` in your `.env` file. The platform validates the provider at startup and falls back to deterministic scoring if no provider is configured.
+
+### MCP Interface
+
+SkillClimb runs an MCP server that exposes the learning engine to any MCP-capable AI agent. This enables external AI systems to drive study sessions, coach learners proactively, and author content — without being hard-coded into the platform.
+
+**MCP Tools** (actions an AI agent can take):
+
+| Tool | Description |
+|------|-------------|
+| `evaluate_free_recall` | Score a learner's free-recall response |
+| `generate_hint` | Generate a Socratic hint for a struggling learner |
+| `generate_micro_lesson` | Create a targeted micro-lesson for a specific concept |
+| `start_study_session` | Begin a new study session for a learner |
+| `submit_review` | Submit a review result (score, confidence, response) |
+| `get_next_question` | Get the next question in an active session |
+
+**MCP Resources** (learning state an AI agent can read):
+
+| Resource | URI Pattern | Description |
+|----------|-------------|-------------|
+| Learner Profile | `skillclimb://users/{id}/profile` | Overall stats, calibration, streaks |
+| Due Items | `skillclimb://users/{id}/due` | Nodes due for review with SRS state |
+| Domain Progress | `skillclimb://users/{id}/domains` | Per-domain mastery, freshness, badge state |
+| Skill Tree Map | `skillclimb://skilltrees/{id}/map` | Full hierarchy with prerequisite graph |
+| Session History | `skillclimb://users/{id}/sessions` | Recent session results and analytics |
+
+With tools and resources together, an external AI agent can proactively coach a learner: read their due items and domain progress, start a session, ask questions, evaluate responses, generate hints when they struggle, and summarize their progress afterward — all through the MCP protocol.
 
 ### Tutor Touchpoints
+
+The AI tutor (whether built-in or driving via MCP) engages at four key points in the learning loop:
 
 - **Elaboration evaluation:** When a learner writes a free-form explanation, the tutor assesses whether the explanation demonstrates genuine understanding or surface-level repetition of memorized phrases. It provides targeted feedback on gaps in reasoning.
 - **Socratic hints:** When a learner struggles with a question, rather than revealing the answer, the tutor asks a guiding question designed to help the learner reach the answer themselves. This preserves the generation effect.
@@ -220,7 +271,11 @@ SkillClimb integrates an LLM-based tutor (via the Anthropic API) at several key 
 
 ### Cost Management
 
-AI tutor calls are reserved for high-value interactions: free recall evaluation, misconception analysis, and scenario generation. Recognition and cued recall questions use deterministic scoring. Estimated cost per active learner per month is $2–5 at current API pricing, based on approximately 40–60 AI-evaluated interactions per month.
+Cost profiles vary significantly by provider:
+
+- **Cloud APIs (Anthropic, OpenAI):** AI calls are reserved for high-value interactions: free recall evaluation, misconception analysis, and scenario generation. Recognition and cued recall questions use deterministic scoring. Estimated cost per active learner per month is $2–5 at current API pricing, based on approximately 40–60 AI-evaluated interactions per month.
+- **Local models (Ollama):** Zero marginal cost per interaction. Quality depends on the model — larger models (70B+) approach cloud API quality; smaller models (7B–13B) work well for hint generation but may struggle with nuanced misconception detection.
+- **No provider configured:** The platform operates without AI features. Free recall questions fall back to self-assessment scoring. Hints and micro-lessons are not available. All SRS, session building, and progress tracking continue to work.
 
 ---
 
@@ -365,6 +420,22 @@ The seed script (`npm run seed`) auto-discovers all skill trees and loads them i
 
 The platform handles all SRS scheduling, session building, placement testing, progress tracking, and analytics. Skill trees only need to supply the knowledge structure and questions.
 
+### Content Distribution
+
+Skill trees are designed to be distributable as git repositories. A skill tree repo contains the `skilltree.yaml` manifest and `domains/` directory — everything needed to seed a complete curriculum. To install a community-authored skill tree, clone it into the content directory and run the seed command. Future plans include a community registry where authors can publish skill trees and learners can browse and install them.
+
+### AI-Assisted Authoring
+
+Creating a full skill tree by hand is labor-intensive. SkillClimb's MCP server exposes authoring tools that enable AI agents to assist with content creation:
+
+| MCP Tool | Description |
+|----------|-------------|
+| `generate_skill_tree_outline` | Given a subject description, generates a tier/domain/topic structure |
+| `generate_domain_content` | Given a domain definition, generates topics, nodes, and question templates |
+| `validate_skill_tree` | Checks structural integrity: DAG validity, question template completeness, tier consistency |
+
+The intended workflow is human-in-the-loop: an AI generates a draft skill tree, a subject-matter expert reviews and edits the YAML, and the validated result is seeded into the platform. This dramatically reduces the time to create a new skill tree while maintaining content quality through human review.
+
 ---
 
 ## Technical Architecture
@@ -374,13 +445,14 @@ The platform handles all SRS scheduling, session building, placement testing, pr
 | Layer | Technology | Rationale |
 |-------|-----------|-----------|
 | Web Frontend | React + TypeScript | Component model suits skill tree UI; strong ecosystem for data viz |
-| Mobile App | React Native + Expo | Native iOS/Android app; primary interface for daily SRS sessions |
-| State Mgmt | Zustand + React Query | Lightweight, works across web and mobile; server sync |
+| State Mgmt | Zustand + React Query | Lightweight; server sync via React Query |
 | Backend API | Express + TypeScript | Fast iteration; tsx for development |
 | Database | PostgreSQL (Drizzle ORM) | JSONB for flexible question/answer schemas; strong query planner |
-| AI Tutor | Claude API | Elaboration evaluation, adaptive hint generation, explanation quality |
+| AI Providers | Anthropic / OpenAI / Ollama | Pluggable via `AIServiceShape` contract; configured by `AI_PROVIDER` env var |
+| MCP Server | Model Context Protocol | Exposes learning engine to external AI agents for tutoring and authoring |
 | Lab Environment | Docker containers | Isolated, disposable environments for practical challenges |
-| Monorepo | npm workspaces | Four packages: `@skillclimb/core`, `@skillclimb/backend`, `@skillclimb/frontend`, `@skillclimb/mobile` |
+| Deployment | Docker Compose | Self-hosted; single `docker compose up` for full stack |
+| Monorepo | npm workspaces | Three packages: `@skillclimb/core`, `@skillclimb/backend`, `@skillclimb/frontend` |
 
 ### Data Model (Core Entities)
 
@@ -405,20 +477,37 @@ Domain logic lives in `@skillclimb/core` as pure functions with no side effects:
 - **Progress** (`progress/progress.ts`) — mastery tracking and progress calculation
 - **Calibration** (`calibration/calibration.ts`) — confidence calibration analytics
 
-All I/O, database access, API calls, and state mutations are pushed to the outer shell: backend services (`@skillclimb/backend`), web frontend components (`@skillclimb/frontend`), and mobile app screens (`@skillclimb/mobile`).
+All I/O, database access, API calls, and state mutations are pushed to the outer shell: backend services (`@skillclimb/backend`) and web frontend components (`@skillclimb/frontend`).
 
-### Web and Mobile Clients
+### Self-Hosted Deployment
 
-SkillClimb has two client applications sharing the same backend API:
+SkillClimb is designed to run on your own infrastructure via Docker Compose. A single `docker compose up` starts the full stack:
 
-- **Web app** (`@skillclimb/frontend`) — React + TypeScript. Used for desktop features like labs, content authoring, and full skill tree exploration. Also serves as the fallback for users who don't install the mobile app.
-- **Mobile app** (`@skillclimb/mobile`) — React Native + Expo. The primary interface for most users most of the time. Optimized for daily SRS review sessions, with offline support and push notifications for review reminders.
+- **postgres** — PostgreSQL database with persistent volume
+- **backend** — Express API server + MCP server
+- **frontend** — React web app (served via nginx or dev server)
 
-Both clients share `@skillclimb/core` for all domain logic (SRS calculations, scoring, progress, IRT). API interaction patterns (React Query hooks, auth state) follow the same conventions in both clients but are implemented separately due to platform differences (React DOM vs React Native).
+All configuration is via environment variables in a `.env` file (see `.env.example`): database credentials, AI provider selection and API keys, JWT secrets, and optional feature flags. No external services are required beyond an AI provider API key (and even that is optional if running Ollama locally).
 
-### Offline-First SRS (Mobile)
+### Pluggable AI Architecture
 
-The mobile app stores SRS state locally using SQLite and syncs to the server when connectivity is available. This ensures learners can complete review sessions without network connectivity — critical for learning consistency. Conflict resolution uses a last-write-wins strategy on the server with client-side timestamps, appropriate for the single-user-per-account access pattern. The web app does not support offline mode; it requires an active connection.
+AI capabilities are abstracted behind the `AIServiceShape` interface (defined in `ai.types.ts`). The architecture has four layers:
+
+1. **Contract** — `AIServiceShape` defines three methods (`evaluateFreeRecall`, `generateHint`, `generateMicroLesson`) with typed inputs and outputs.
+2. **Providers** — Each provider (Anthropic, OpenAI, Ollama) implements the contract, translating between SkillClimb's types and the provider's API.
+3. **Configuration** — The `AI_PROVIDER` environment variable selects the active provider at startup. The backend validates the provider and required credentials on boot.
+4. **MCP layer** — The MCP server exposes the AI contract (plus session management and learning state) to external agents, enabling any MCP-capable AI to drive the platform.
+
+Adding a new provider means implementing three methods. No changes to the platform, MCP server, or frontend are needed.
+
+### Content Distribution Architecture
+
+Skill trees are self-contained directories that can be distributed as git repositories. To install a community skill tree:
+
+1. Clone the repo into `packages/backend/src/content/`
+2. Run `npm run seed -- --skilltree <skilltree-id>`
+
+The seed script auto-discovers all directories in the content folder and loads any valid skill tree. Future versions will include a `skillclimb install <repo-url>` CLI command and a community registry for discovering skill trees.
 
 ---
 
@@ -458,12 +547,13 @@ Integrate the LLM tutor, instructional content delivery, and progressive questio
 6. Implement misconception detection: the AI analyzes patterns of wrong answers across reviews to identify systematic misconceptions and generates targeted correction content. ✅
 7. Add knowledge decay visualization: mastered domains gradually fade from green toward amber as SRS due dates approach. ✅
 
-#### P4: Authentication
+#### P4: Authentication ✅
 
-Replace placeholder auth with real authentication that works across web and mobile.
+Replace placeholder auth with real authentication.
 
-1. Implement OAuth authentication (Google/GitHub) to replace email-only login.
-2. Set up shared auth infrastructure (token management, session persistence) usable by both web and mobile clients.
+1. Implement OAuth authentication (Google/GitHub) to replace email-only login. ✅
+2. Set up JWT access/refresh token infrastructure with httpOnly cookies. ✅
+3. Add protected routes and middleware for authenticated API endpoints. ✅
 
 #### P5: Gamification ✅
 
@@ -477,35 +567,57 @@ Add learning-science-grounded motivation mechanics across all layers.
 6. Build learning velocity tracking (4-week rolling average with trend). ✅
 7. Build knowledge profile dashboard unifying all metrics (streaks, badges, velocity, retention, calibration). ✅
 
-#### P6: Mobile App (React Native / Expo)
+#### P6: Pluggable AI and MCP
 
-Build the mobile app as the primary interface for daily learning. Full feature parity with the web app.
+Refactor the AI integration into a pluggable provider architecture and expose the learning engine via MCP.
 
-1. Scaffold Expo app as `@skillclimb/mobile` in the monorepo, sharing `@skillclimb/core` for all domain logic.
-2. Build all core views: login, skill tree selection, skill tree map, progress dashboard, study sessions (question card, confidence rating, feedback, hints, AI feedback), placement test, calibration dashboard, session summary.
-3. Implement offline-first SRS with SQLite storage and background server sync, enabling review sessions without network connectivity.
-4. Add push notifications for review reminders via Expo notifications.
-5. Dev builds via Expo for initial testing and distribution.
+1. Define `AIServiceShape` interface with typed methods: `evaluateFreeRecall`, `generateHint`, `generateMicroLesson`.
+2. Refactor existing Anthropic integration into an Anthropic provider adapter implementing `AIServiceShape`.
+3. Build OpenAI provider adapter.
+4. Build Ollama provider adapter for local model support.
+5. Add `AI_PROVIDER` environment variable with startup validation and graceful fallback when no provider is configured.
+6. Build MCP server exposing tutor tools (`evaluate_free_recall`, `generate_hint`, `generate_micro_lesson`), session management tools (`start_study_session`, `submit_review`, `get_next_question`), and learning state resources (`learner_profile`, `due_items`, `domain_progress`, `skill_tree_map`, `session_history`).
+7. Integration tests for each provider adapter and MCP tool/resource.
+8. Document provider configuration and MCP interface.
 
-#### P7: Labs and Advanced Features
+#### P7: Self-Hosted Deployment
 
-Add practical lab environments, advanced analytics, and cross-domain challenges. Labs are web-only (Docker environments require a desktop browser); analytics and challenge mode are available on both web and mobile.
+Package the platform for one-command self-hosted deployment.
+
+1. Create Dockerfile for backend (Express + MCP server).
+2. Extend `docker-compose.yml` with postgres, backend, and frontend services with persistent volumes.
+3. Create `.env.example` with all configuration variables documented.
+4. Build data export/import utilities for backup and migration.
+5. Write setup documentation: prerequisites, quickstart, configuration reference, upgrading.
+
+#### P8: AI-Assisted Content Authoring
+
+Enable AI agents to help author new skill trees via MCP.
+
+1. Build MCP authoring tools: `generate_skill_tree_outline` (tier/domain/topic structure from a subject description), `generate_domain_content` (topics, nodes, and question templates for a domain), `validate_skill_tree` (check structural integrity, prerequisite DAG validity, question template completeness).
+2. Write authoring workflow guide: how to use an MCP-capable AI to scaffold a skill tree, review and edit the output, then seed it.
+3. End-to-end test: use authoring tools to generate a sample non-cybersecurity curriculum and seed it successfully.
+
+#### P9: Labs and Advanced Features
+
+Add practical lab environments, advanced analytics, and cross-domain challenges.
 
 1. Build Docker-based lab environments for practical challenges (hands-on exercises defined by skill trees).
 2. Implement the analytics dashboard: session summaries, retention curves, calibration trends, domain progress over time.
 3. Build cross-domain challenge mode with scenario generation.
 4. Implement adaptive scenario generation: the AI generates novel application-level scenarios based on the learner's current skill profile, ensuring practice material stays fresh and contextually varied.
 
-#### P8: Launch
+#### P10: Community Launch
 
-Refine the experience and prepare for public launch.
+Open-source publication and community ecosystem.
 
 1. Build notification system for review reminders with learner-preferred timing.
 2. Performance optimization: lazy loading of skill tree, question prefetching, SRS calculation caching.
 3. Optional leaderboard for cross-domain challenge scores.
-4. Publish to Apple App Store and Google Play via Expo's build service.
-5. User testing with beta users; iterate on question quality and difficulty calibration.
-6. Launch publicly.
+4. Publish to GitHub as an open-source project with LICENSE, CONTRIBUTING guide, and setup documentation.
+5. Launch skill tree registry for community-contributed skill trees.
+6. Write launch blog post explaining the platform's learning science foundations and self-hosted architecture.
+7. User testing with beta users; iterate on question quality and difficulty calibration.
 
 ### Content Track
 
@@ -520,7 +632,7 @@ Seed initial domains with question templates.
 
 #### C2: Question Depth
 
-Add question type variety and improve quality across existing domains.
+Add question type variety and improve quality across existing domains. AI-assisted authoring (P8) can accelerate template generation for question types that follow predictable patterns.
 
 - Add application-level question templates to all seeded domains.
 - Ensure every node has at least recognition and cued recall templates.
@@ -528,7 +640,7 @@ Add question type variety and improve quality across existing domains.
 
 #### C3: Domain Expansion
 
-Seed remaining domains across all tiers.
+Seed remaining domains across all tiers. AI-assisted authoring (P8) can accelerate initial domain seeding — generate a draft, then review and refine manually.
 
 - Seed remaining T1 domain: Web Application Security.
 - Seed T2 domains: Penetration Testing, SOC Operations, Digital Forensics, Cloud Security, System Administration, Malware Analysis.
@@ -536,7 +648,7 @@ Seed remaining domains across all tiers.
 - Seed T3 domains: Exploit Development, Threat Intelligence, Incident Response, Security Architecture.
 - Target: ~600 nodes total across T0–T3.
 
-#### C4: Instructional Content (requires P3)
+#### C4: Instructional Content (requires P3; accelerated by P8)
 
 Author micro-lessons and worked examples for nodes where learners commonly struggle.
 
@@ -545,7 +657,7 @@ Author micro-lessons and worked examples for nodes where learners commonly strug
 - Build concept maps showing connections between related nodes across domains.
 - AI-generated lessons serve as fallback for nodes without hand-authored content.
 
-#### C5: Advanced and Specialized Content (requires P6 for labs)
+#### C5: Advanced and Specialized Content (requires P9 for labs)
 
 Build content for advanced tiers, labs, and cross-domain challenges.
 
@@ -572,21 +684,24 @@ Build content for advanced tiers, labs, and cross-domain challenges.
 
 | Risk | Impact | Mitigation |
 |------|--------|------------|
-| Content creation bottleneck | Slow domain expansion; incomplete skill trees | Use AI-assisted question generation with expert review; prioritize high-demand skill trees |
+| Content creation bottleneck | Slow domain expansion; incomplete skill trees | AI-assisted authoring via MCP tools (P8); community-contributed skill trees; prioritize high-demand skill trees |
 | SRS parameter tuning | Intervals too short (burnout) or too long (forgetting) | A/B test parameters; track long-term retention rates; allow user overrides |
-| AI tutor cost scaling | API costs exceed revenue per user | Batch API for non-real-time evaluation; cache common misconception responses; rate-limit AI interactions |
+| AI tutor cost scaling | API costs grow with user base | Pluggable providers: use Ollama for free local inference; reserve cloud APIs for high-value interactions; deterministic fallback when no provider configured |
 | Learner frustration with difficulty | Dropoff due to test-first approach feeling punishing | Careful onboarding explaining the science; celebrate growth from errors; normalize productive struggle |
 | Content freshness | Rapidly evolving fields make content stale | Quarterly content reviews; community contribution pipeline; AI-assisted update detection |
+| Self-hosted setup complexity | Users fail to deploy or configure correctly | One-command Docker Compose setup; comprehensive `.env.example`; setup documentation with troubleshooting guide |
+| AI quality variance across providers | Inconsistent tutoring quality with different AI providers | Provider-specific prompt tuning; integration tests per provider; documentation of quality/cost trade-offs; recommended models per provider |
+| AI-generated content quality | AI-authored skill trees may contain errors or shallow content | Human-in-the-loop workflow: AI generates drafts, experts review; `validate_skill_tree` MCP tool checks structural integrity; community review for published skill trees |
 
 ---
 
 ## Conclusion
 
-SkillClimb is designed around a conviction supported by decades of cognitive science research: the fastest path to expertise is not to study more, but to test more—and to test strategically. By combining desirable difficulties, spaced repetition, adaptive assessment, and AI-powered tutoring within the structure of a skill tree system, the platform offers a learning experience that is simultaneously more efficient, more engaging, and more durable than traditional approaches.
+SkillClimb is designed around a conviction supported by decades of cognitive science research: the fastest path to expertise is not to study more, but to test more—and to test strategically. By combining desirable difficulties, spaced repetition, adaptive assessment, and pluggable AI tutoring within the structure of a skill tree system, the platform offers a learning experience that is simultaneously more efficient, more engaging, and more durable than traditional approaches.
 
-The implementation roadmap delivers a functional learning platform in phases, with each phase producing a usable product. Phase 1 alone yields a working SRS-powered quiz engine that a motivated learner could use immediately. Each subsequent phase adds depth, breadth, and sophistication.
+The implementation roadmap delivers a functional learning platform in phases, with each phase producing a usable product. Phase 1 alone yields a working SRS-powered quiz engine that a motivated learner could use immediately. Each subsequent phase adds depth, breadth, and sophistication — from pluggable AI providers and MCP integration, to self-hosted deployment, to AI-assisted content authoring.
 
-The skill tree architecture means SkillClimb can grow into any domain where structured, hierarchical knowledge and spaced repetition are valuable — from cybersecurity to programming, from medicine to law, from language learning to mathematics.
+The skill tree architecture and MCP interface mean SkillClimb can grow into any domain where structured, hierarchical knowledge and spaced repetition are valuable — from cybersecurity to programming, from medicine to law, from language learning to mathematics. Community-distributed skill trees and AI-assisted authoring lower the barrier to creating new curricula, while the self-hosted model ensures learners and organizations retain full control of their data and infrastructure.
 
 ---
 

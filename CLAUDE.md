@@ -4,15 +4,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-SkillClimb is a generic test-driven learning platform built on spaced repetition, desirable difficulties, and adaptive assessment. It works with arbitrary skill trees via a skill tree system. The cybersecurity skill tree is the first and primary skill tree. The full platform specification lives in `SKILLCLIMB.md`. The cybersecurity skill tree specification lives in `CYBERCLIMB.md`.
+SkillClimb is an open-source, self-hosted learning engine built on spaced repetition, desirable difficulties, and adaptive assessment. It works with arbitrary skill trees via a skill tree system. AI tutoring is pluggable (Anthropic, OpenAI, Ollama) and the learning engine is accessible to external AI agents via MCP. The cybersecurity skill tree is the first and primary skill tree. The full platform specification lives in `SKILLCLIMB.md`. The cybersecurity skill tree specification lives in `CYBERCLIMB.md`.
 
 ## Tech Stack
 
 - **Web Frontend:** React + TypeScript, Zustand + React Query
-- **Mobile App:** React Native + Expo (planned — `@skillclimb/mobile`)
 - **Backend:** Express + TypeScript (tsx for dev)
 - **Database:** PostgreSQL (Drizzle ORM)
-- **Monorepo:** npm workspaces — `@skillclimb/core`, `@skillclimb/backend`, `@skillclimb/frontend`, `@skillclimb/mobile` (planned)
+- **AI Providers:** Pluggable — Anthropic (default), OpenAI, Ollama; configured via `AI_PROVIDER` env var
+- **MCP Server:** Exposes learning engine to external AI agents (tutor tools, session management, learning state resources)
+- **Deployment:** Docker Compose (self-hosted)
+- **Monorepo:** npm workspaces — `@skillclimb/core`, `@skillclimb/backend`, `@skillclimb/frontend`
 
 ## Development Strategy
 
@@ -29,6 +31,9 @@ Key subsystems:
 - **Placement Test** — adaptive IRT-based assessment (~40–60 questions)
 - **Confidence Calibration** — tracks self-rated confidence vs. actual performance
 - **Prerequisite Graph** — domains form a DAG; unlock at 60% mastery of prerequisites
+- **Pluggable AI** — `AIServiceShape` contract with provider adapters (Anthropic, OpenAI, Ollama); graceful fallback when no provider configured
+- **MCP Server** — exposes tutor tools, session management, learning state resources, and content authoring tools to external AI agents
+- **Self-Hosted Deployment** — Docker Compose with postgres, backend, and frontend services; all config via `.env`
 
 ## Skill Tree System
 
@@ -36,7 +41,7 @@ Skill trees live in `packages/backend/src/content/<skilltree-id>/`. Each skill t
 - `skilltree.yaml` — manifest with tier bases, domain data, prerequisites, placeholder domains
 - `domains/` — individual domain seed files with topic/node data
 
-The seed script (`npm run seed`) auto-discovers and loads all skill trees. Use `npm run seed -- --skilltree <skilltree-id>` to seed a specific skill tree.
+The seed script (`npm run seed`) auto-discovers and loads all skill trees. Use `npm run seed -- --skilltree <skilltree-id>` to seed a specific skill tree. Skill trees are distributable as git repos — clone into the content directory and seed. AI-assisted authoring via MCP tools (`generate_skill_tree_outline`, `generate_domain_content`, `validate_skill_tree`) enables AI agents to help scaffold new skill trees.
 
 ## Core Data Model
 

@@ -25,7 +25,7 @@
 
 ## Overview
 
-CyberClimb is the cybersecurity skill tree for SkillClimb, the test-driven learning platform built on desirable difficulties, spaced repetition, and adaptive assessment. See `SKILLCLIMB.md` for the full platform specification — learning science foundations, SRS algorithm, question engine, AI tutor, technical architecture, and implementation roadmap.
+CyberClimb is the cybersecurity skill tree for SkillClimb, the open-source, self-hosted learning engine built on desirable difficulties, spaced repetition, and adaptive assessment. See `SKILLCLIMB.md` for the full platform specification — learning science foundations, SRS algorithm, question engine, pluggable AI tutor, MCP interface, technical architecture, and implementation roadmap.
 
 This document specifies the cybersecurity-specific content: the skill tree structure, how generic question types map to cybersecurity topics, lab environments, red team challenges, content creation plans, and certification alignment.
 
@@ -236,13 +236,13 @@ Content creation follows the Content Track in `SKILLCLIMB.md`. The code in `pack
 - Seed T3 domains: Exploit Development, Threat Intelligence, Incident Response, Security Architecture.
 - Target: ~600 nodes total across T0–T3.
 
-### C4: Instructional Content
+### C4: Instructional Content (requires P3; accelerated by P8)
 
 - Write micro-lessons (2–5 minutes each) for high-failure-rate nodes across seeded domains.
 - Create worked examples with step-by-step reasoning for complex topics (subnetting, TLS handshake, threat modeling, etc.).
 - Build concept maps showing connections between related nodes across domains.
 
-### C5: Advanced and Specialized Content
+### C5: Advanced and Specialized Content (requires P9 for labs)
 
 - Seed T4 AI Security domains: Adversarial ML, LLM Security, AI for SOC, AI Governance (~200 nodes).
 - Author red team challenge scenarios for tier transitions (T1→T2, T2→T3, T3→T4).
