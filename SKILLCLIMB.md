@@ -230,8 +230,22 @@ Providers implement this contract. The platform doesn't know or care which LLM i
 | **Anthropic** (default) | Claude | `AI_PROVIDER=anthropic` + `ANTHROPIC_API_KEY` | Best quality; recommended for production |
 | **OpenAI** | GPT-4o / GPT-4o-mini | `AI_PROVIDER=openai` + `OPENAI_API_KEY` | Drop-in alternative |
 | **Ollama** | Any local model | `AI_PROVIDER=ollama` + `OLLAMA_BASE_URL` | Free, private, offline-capable; quality varies by model |
+| **Webhook** | External agent | `AI_PROVIDER=webhook` + `WEBHOOK_AI_URL` | Delegates AI calls to an external service via HTTP callbacks |
 
 Set `AI_PROVIDER` in your `.env` file. The platform validates the provider at startup and falls back to deterministic scoring if no provider is configured.
+
+### Per-User AI Provider and Webhook Delegation
+
+The AI provider is configurable **per-user**, not just per-instance. The `AI_PROVIDER` environment variable sets the platform-wide default, but individual users can override it by registering their own webhook endpoint. This enables personal AI agents (e.g., OpenClaw) to act as a user's AI tutor, providing customized feedback informed by the learner's broader context, goals, and history beyond what SkillClimb tracks.
+
+**How it works:**
+
+1. A `user_ai_providers` database table stores per-user webhook configurations: `user_id`, `webhook_url`, `enabled`, and an optional `secret` for request signing.
+2. When the platform needs an AI call (evaluate, hint, or lesson), it checks the requesting user's row in `user_ai_providers` first. If a webhook URL is registered and enabled, the call routes there. Otherwise it falls back to the platform-wide `AI_PROVIDER`.
+3. The webhook adapter sends `AIServiceShape` method calls as HTTP POST requests to the user's URL. The request body includes the method name, the full method input (concept, learner response, question context, etc.), and the user ID. The external service returns the expected output (score, feedback, hint text, or micro-lesson).
+4. If the user's webhook fails (timeout, error), the platform falls back to the default provider for that request rather than failing the learner's session.
+
+This means a multi-tenant SkillClimb instance can have most users on the default Anthropic/OpenAI provider while individual learners plug in their own personal AI tutor — no platform-wide configuration change required.
 
 ### MCP Interface
 
@@ -571,14 +585,15 @@ Add learning-science-grounded motivation mechanics across all layers.
 
 Refactor the AI integration into a pluggable provider architecture and expose the learning engine via MCP.
 
-1. Define `AIServiceShape` interface with typed methods: `evaluateFreeRecall`, `generateHint`, `generateMicroLesson`.
-2. Refactor existing Anthropic integration into an Anthropic provider adapter implementing `AIServiceShape`.
-3. Build OpenAI provider adapter.
-4. Build Ollama provider adapter for local model support.
-5. Add `AI_PROVIDER` environment variable with startup validation and graceful fallback when no provider is configured.
-6. Build MCP server exposing tutor tools (`evaluate_free_recall`, `generate_hint`, `generate_micro_lesson`), session management tools (`start_study_session`, `submit_review`, `get_next_question`), and learning state resources (`learner_profile`, `due_items`, `domain_progress`, `skill_tree_map`, `session_history`).
-7. Integration tests for each provider adapter and MCP tool/resource.
-8. Document provider configuration and MCP interface.
+1. Define `AIServiceShape` interface with typed methods: `evaluateFreeRecall`, `generateHint`, `generateMicroLesson`. ✅
+2. Refactor existing Anthropic integration into an Anthropic provider adapter implementing `AIServiceShape`. ✅
+3. Build OpenAI provider adapter. ✅
+4. Build Ollama provider adapter for local model support. ✅
+5. Add `AI_PROVIDER` environment variable with startup validation and graceful fallback when no provider is configured. ✅
+6. Build MCP server exposing tutor tools (`evaluate_free_recall`, `generate_hint`, `generate_micro_lesson`), session management tools (`start_study_session`, `submit_review`, `get_next_question`), and learning state resources (`learner_profile`, `due_items`, `domain_progress`, `skill_tree_map`, `session_history`). ✅
+7. Build per-user AI provider system: add `user_ai_providers` table storing per-user webhook URLs; build webhook adapter that delegates `AIServiceShape` calls via HTTP POST; resolve provider per-request (check user's webhook first, fall back to platform-wide `AI_PROVIDER`); graceful fallback to default provider on webhook failure. This enables personal AI agents (e.g., OpenClaw) to act as a user's tutor.
+8. Integration tests for each provider adapter and MCP tool/resource.
+9. Document provider configuration and MCP interface.
 
 #### P7: Self-Hosted Deployment
 
