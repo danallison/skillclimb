@@ -43,6 +43,29 @@ Skill trees live in `packages/backend/src/content/<skilltree-id>/`. Each skill t
 
 The seed script (`npm run seed`) auto-discovers and loads all skill trees. Use `npm run seed -- --skilltree <skilltree-id>` to seed a specific skill tree. Skill trees are distributable as git repos — clone into the content directory and seed. AI-assisted authoring via MCP tools (`generate_skill_tree_outline`, `generate_domain_content`, `validate_skill_tree`) enables AI agents to help scaffold new skill trees.
 
+## AI Provider Configuration
+
+AI providers live in `packages/backend/src/services/ai/`. The `AI_PROVIDER` env var selects the provider at startup via `resolveProvider()`. Each adapter implements `AIServiceShape`.
+
+| `AI_PROVIDER` | Adapter | Required Env |
+|--------------|---------|-------------|
+| `anthropic` | `anthropic.adapter.ts` | `ANTHROPIC_API_KEY` |
+| `openai` | `openai.adapter.ts` | `OPENAI_API_KEY` |
+| `ollama` | `openai.adapter.ts` (OpenAI-compatible) | none (defaults to localhost:11434) |
+| `none` / unset | `noop.adapter.ts` | none |
+
+Missing API keys fall back to noop adapter with a warning (never crashes).
+
+## MCP Server
+
+Entry point: `packages/backend/src/mcp/index.ts` — runs via stdio transport, separate from Express.
+
+```bash
+npm run mcp --workspace=@skillclimb/backend
+```
+
+The MCP server reuses the same Effect layers (`DatabaseLive`, `AIServiceLive`) and service functions as Express. 13 tools (study sessions, placement tests, AI tutor, content discovery) and 5 resources (learner profile, due items, domain progress, skill tree map, session history).
+
 ## Core Data Model
 
 `User` → `LearnerNode` (SRS state per user/node) → `Node` → `Topic` → `Domain` → `Tier`

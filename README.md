@@ -62,10 +62,18 @@ npm install
 # Create backend .env
 cat > packages/backend/.env << 'EOF'
 DATABASE_URL=postgres://postgres:postgres@localhost:5432/skillclimb
-AI_PROVIDER=anthropic     # Options: anthropic, openai, ollama (or omit for no AI)
-ANTHROPIC_API_KEY=        # Required if AI_PROVIDER=anthropic
 JWT_SECRET=               # Optional — defaults to dev secret
 APP_URL=http://localhost:5173
+
+# AI Provider (optional — omit for no AI features)
+AI_PROVIDER=anthropic     # Options: anthropic, openai, ollama, none
+ANTHROPIC_API_KEY=        # Required if AI_PROVIDER=anthropic
+ANTHROPIC_MODEL=claude-haiku-4-5-20251001  # Optional
+# OPENAI_API_KEY=         # Required if AI_PROVIDER=openai
+# OPENAI_MODEL=gpt-4o-mini                # Optional
+# OPENAI_BASE_URL=                         # Optional (custom endpoint)
+# OLLAMA_BASE_URL=http://localhost:11434/v1  # Default for AI_PROVIDER=ollama
+# OLLAMA_MODEL=llama3.2                      # Optional
 EOF
 
 # Push schema to database
@@ -141,6 +149,58 @@ All routes under `/api`. Auth-protected routes require a JWT `access_token` cook
 | POST | `/api/placement/:id/answer` | * | Submit placement answer |
 | POST | `/api/hints` | * | Generate hint (static → AI → generic) |
 | POST | `/api/lessons` | * | Generate micro-lesson (static → AI → fallback) |
+
+## MCP Server
+
+SkillClimb exposes its learning engine via the [Model Context Protocol](https://modelcontextprotocol.io), enabling AI agents to drive the full learning experience — placement tests, study sessions, review submission, and progress tracking.
+
+### Running the MCP Server
+
+```bash
+npm run mcp --workspace=@skillclimb/backend
+```
+
+### Claude Desktop / Agent Configuration
+
+```json
+{
+  "mcpServers": {
+    "skillclimb": {
+      "command": "npx",
+      "args": ["tsx", "--env-file=.env", "src/mcp/index.ts"],
+      "cwd": "/path/to/cyberclimb/packages/backend"
+    }
+  }
+}
+```
+
+### Tools (13)
+
+| Tool | Description |
+|------|-------------|
+| `start_study_session` | Start a study session with review items |
+| `get_session` | Get session details and items |
+| `submit_review` | Submit a review with score and confidence |
+| `start_placement` | Start an adaptive placement test |
+| `submit_placement_answer` | Submit a placement test answer |
+| `abandon_placement` | Abandon an in-progress placement test |
+| `evaluate_free_recall` | AI evaluation of a free-recall response |
+| `generate_hint` | Generate a Socratic hint |
+| `generate_micro_lesson` | Generate a brief micro-lesson |
+| `list_skill_trees` | List available skill trees |
+| `list_domains` | List domains (optionally by skill tree) |
+| `get_domain_progress` | Get user progress in a domain |
+| `get_user_progress` | Get overall user progress |
+
+### Resources (5)
+
+| Resource | URI Pattern |
+|----------|-------------|
+| Learner Profile | `skillclimb://users/{id}/profile` |
+| Due Items | `skillclimb://users/{id}/due` |
+| Domain Progress | `skillclimb://users/{id}/domains` |
+| Skill Tree Map | `skillclimb://skilltrees/{id}/map` |
+| Session History | `skillclimb://users/{id}/sessions` |
 
 ## Architecture Details
 
