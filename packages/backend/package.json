@@ -9,7 +9,9 @@
     "start": "node dist/index.js",
     "seed": "tsx --env-file=.env src/db/seed.ts",
     "migrate": "tsx --env-file=.env src/db/migrate.ts",
-    "mcp": "tsx --env-file=.env src/mcp/index.ts"
+    "mcp": "tsx src/mcp/index.ts",
+    "api:token": "tsx --env-file=.env src/mcp/generate-token.ts",
+    "api:tokens": "tsx --env-file=.env src/mcp/manage-tokens.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.77.0",

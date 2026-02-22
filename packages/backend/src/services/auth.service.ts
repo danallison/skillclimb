@@ -1,8 +1,8 @@
-import { randomBytes, createHash } from "node:crypto";
+import { randomBytes, createHash, randomUUID } from "node:crypto";
 import { SignJWT, jwtVerify } from "jose";
-import { eq } from "drizzle-orm";
+import { eq, and, gt } from "drizzle-orm";
 import { db } from "../db/connection.js";
-import { refreshTokens } from "../db/schema.js";
+import { refreshTokens, apiTokens } from "../db/schema.js";
 import type { Response } from "express";
 
 if (process.env.NODE_ENV === "production") {
@@ -31,9 +31,13 @@ export async function createAccessToken(userId: string): Promise<string> {
 
 export async function verifyAccessToken(
   token: string,
-): Promise<{ userId: string }> {
+): Promise<{ userId: string; api?: boolean; jti?: string }> {
   const { payload } = await jwtVerify(token, JWT_SECRET);
-  return { userId: payload.userId as string };
+  return {
+    userId: payload.userId as string,
+    api: payload.api as boolean | undefined,
+    jti: payload.jti as string | undefined,
+  };
 }
 
 function hashToken(token: string): string {
@@ -109,4 +113,51 @@ export function setAuthCookies(
 export function clearAuthCookies(res: Response): void {
   res.clearCookie("access_token", { path: "/" });
   res.clearCookie("refresh_token", { path: "/" });
+}
+
+const API_TOKEN_EXPIRY_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+
+export async function createApiToken(
+  userId: string,
+  name?: string,
+): Promise<{ token: string; id: string }> {
+  const jti = randomUUID();
+  const expiresAt = new Date(Date.now() + API_TOKEN_EXPIRY_MS);
+
+  await db.insert(apiTokens).values({ id: jti, userId, name: name ?? null, expiresAt });
+
+  const token = await new SignJWT({ userId, api: true })
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setJti(jti)
+    .setExpirationTime("30d")
+    .sign(JWT_SECRET);
+
+  return { token, id: jti };
+}
+
+export async function verifyApiToken(jti: string): Promise<boolean> {
+  const [row] = await db
+    .select({ id: apiTokens.id })
+    .from(apiTokens)
+    .where(and(eq(apiTokens.id, jti), gt(apiTokens.expiresAt, new Date())));
+  return !!row;
+}
+
+export async function revokeApiToken(id: string): Promise<void> {
+  await db.delete(apiTokens).where(eq(apiTokens.id, id));
+}
+
+export async function listApiTokens(userId: string): Promise<
+  Array<{ id: string; name: string | null; createdAt: Date; expiresAt: Date }>
+> {
+  return db
+    .select({
+      id: apiTokens.id,
+      name: apiTokens.name,
+      createdAt: apiTokens.createdAt,
+      expiresAt: apiTokens.expiresAt,
+    })
+    .from(apiTokens)
+    .where(eq(apiTokens.userId, userId));
 }

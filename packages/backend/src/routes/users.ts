@@ -8,6 +8,7 @@ import {
   topics,
   reviews,
   studyDays,
+  sessions,
 } from "../db/schema.js";
 import { query } from "../services/Database.js";
 import { dbRowToLearnerState } from "../db/mappers.js";
@@ -394,6 +395,77 @@ export function usersRouter(handle: EffectHandler) {
           retentionStrength,
           calibrationScore,
         });
+      }),
+    ),
+  );
+
+  router.get(
+    "/me/due-items",
+    handle((req) =>
+      Effect.gen(function* () {
+        const userId = req.userId!;
+        const now = new Date();
+
+        const rows = yield* query((db) =>
+          db
+            .select()
+            .from(learnerNodes)
+            .where(eq(learnerNodes.userId, userId)),
+        );
+        const dueRows = rows.filter((r) => r.dueDate <= now);
+
+        if (dueRows.length === 0) {
+          return new HttpResponse(200, []);
+        }
+
+        const allNodes = yield* query((db) => db.select().from(nodes));
+        const nodeMap = new Map(allNodes.map((n) => [n.id, n]));
+
+        const allDomains = yield* query((db) => db.select().from(domains));
+        const domainMap = new Map(allDomains.map((d) => [d.id, d]));
+
+        const dueItems = dueRows.map((r) => {
+          const node = nodeMap.get(r.nodeId);
+          const domain = domainMap.get(r.domainId);
+          return {
+            nodeId: r.nodeId,
+            concept: node?.concept ?? "Unknown",
+            domainId: r.domainId,
+            domainName: domain?.name ?? "Unknown",
+            dueDate: r.dueDate.toISOString(),
+            easiness: r.easiness,
+            interval: r.interval,
+            repetitions: r.repetitions,
+          };
+        });
+
+        return new HttpResponse(200, dueItems);
+      }),
+    ),
+  );
+
+  router.get(
+    "/me/sessions",
+    handle((req) =>
+      Effect.gen(function* () {
+        const userId = req.userId!;
+
+        const history = yield* query((db) =>
+          db.select().from(sessions).where(eq(sessions.userId, userId)),
+        );
+
+        const sorted = history
+          .sort((a, b) => b.startedAt.getTime() - a.startedAt.getTime())
+          .slice(0, 20)
+          .map((s) => ({
+            id: s.id,
+            startedAt: s.startedAt.toISOString(),
+            completedAt: s.completedAt?.toISOString() ?? null,
+            itemCount: s.itemCount,
+            analytics: s.analytics,
+          }));
+
+        return new HttpResponse(200, sorted);
       }),
     ),
   );

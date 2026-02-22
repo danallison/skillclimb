@@ -1,49 +1,21 @@
-import { Effect } from "effect";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { createSession, getSession } from "../services/session.service.js";
-import { submitReview } from "../services/review.service.js";
-import {
-  startPlacement,
-  submitPlacementAnswer,
-  abandonPlacement,
-} from "../services/placement.service.js";
-import { AIService } from "../services/ai/AIService.js";
-import { query } from "../services/Database.js";
-import {
-  skilltrees,
-  domains,
-  learnerNodes,
-  nodes,
-  topics,
-} from "../db/schema.js";
-import { eq } from "drizzle-orm";
-import { dbRowToLearnerState } from "../db/mappers.js";
-import {
-  computeOverallProgress,
-  computeTopicProgress,
-  computeDomainFreshness,
-  computeDomainBadge,
-  computeDomainProgress,
-} from "@skillclimb/core";
-import type { LearnerNodeState } from "@skillclimb/core";
-import type { RunEffect } from "./server.js";
+import type { SkillClimbClient } from "./client.js";
 
-export function registerTools(server: McpServer, runEffect: RunEffect) {
+export function registerTools(server: McpServer, client: SkillClimbClient) {
   // ─── Study Session Tools ───────────────────────────────────────────
 
   server.tool(
     "start_study_session",
-    "Start a new study session for a user. Returns session items with question templates for review.",
+    "Start a new study session. Returns session items with question templates for review.",
     {
-      userId: z.string().uuid().describe("The user's ID"),
       skilltreeId: z
         .string()
         .optional()
         .describe("Optional skill tree ID to scope the session"),
     },
-    async ({ userId, skilltreeId }) => {
-      const session = await runEffect(createSession(userId, skilltreeId));
+    async ({ skilltreeId }) => {
+      const session = await client.createSession(skilltreeId);
       return {
         content: [
           {
@@ -60,26 +32,29 @@ export function registerTools(server: McpServer, runEffect: RunEffect) {
     "Get details of an existing study session, including its items and learner states.",
     {
       sessionId: z.string().uuid().describe("The session ID"),
-      userId: z.string().uuid().describe("The user's ID"),
     },
-    async ({ sessionId, userId }) => {
-      const session = await runEffect(getSession(sessionId, userId));
-      if (!session) {
+    async ({ sessionId }) => {
+      try {
+        const session = await client.getSession(sessionId);
         return {
           content: [
-            { type: "text" as const, text: "Session not found" },
+            {
+              type: "text" as const,
+              text: JSON.stringify(session, null, 2),
+            },
+          ],
+        };
+      } catch (error) {
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: error instanceof Error ? error.message : "Session not found",
+            },
           ],
           isError: true,
         };
       }
-      return {
-        content: [
-          {
-            type: "text" as const,
-            text: JSON.stringify(session, null, 2),
-          },
-        ],
-      };
     },
   );
 
@@ -87,7 +62,6 @@ export function registerTools(server: McpServer, runEffect: RunEffect) {
     "submit_review",
     "Submit a review for a node. Updates SRS state and returns next review state, calibration, and milestones.",
     {
-      userId: z.string().uuid().describe("The user's ID"),
       nodeId: z.string().uuid().describe("The node ID being reviewed"),
       score: z
         .number()
@@ -111,10 +85,14 @@ export function registerTools(server: McpServer, runEffect: RunEffect) {
         .optional()
         .describe("Misconceptions identified in the response"),
     },
-    async ({ userId, nodeId, score, confidence, response, misconceptions }) => {
-      const result = await runEffect(
-        submitReview(userId, nodeId, score, confidence, response, misconceptions),
-      );
+    async ({ nodeId, score, confidence, response, misconceptions }) => {
+      const result = await client.submitReview({
+        nodeId,
+        score,
+        confidence,
+        response,
+        misconceptions,
+      });
       return {
         content: [
           {
@@ -130,16 +108,15 @@ export function registerTools(server: McpServer, runEffect: RunEffect) {
 
   server.tool(
     "start_placement",
-    "Start an adaptive placement test for a user. Returns the first question and IRT state.",
+    "Start an adaptive placement test. Returns the first question and IRT state.",
     {
-      userId: z.string().uuid().describe("The user's ID"),
       skilltreeId: z
         .string()
         .optional()
         .describe("Optional skill tree ID to scope the test"),
     },
-    async ({ userId, skilltreeId }) => {
-      const result = await runEffect(startPlacement(userId, skilltreeId));
+    async ({ skilltreeId }) => {
+      const result = await client.startPlacement(skilltreeId);
       return {
         content: [
           {
@@ -156,7 +133,6 @@ export function registerTools(server: McpServer, runEffect: RunEffect) {
     "Submit an answer to a placement test question. Returns whether correct, next question (if not done), and final results (if done).",
     {
       placementId: z.string().uuid().describe("The placement test ID"),
-      userId: z.string().uuid().describe("The user's ID"),
       nodeId: z.string().uuid().describe("The node ID being answered"),
       selectedAnswer: z
         .string()
@@ -171,16 +147,12 @@ export function registerTools(server: McpServer, runEffect: RunEffect) {
         .default(3)
         .describe("Self-rated confidence (1-5)"),
     },
-    async ({ placementId, userId, nodeId, selectedAnswer, confidence }) => {
-      const result = await runEffect(
-        submitPlacementAnswer(
-          placementId,
-          userId,
-          nodeId,
-          selectedAnswer,
-          confidence,
-        ),
-      );
+    async ({ placementId, nodeId, selectedAnswer, confidence }) => {
+      const result = await client.submitPlacementAnswer(placementId, {
+        nodeId,
+        selectedAnswer,
+        confidence,
+      });
       return {
         content: [
           {
@@ -197,10 +169,9 @@ export function registerTools(server: McpServer, runEffect: RunEffect) {
     "Abandon an in-progress placement test.",
     {
       placementId: z.string().uuid().describe("The placement test ID"),
-      userId: z.string().uuid().describe("The user's ID"),
     },
-    async ({ placementId, userId }) => {
-      await runEffect(abandonPlacement(placementId, userId));
+    async ({ placementId }) => {
+      await client.abandonPlacement(placementId);
       return {
         content: [
           {
@@ -212,36 +183,17 @@ export function registerTools(server: McpServer, runEffect: RunEffect) {
     },
   );
 
-  // ─── AI Tutor Tools (optional) ─────────────────────────────────────
+  // ─── AI Tutor Tools ─────────────────────────────────────────────
 
   server.tool(
     "evaluate_free_recall",
     "Evaluate a free-recall response using the built-in AI provider. Returns score, feedback, key points, and misconceptions. Requires an AI provider to be configured.",
     {
-      concept: z.string().describe("The concept being tested"),
-      prompt: z.string().describe("The question prompt"),
-      correctAnswer: z.string().describe("The correct/expected answer"),
-      keyPoints: z
-        .array(z.string())
-        .optional()
-        .default([])
-        .describe("Key points that should be covered"),
-      rubric: z.string().optional().default("").describe("Grading rubric"),
-      learnerResponse: z
-        .string()
-        .describe("The learner's free-recall response"),
-      previousMisconceptions: z
-        .array(z.string())
-        .optional()
-        .describe("Previously identified misconceptions"),
+      nodeId: z.string().uuid().describe("The node ID being tested"),
+      response: z.string().describe("The learner's free-recall response"),
     },
-    async (input) => {
-      const result = await runEffect(
-        Effect.gen(function* () {
-          const ai = yield* AIService;
-          return yield* ai.evaluateFreeRecall(input);
-        }),
-      );
+    async ({ nodeId, response }) => {
+      const result = await client.evaluateFreeRecall({ nodeId, response });
       return {
         content: [
           {
@@ -257,24 +209,21 @@ export function registerTools(server: McpServer, runEffect: RunEffect) {
     "generate_hint",
     "Generate a Socratic hint for a question. Requires an AI provider to be configured.",
     {
-      concept: z.string().describe("The concept being tested"),
-      prompt: z.string().describe("The question prompt"),
-      correctAnswer: z.string().describe("The correct answer (not revealed to learner)"),
-      learnerResponse: z
+      nodeId: z.string().uuid().describe("The node ID"),
+      questionType: z
         .string()
         .optional()
-        .default("")
-        .describe("The learner's incorrect response"),
+        .describe("Optional question type to get a hint for"),
     },
-    async (input) => {
-      const hint = await runEffect(
-        Effect.gen(function* () {
-          const ai = yield* AIService;
-          return yield* ai.generateHint(input);
-        }),
-      );
+    async ({ nodeId, questionType }) => {
+      const result = await client.generateHint({ nodeId, questionType });
       return {
-        content: [{ type: "text" as const, text: hint }],
+        content: [
+          {
+            type: "text" as const,
+            text: JSON.stringify(result, null, 2),
+          },
+        ],
       };
     },
   );
@@ -283,32 +232,15 @@ export function registerTools(server: McpServer, runEffect: RunEffect) {
     "generate_micro_lesson",
     "Generate a brief micro-lesson for a concept. Requires an AI provider to be configured.",
     {
-      concept: z.string().describe("The concept to teach"),
-      correctAnswer: z.string().describe("The correct answer"),
-      explanation: z.string().describe("The explanation of the concept"),
-      keyPoints: z
-        .array(z.string())
-        .optional()
-        .default([])
-        .describe("Key points to cover"),
-      misconceptions: z
-        .array(z.string())
-        .optional()
-        .default([])
-        .describe("Known misconceptions to address"),
+      nodeId: z.string().uuid().describe("The node ID"),
     },
-    async (input) => {
-      const lesson = await runEffect(
-        Effect.gen(function* () {
-          const ai = yield* AIService;
-          return yield* ai.generateMicroLesson(input);
-        }),
-      );
+    async ({ nodeId }) => {
+      const result = await client.generateLesson({ nodeId });
       return {
         content: [
           {
             type: "text" as const,
-            text: JSON.stringify(lesson, null, 2),
+            text: JSON.stringify(result, null, 2),
           },
         ],
       };
@@ -322,18 +254,12 @@ export function registerTools(server: McpServer, runEffect: RunEffect) {
     "List all available skill trees.",
     {},
     async () => {
-      const rows = await runEffect(
-        query((db) => db.select().from(skilltrees).orderBy(skilltrees.name)),
-      );
+      const result = await client.listSkilltrees();
       return {
         content: [
           {
             type: "text" as const,
-            text: JSON.stringify(
-              rows.map((r) => ({ id: r.id, name: r.name })),
-              null,
-              2,
-            ),
+            text: JSON.stringify(result, null, 2),
           },
         ],
       };
@@ -350,29 +276,12 @@ export function registerTools(server: McpServer, runEffect: RunEffect) {
         .describe("Optional skill tree ID to filter by"),
     },
     async ({ skilltreeId }) => {
-      const rows = await runEffect(
-        query((db) => {
-          const q = db.select().from(domains).orderBy(domains.displayOrder);
-          return skilltreeId
-            ? q.where(eq(domains.skilltreeId, skilltreeId))
-            : q;
-        }),
-      );
+      const result = await client.listDomains(skilltreeId);
       return {
         content: [
           {
             type: "text" as const,
-            text: JSON.stringify(
-              rows.map((r) => ({
-                id: r.id,
-                name: r.name,
-                tier: r.tier,
-                description: r.description,
-                prerequisites: r.prerequisites,
-              })),
-              null,
-              2,
-            ),
+            text: JSON.stringify(result, null, 2),
           },
         ],
       };
@@ -381,40 +290,17 @@ export function registerTools(server: McpServer, runEffect: RunEffect) {
 
   server.tool(
     "get_domain_progress",
-    "Get a user's progress in a specific domain.",
+    "Get your progress in a specific domain.",
     {
-      userId: z.string().uuid().describe("The user's ID"),
       domainId: z.string().uuid().describe("The domain ID"),
     },
-    async ({ userId, domainId }) => {
-      const rows = await runEffect(
-        query((db) =>
-          db
-            .select()
-            .from(learnerNodes)
-            .where(eq(learnerNodes.userId, userId)),
-        ),
-      );
-      const states = rows.map(dbRowToLearnerState);
-      const domainProgress = computeDomainProgress(states);
-      const dp = domainProgress.find((d) => d.domainId === domainId);
-
+    async ({ domainId }) => {
+      const result = await client.getDomainProgress(domainId);
       return {
         content: [
           {
             type: "text" as const,
-            text: JSON.stringify(
-              {
-                domainId,
-                totalNodes: dp?.totalNodes ?? 0,
-                mastered: dp?.mastered ?? 0,
-                inProgress: dp?.inProgress ?? 0,
-                notStarted: dp?.notStarted ?? 0,
-                masteryPercentage: dp?.masteryPercentage ?? 0,
-              },
-              null,
-              2,
-            ),
+            text: JSON.stringify(result, null, 2),
           },
         ],
       };
@@ -423,117 +309,20 @@ export function registerTools(server: McpServer, runEffect: RunEffect) {
 
   server.tool(
     "get_user_progress",
-    "Get a user's overall progress including per-domain breakdown with badges, freshness, and topics.",
+    "Get your overall progress including per-domain breakdown with badges, freshness, and topics.",
     {
-      userId: z.string().uuid().describe("The user's ID"),
       skilltreeId: z
         .string()
         .optional()
         .describe("Optional skill tree ID to filter by"),
     },
-    async ({ userId, skilltreeId }) => {
-      const progress = await runEffect(
-        Effect.gen(function* () {
-          const rows = yield* query((db) =>
-            db
-              .select()
-              .from(learnerNodes)
-              .where(eq(learnerNodes.userId, userId)),
-          );
-
-          let allDomains = yield* query((db) =>
-            db.select().from(domains).orderBy(domains.displayOrder),
-          );
-          if (skilltreeId) {
-            allDomains = allDomains.filter((d) => d.skilltreeId === skilltreeId);
-          }
-          const stDomainIds = new Set(allDomains.map((d) => d.id));
-
-          let filteredRows = rows;
-          if (skilltreeId) {
-            filteredRows = rows.filter((r) => stDomainIds.has(r.domainId));
-          }
-
-          const states = filteredRows.map(dbRowToLearnerState);
-          const now = new Date();
-          const overall = computeOverallProgress(states, now);
-
-          let allNodes = yield* query((db) => db.select().from(nodes));
-          if (skilltreeId) {
-            allNodes = allNodes.filter((n) => stDomainIds.has(n.domainId));
-          }
-          const nodeTopicMap = new Map(
-            allNodes.map((n) => [
-              n.id,
-              { topicId: n.topicId, domainId: n.domainId },
-            ]),
-          );
-          const topicProg = computeTopicProgress(states, nodeTopicMap);
-
-          const allTopics = yield* query((db) =>
-            db.select().from(topics).orderBy(topics.displayOrder),
-          );
-          const topicMap = new Map(allTopics.map((t) => [t.id, t]));
-          const progressByDomain = new Map(
-            overall.domains.map((dp) => [dp.domainId, dp]),
-          );
-
-          const freshnessList = computeDomainFreshness(states, now);
-          const freshnessMap = new Map(
-            freshnessList.map((f) => [f.domainId, f.freshness]),
-          );
-
-          const statesByDomain = new Map<string, LearnerNodeState[]>();
-          for (const s of states) {
-            const list = statesByDomain.get(s.domainId) ?? [];
-            list.push(s);
-            statesByDomain.set(s.domainId, list);
-          }
-
-          const domainDetails = allDomains.map((domain) => {
-            const dp = progressByDomain.get(domain.id);
-            const domainTopics = topicProg
-              .filter((tp) => tp.domainId === domain.id)
-              .map((tp) => ({
-                ...tp,
-                name: topicMap.get(tp.topicId)?.name ?? "Unknown",
-              }));
-
-            const domainStates = statesByDomain.get(domain.id) ?? [];
-            const freshness = freshnessMap.get(domain.id) ?? 1.0;
-            const badge = computeDomainBadge(domainStates, freshness);
-
-            return {
-              domainId: domain.id,
-              name: domain.name,
-              tier: domain.tier,
-              totalNodes: dp?.totalNodes ?? 0,
-              mastered: dp?.mastered ?? 0,
-              inProgress: dp?.inProgress ?? 0,
-              notStarted: dp?.notStarted ?? 0,
-              masteryPercentage: dp?.masteryPercentage ?? 0,
-              freshness,
-              badge,
-              topics: domainTopics,
-            };
-          });
-
-          return {
-            totalNodes: overall.totalNodes,
-            mastered: overall.mastered,
-            inProgress: overall.inProgress,
-            notStarted: overall.notStarted,
-            masteryPercentage: overall.masteryPercentage,
-            nextSession: overall.nextSession,
-            domains: domainDetails,
-          };
-        }),
-      );
+    async ({ skilltreeId }) => {
+      const result = await client.getUserProgress(skilltreeId);
       return {
         content: [
           {
             type: "text" as const,
-            text: JSON.stringify(progress, null, 2),
+            text: JSON.stringify(result, null, 2),
           },
         ],
       };

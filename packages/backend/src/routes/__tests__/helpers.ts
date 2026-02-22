@@ -14,6 +14,7 @@ import { sessionsRouter } from "../sessions.js";
 import { placementRouter } from "../placement.js";
 import { hintsRouter } from "../hints.js";
 import { lessonsRouter } from "../lessons.js";
+import { usersRouter } from "../users.js";
 import * as schema from "../../db/schema.js";
 
 // ---------------------------------------------------------------------------
@@ -248,10 +249,18 @@ export function createMockDb(fixtures: MockFixtures = {}) {
         const rows = getRows(name);
         // Make the base promise-like AND chainable
         const result = Promise.resolve(rows);
-        (result as any).where = (expr: any) => Promise.resolve(filterRows(rows, expr));
+        (result as any).where = (expr: any) => {
+          const filtered = Promise.resolve(filterRows(rows, expr));
+          (filtered as any).orderBy = () => filtered;
+          return filtered;
+        };
         (result as any).orderBy = () => {
           const ordered = Promise.resolve(rows);
-          (ordered as any).where = (expr: any) => Promise.resolve(filterRows(rows, expr));
+          (ordered as any).where = (expr: any) => {
+            const filtered = Promise.resolve(filterRows(rows, expr));
+            (filtered as any).orderBy = () => filtered;
+            return filtered;
+          };
           return ordered;
         };
         return result;
@@ -346,6 +355,7 @@ export function createTestApp(
   app.use("/api/placement", placementRouter(handle));
   app.use("/api/hints", hintsRouter(handle));
   app.use("/api/lessons", lessonsRouter(handle));
+  app.use("/api/users", usersRouter(handle));
 
   return app;
 }
@@ -357,4 +367,9 @@ export function createTestApp(
 export async function authCookie(userId: string): Promise<string> {
   const token = await createAccessToken(userId);
   return `access_token=${token}`;
+}
+
+export async function authBearer(userId: string): Promise<string> {
+  const token = await createAccessToken(userId);
+  return `Bearer ${token}`;
 }

@@ -10,7 +10,7 @@ SkillClimb is an open-source, self-hosted learning engine built on spaced repeti
 
 - **Web Frontend:** React + TypeScript, Zustand + React Query
 - **Backend:** Express + TypeScript (tsx for dev)
-- **Database:** PostgreSQL (Drizzle ORM)
+- **Database:** PostgreSQL (Drizzle ORM) — runs in Docker (`docker compose up db`)
 - **AI Providers:** Pluggable — Anthropic (default), OpenAI, Ollama; configured via `AI_PROVIDER` env var
 - **MCP Server:** Exposes learning engine to external AI agents (tutor tools, session management, learning state resources)
 - **Deployment:** Docker Compose (self-hosted)
@@ -65,6 +65,21 @@ npm run mcp --workspace=@skillclimb/backend
 ```
 
 The MCP server reuses the same Effect layers (`DatabaseLive`, `AIServiceLive`) and service functions as Express. 13 tools (study sessions, placement tests, AI tutor, content discovery) and 5 resources (learner profile, due items, domain progress, skill tree map, session history).
+
+## Database Migrations
+
+Schema changes use Drizzle's migration system. **Do NOT use `drizzle-kit push`** — it's interactive and not automatable.
+
+1. After modifying `packages/backend/src/db/schema.ts`, generate a migration:
+   ```bash
+   cd packages/backend && DATABASE_URL="postgres://postgres:postgres@localhost:5432/cyberclimb" npx drizzle-kit generate
+   ```
+2. Apply the migration (non-interactive, safe for CI/production):
+   ```bash
+   DATABASE_URL="postgres://postgres:postgres@localhost:5432/cyberclimb" npm run migrate --workspace=@skillclimb/backend
+   ```
+
+Migration files live in `packages/backend/drizzle/` and should be committed.
 
 ## Core Data Model
 

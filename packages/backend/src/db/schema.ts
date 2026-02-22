@@ -27,6 +27,14 @@ export const refreshTokens = pgTable("refresh_tokens", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+export const apiTokens = pgTable("api_tokens", {
+  id: uuid("id").primaryKey(), // this IS the jti — no defaultRandom, caller provides it
+  userId: uuid("user_id").notNull().references(() => users.id),
+  name: text("name"),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 export const skilltrees = pgTable("skilltrees", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),

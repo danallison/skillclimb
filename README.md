@@ -137,6 +137,7 @@ All routes under `/api`. Auth-protected routes require a JWT `access_token` cook
 | Method | Path | Auth | Description |
 |--------|------|:----:|-------------|
 | GET | `/api/skilltrees` | | List skill trees |
+| GET | `/api/skilltrees/:id/map` | | Full skill tree hierarchy (domains → topics → nodes) |
 | GET | `/api/domains` | * | List domains (filterable by skilltreeId) |
 | GET | `/api/domains/:id/progress` | * | Domain mastery progress |
 | POST | `/api/sessions` | * | Create study session |
@@ -144,7 +145,10 @@ All routes under `/api`. Auth-protected routes require a JWT `access_token` cook
 | POST | `/api/reviews` | * | Submit review (score + confidence) |
 | POST | `/api/reviews/evaluate` | * | AI evaluation of free-recall response |
 | GET | `/api/users/me/progress` | * | Overall learning progress |
+| GET | `/api/users/me/profile` | * | Comprehensive learner profile |
 | GET | `/api/users/me/calibration` | * | Confidence calibration analysis |
+| GET | `/api/users/me/due-items` | * | Nodes due for review |
+| GET | `/api/users/me/sessions` | * | Recent session history (last 20) |
 | POST | `/api/placement` | * | Start adaptive placement test |
 | POST | `/api/placement/:id/answer` | * | Submit placement answer |
 | POST | `/api/hints` | * | Generate hint (static → AI → generic) |
@@ -154,25 +158,35 @@ All routes under `/api`. Auth-protected routes require a JWT `access_token` cook
 
 SkillClimb exposes its learning engine via the [Model Context Protocol](https://modelcontextprotocol.io), enabling AI agents to drive the full learning experience — placement tests, study sessions, review submission, and progress tracking.
 
-### Running the MCP Server
+### Setup
+
+1. Generate a long-lived API token for your user:
 
 ```bash
-npm run mcp --workspace=@skillclimb/backend
+npm run api:token --workspace=@skillclimb/backend -- --email user@example.com --name "Claude Desktop"
 ```
 
-### Claude Desktop / Agent Configuration
+This prints a **Token ID** (for management) and the **Token** (the JWT). Tokens are revocable — see [Managing API Tokens](#managing-api-tokens) below.
+
+2. Configure your MCP client (Claude Desktop, etc.):
 
 ```json
 {
   "mcpServers": {
     "skillclimb": {
       "command": "npx",
-      "args": ["tsx", "--env-file=.env", "src/mcp/index.ts"],
-      "cwd": "/path/to/cyberclimb/packages/backend"
+      "args": ["tsx", "src/mcp/index.ts"],
+      "cwd": "/path/to/cyberclimb/packages/backend",
+      "env": {
+        "SKILLCLIMB_URL": "http://localhost:3001",
+        "SKILLCLIMB_TOKEN": "<jwt from step 1>"
+      }
     }
   }
 }
 ```
+
+The MCP server connects to the Express API over HTTP — no database access needed. It works with any hosted SkillClimb instance.
 
 ### Tools (13)
 
@@ -194,13 +208,27 @@ npm run mcp --workspace=@skillclimb/backend
 
 ### Resources (5)
 
-| Resource | URI Pattern |
-|----------|-------------|
-| Learner Profile | `skillclimb://users/{id}/profile` |
-| Due Items | `skillclimb://users/{id}/due` |
-| Domain Progress | `skillclimb://users/{id}/domains` |
+| Resource | URI |
+|----------|-----|
+| Learner Profile | `skillclimb://me/profile` |
+| Due Items | `skillclimb://me/due` |
+| Domain Progress | `skillclimb://me/domains` |
 | Skill Tree Map | `skillclimb://skilltrees/{id}/map` |
-| Session History | `skillclimb://users/{id}/sessions` |
+| Session History | `skillclimb://me/sessions` |
+
+### Managing API Tokens
+
+List tokens for a user:
+
+```bash
+npm run api:tokens --workspace=@skillclimb/backend -- --list --email user@example.com
+```
+
+Revoke a token by ID:
+
+```bash
+npm run api:tokens --workspace=@skillclimb/backend -- --revoke <token-id>
+```
 
 ## Architecture Details
 

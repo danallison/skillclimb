@@ -1,54 +1,37 @@
-import { Effect, Layer } from "effect";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { DatabaseLive, type Database } from "../services/Database.js";
-import { AIServiceLive, type AIService } from "../services/ai/AIService.js";
+import { SkillClimbClient } from "./client.js";
 import { registerTools } from "./tools.js";
 import { registerResources } from "./resources.js";
 
-export type RunEffect = <A>(
-  effect: Effect.Effect<A, any, Database | AIService>,
-) => Promise<A>;
-
-function formatEffectError(error: unknown): string {
-  if (error && typeof error === "object" && "_tag" in error) {
-    const tagged = error as { _tag: string; [key: string]: unknown };
-    switch (tagged._tag) {
-      case "NotFoundError":
-        return `${tagged.entity} not found: ${tagged.id}`;
-      case "ValidationError":
-        return `Validation error: ${tagged.message}`;
-      case "AIRequestError":
-        return "AI service unavailable";
-      case "DatabaseError":
-        return "Database error";
-      default:
-        return `Error: ${tagged._tag}`;
-    }
-  }
-  return error instanceof Error ? error.message : String(error);
-}
-
 export function createSkillClimbMCPServer() {
+  const baseUrl = process.env.SKILLCLIMB_URL;
+  const token = process.env.SKILLCLIMB_TOKEN;
+
+  if (!baseUrl) {
+    console.error("SKILLCLIMB_URL environment variable is required");
+    console.error(
+      "Example: SKILLCLIMB_URL=http://localhost:3001 SKILLCLIMB_TOKEN=<jwt> npm run mcp",
+    );
+    process.exit(1);
+  }
+
+  if (!token) {
+    console.error("SKILLCLIMB_TOKEN environment variable is required");
+    console.error(
+      "Generate a token: npm run api:token --workspace=@skillclimb/backend -- --email user@example.com",
+    );
+    process.exit(1);
+  }
+
   const server = new McpServer({
     name: "skillclimb",
     version: "0.1.0",
   });
 
-  const AppLayer = Layer.mergeAll(DatabaseLive, AIServiceLive);
+  const client = new SkillClimbClient(baseUrl, token);
 
-  const runEffect: RunEffect = <A>(
-    effect: Effect.Effect<A, any, Database | AIService>,
-  ) =>
-    effect.pipe(
-      Effect.provide(AppLayer),
-      Effect.mapError((error) => {
-        throw new Error(formatEffectError(error));
-      }),
-      Effect.runPromise,
-    );
-
-  registerTools(server, runEffect);
-  registerResources(server, runEffect);
+  registerTools(server, client);
+  registerResources(server, client);
 
   return server;
 }

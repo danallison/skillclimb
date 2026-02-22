@@ -1,5 +1,73 @@
-import { describe, it, expect, vi } from "vitest";
-import { createAccessToken, verifyAccessToken, setAuthCookies, clearAuthCookies } from "./auth.service.js";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+// In-memory store for API tokens, used by the DB mock
+const apiTokenStore = vi.hoisted(() => new Map<string, any>());
+
+vi.mock("../db/connection.js", () => {
+  function toCamel(s: string): string {
+    return s.replace(/_([a-z])/g, (_, c: string) => c.toUpperCase());
+  }
+
+  function extractConditionValues(expr: any): Record<string, any> {
+    const conds: Record<string, any> = {};
+    if (!expr?.queryChunks) return conds;
+    let col: string | null = null;
+    for (const chunk of expr.queryChunks) {
+      if (chunk.name && chunk.table) {
+        col = toCamel(chunk.name as string);
+      } else if (col && chunk.encoder) {
+        conds[col] = chunk.value;
+        col = null;
+      } else if (chunk.queryChunks) {
+        Object.assign(conds, extractConditionValues(chunk));
+        col = null;
+      }
+    }
+    return conds;
+  }
+
+  return {
+    db: {
+      insert: () => ({
+        values: (data: any) => {
+          apiTokenStore.set(data.id, data);
+          return Promise.resolve();
+        },
+      }),
+      select: () => ({
+        from: () => ({
+          where: (expr: any) => {
+            const conds = extractConditionValues(expr);
+            let rows = [...apiTokenStore.values()];
+            if (conds.id) rows = rows.filter((r: any) => r.id === conds.id);
+            if (conds.userId) rows = rows.filter((r: any) => r.userId === conds.userId);
+            // Handle gt(expiresAt, date) — filter out expired tokens
+            if (conds.expiresAt) rows = rows.filter((r: any) => r.expiresAt > conds.expiresAt);
+            return Promise.resolve(rows);
+          },
+        }),
+      }),
+      delete: () => ({
+        where: (expr: any) => {
+          const conds = extractConditionValues(expr);
+          if (conds.id) apiTokenStore.delete(conds.id);
+          return Promise.resolve();
+        },
+      }),
+    },
+  };
+});
+
+import {
+  createAccessToken,
+  verifyAccessToken,
+  setAuthCookies,
+  clearAuthCookies,
+  createApiToken,
+  verifyApiToken,
+  revokeApiToken,
+  listApiTokens,
+} from "./auth.service.js";
 
 describe("JWT access tokens", () => {
   it("creates a token that can be verified", async () => {
@@ -100,5 +168,85 @@ describe("clearAuthCookies", () => {
     expect(res.clearCookie).toHaveBeenCalledTimes(2);
     expect(res.clearCookie).toHaveBeenCalledWith("access_token", { path: "/" });
     expect(res.clearCookie).toHaveBeenCalledWith("refresh_token", { path: "/" });
+  });
+});
+
+// ─── API Token CRUD ─────────────────────────────────────────────────
+
+describe("API token CRUD", () => {
+  beforeEach(() => {
+    apiTokenStore.clear();
+  });
+
+  it("createApiToken returns token and id", async () => {
+    const { token, id } = await createApiToken("user-123");
+    expect(typeof token).toBe("string");
+    expect(token.split(".")).toHaveLength(3);
+    expect(typeof id).toBe("string");
+    expect(id).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
+    );
+  });
+
+  it("createApiToken stores row in DB", async () => {
+    const { id } = await createApiToken("user-123", "Test Token");
+    const stored = apiTokenStore.get(id);
+    expect(stored).toBeDefined();
+    expect(stored.userId).toBe("user-123");
+    expect(stored.name).toBe("Test Token");
+    expect(stored.expiresAt).toBeInstanceOf(Date);
+  });
+
+  it("createApiToken JWT contains jti matching the returned id", async () => {
+    const { token, id } = await createApiToken("user-123");
+    const payload = JSON.parse(
+      Buffer.from(token.split(".")[1], "base64url").toString(),
+    );
+    expect(payload.jti).toBe(id);
+    expect(payload.api).toBe(true);
+    expect(payload.userId).toBe("user-123");
+  });
+
+  it("verifyApiToken returns true for valid token", async () => {
+    const { id } = await createApiToken("user-123");
+    expect(await verifyApiToken(id)).toBe(true);
+  });
+
+  it("verifyApiToken returns false for nonexistent jti", async () => {
+    expect(await verifyApiToken("nonexistent-id")).toBe(false);
+  });
+
+  it("verifyApiToken returns false for expired token", async () => {
+    const { id } = await createApiToken("user-123");
+    // Manually set expiresAt to the past
+    const stored = apiTokenStore.get(id);
+    stored.expiresAt = new Date(Date.now() - 1000);
+    expect(await verifyApiToken(id)).toBe(false);
+  });
+
+  it("revokeApiToken deletes from DB", async () => {
+    const { id } = await createApiToken("user-123");
+    expect(apiTokenStore.has(id)).toBe(true);
+    await revokeApiToken(id);
+    expect(apiTokenStore.has(id)).toBe(false);
+  });
+
+  it("revokeApiToken causes verifyApiToken to return false", async () => {
+    const { id } = await createApiToken("user-123");
+    expect(await verifyApiToken(id)).toBe(true);
+    await revokeApiToken(id);
+    expect(await verifyApiToken(id)).toBe(false);
+  });
+
+  it("listApiTokens returns tokens for the given user", async () => {
+    await createApiToken("user-1", "Token A");
+    await createApiToken("user-1", "Token B");
+    await createApiToken("user-2", "Token C");
+
+    const user1Tokens = await listApiTokens("user-1");
+    expect(user1Tokens).toHaveLength(2);
+
+    const user2Tokens = await listApiTokens("user-2");
+    expect(user2Tokens).toHaveLength(1);
   });
 });
