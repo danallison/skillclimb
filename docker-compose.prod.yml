@@ -1,0 +1,33 @@
+# Production overlay — use with:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#
+# Adds restart policies and healthchecks.
+#
+# NOTE: The base docker-compose.yml exposes postgres on port 5432 for dev
+# convenience. In production, either remove the `ports` block from the base
+# file or use host firewall rules (e.g. ufw) to block external access to 5432.
+
+services:
+  postgres:
+    restart: unless-stopped
+
+  backend:
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3001/api/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  frontend:
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:80/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    depends_on:
+      backend:
+        condition: service_healthy

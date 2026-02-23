@@ -27,6 +27,26 @@ All configuration is in a single `.env` file at the project root.
 | `OPENAI_API_KEY` | No | — | Required if `AI_PROVIDER=openai` |
 | `JWT_SECRET` | Prod | — | Required in production (min 32 chars). Auto-generates a dev secret otherwise |
 | `DOMAIN` | No | `localhost` | Domain for Caddy auto-HTTPS |
+| `APP_URL` | No | `http://localhost:5173` | Frontend origin for CORS. Not needed when using the Caddy frontend (requests are same-origin). Set this only if the backend is accessed from a different origin (e.g. a separate dev frontend) |
+
+## Dev vs Production
+
+The base `docker-compose.yml` is designed for local development — postgres is exposed on port 5432 and there are no restart policies.
+
+For production, use the production overlay which adds restart policies, healthchecks, and healthy-dependency ordering:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+```
+
+**Security note:** The base file exposes postgres on port 5432. In production, either remove the `ports` block from `docker-compose.yml` or use host firewall rules (e.g. `ufw deny 5432`) to block external access.
+
+You can alias the production command in your shell for convenience:
+
+```bash
+alias dc-prod='docker compose -f docker-compose.yml -f docker-compose.prod.yml'
+# Then: dc-prod up -d, dc-prod ps, dc-prod logs backend, etc.
+```
 
 ## Deploying
 
@@ -77,6 +97,12 @@ Or start everything at once:
 
 ```bash
 docker compose up -d
+```
+
+For production (with restart policies and healthchecks):
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 ```
 
 The backend serves on port 3001. The frontend serves on ports 80/443 with Caddy handling TLS when `DOMAIN` is set to a real domain.

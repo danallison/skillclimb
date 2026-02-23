@@ -3,7 +3,9 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import { Layer } from "effect";
+import { sql } from "drizzle-orm";
 import { logger } from "./logger.js";
+import { db } from "./db/connection.js";
 import { DatabaseLive } from "./services/Database.js";
 import { AIServiceLive } from "./services/AIService.js";
 import { createEffectHandler } from "./effectHandler.js";
@@ -37,8 +39,14 @@ const handle = createEffectHandler(AppLayer);
 app.use("/api/auth", authLimiter, authRouter);
 app.use("/api", globalLimiter);
 app.use("/api/skilltrees", skilltreesRouter(handle));
-app.get("/api/health", (_req, res) => {
-  res.json({ status: "ok" });
+app.get("/api/health", async (_req, res) => {
+  try {
+    await db.execute(sql`SELECT 1`);
+    res.json({ status: "ok" });
+  } catch (err) {
+    logger.error("Health check failed: database unreachable", { cause: String(err) });
+    res.status(503).json({ status: "error", message: "database unreachable" });
+  }
 });
 
 // Protected routes (auth required)
