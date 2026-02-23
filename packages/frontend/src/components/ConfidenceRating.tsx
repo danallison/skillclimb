@@ -15,7 +15,7 @@ export default function ConfidenceRating() {
 
   return (
     <div style={{ marginTop: "1.5rem" }}>
-      <h2 style={{ marginBottom: "1rem", color: "#b0b0b0" }}>
+      <h2 style={{ marginBottom: "1rem", color: colors.textMuted }}>
         How confident are you in your answer?
       </h2>
       <div style={{ display: "flex", gap: "0.5rem" }}>

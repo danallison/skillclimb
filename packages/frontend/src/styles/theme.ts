@@ -1,41 +1,41 @@
 import type { CSSProperties } from "react";
 
 export const colors = {
-  // Backgrounds
-  cardBg: "#151c2c",
-  surfaceBg: "#111827",
-  inputBorder: "#2a3040",
-  divider: "#2a3040",
+  // Backgrounds — warm bark and soil tones
+  cardBg: "#242019",
+  surfaceBg: "#1a1714",
+  inputBorder: "#332e26",
+  divider: "#332e26",
 
-  // Accent
-  cyan: "#00d4ff",
-  cyanDark: "#0a0e17",
+  // Accent — sage canopy green
+  cyan: "#7cab6e",
+  cyanDark: "#1a2317",
 
-  // Status
-  green: "#00c853",
-  red: "#ff5252",
-  amber: "#ffab40",
+  // Status — natural tones
+  green: "#7cab6e",
+  red: "#c47a5a",
+  amber: "#d4a54a",
 
-  // Text
-  textPrimary: "#e0e0e0",
-  textMuted: "#888",
-  textDim: "#555",
+  // Text — birch and weathered wood
+  textPrimary: "#d8d0c4",
+  textMuted: "#968a7a",
+  textDim: "#5c5347",
 
   // Feedback backgrounds
-  successBg: "#0d2818",
-  errorBg: "#2d0f0f",
-  neutralBg: "#1a1a2e",
-  selectedBg: "#1a3a4a",
+  successBg: "#1a2317",
+  errorBg: "#2a1c15",
+  neutralBg: "#242019",
+  selectedBg: "#2a3020",
 
   // Feedback text
-  successText: "#81c784",
-  errorText: "#ff8a80",
+  successText: "#9cc08e",
+  errorText: "#d49580",
 
   // Severity backgrounds (for insights)
-  warningBg: "#2d1f0a",
+  warningBg: "#2a2215",
 
   // Locked/disabled
-  lockedGray: "#333",
+  lockedGray: "#3a3530",
 } as const;
 
 export const buttonStyles = {
@@ -51,7 +51,7 @@ export const buttonStyles = {
   secondary: {
     padding: "0.6rem 1rem",
     background: "transparent",
-    border: "1px solid #3a3a4a",
+    border: `1px solid ${colors.inputBorder}`,
     color: colors.textMuted,
     fontSize: "0.85rem",
     borderRadius: "6px",

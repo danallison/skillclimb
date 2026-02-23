@@ -3,7 +3,7 @@ import { colors } from "../styles/theme.js";
 
 const MOMENTUM_COLORS: Record<string, string> = {
   building: colors.green,
-  steady: colors.cyan,
+  steady: colors.textMuted,
   struggling: colors.amber,
 };
 

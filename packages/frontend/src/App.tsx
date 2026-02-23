@@ -249,7 +249,7 @@ export default function App() {
                 disabled={devLogin.isPending || !email}
                 style={{
                   padding: "0.8rem 1.5rem",
-                  background: devLogin.isPending ? "#444" : colors.cyan,
+                  background: devLogin.isPending ? colors.lockedGray : colors.cyan,
                   color: colors.cyanDark,
                   fontWeight: 600,
                   fontSize: "1rem",

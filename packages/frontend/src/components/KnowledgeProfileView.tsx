@@ -62,7 +62,7 @@ function HeatMapCalendar({ heatMap }: { heatMap: ProfileResponse["heatMap"] }) {
               borderRadius: "2px",
               background: entry.intensity === 0
                 ? colors.divider
-                : `rgba(0, 212, 255, ${0.2 + entry.intensity * 0.8})`,
+                : `rgba(124, 171, 110, ${0.2 + entry.intensity * 0.8})`,
             }}
           />
         ))}
@@ -77,7 +77,7 @@ function HeatMapCalendar({ heatMap }: { heatMap: ProfileResponse["heatMap"] }) {
                 width: CELL_SIZE,
                 height: CELL_SIZE,
                 borderRadius: "2px",
-                background: intensity === 0 ? colors.divider : `rgba(0, 212, 255, ${0.2 + intensity * 0.8})`,
+                background: intensity === 0 ? colors.divider : `rgba(124, 171, 110, ${0.2 + intensity * 0.8})`,
               }}
             />
           ))}

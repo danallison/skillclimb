@@ -199,7 +199,7 @@ function DomainCard({ domain }: { domain: DomainProgressResponse }) {
 
 export default function ProgressView({ skilltreeId, onStartSession, onStartPlacement, onChangeSkillTree, onBack }: Props) {
   const { data, isLoading, error } = useProgress(skilltreeId);
-  const [progressView, setProgressView] = useState<"list" | "map" | "calibration" | "profile">("map");
+  const [progressView, setProgressView] = useState<"list" | "map" | "calibration" | "profile">("list");
 
   if (isLoading) {
     return <div style={{ textAlign: "center", padding: "3rem", color: colors.textMuted }}>Loading...</div>;
@@ -275,7 +275,7 @@ export default function ProgressView({ skilltreeId, onStartSession, onStartPlace
 
       {/* View toggle */}
       <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1.5rem" }}>
-        {(["map", "list"] as const).map((v) => (
+        {(["list", "map"] as const).map((v) => (
           <button
             key={v}
             onClick={() => setProgressView(v)}

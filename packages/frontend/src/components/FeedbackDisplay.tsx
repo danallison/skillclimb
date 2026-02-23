@@ -315,7 +315,7 @@ export default function FeedbackDisplay() {
               ...buttonStyles.primary,
               flex: 1,
               background: colors.amber,
-              color: "#1a1a2e",
+              color: colors.cyanDark,
               opacity: hintLoading ? 0.7 : 1,
             }}
           >
@@ -369,7 +369,7 @@ export default function FeedbackDisplay() {
               ...buttonStyles.primary,
               flex: 1,
               background: colors.amber,
-              color: "#1a1a2e",
+              color: colors.cyanDark,
               opacity: hintLoading ? 0.7 : 1,
             }}
           >
@@ -480,7 +480,7 @@ export default function FeedbackDisplay() {
       {/* Free recall: self-rating buttons (after answer revealed) */}
       {needsSelfRate && !holdingForHint && (showSelfRate || (!aiLoading && !aiFeedback)) && !isEmptyAnswer && !isIdkAnswer && !reviewResult && (
         <>
-          <h3 style={{ marginBottom: "0.75rem", color: "#b0b0b0" }}>
+          <h3 style={{ marginBottom: "0.75rem", color: colors.textMuted }}>
             How did you do?
           </h3>
           <div style={{ display: "flex", gap: "0.75rem" }}>
