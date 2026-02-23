@@ -1,11 +1,13 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import helmet from "helmet";
 import { Layer } from "effect";
 import { DatabaseLive } from "./services/Database.js";
 import { AIServiceLive } from "./services/AIService.js";
 import { createEffectHandler } from "./effectHandler.js";
 import { requireAuth } from "./middleware/auth.js";
+import { globalLimiter, authLimiter } from "./middleware/rateLimiter.js";
 import { authRouter } from "./routes/auth.js";
 import { sessionsRouter } from "./routes/sessions.js";
 import { reviewsRouter } from "./routes/reviews.js";
@@ -22,6 +24,7 @@ const app = express();
 const port = process.env.PORT ?? 3001;
 const appUrl = process.env.APP_URL ?? "http://localhost:5173";
 
+app.use(helmet());
 app.use(cors({ origin: appUrl, credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
@@ -30,7 +33,8 @@ const AppLayer = Layer.mergeAll(DatabaseLive, AIServiceLive);
 const handle = createEffectHandler(AppLayer);
 
 // Public routes (no auth required)
-app.use("/api/auth", authRouter);
+app.use("/api/auth", authLimiter, authRouter);
+app.use("/api", globalLimiter);
 app.use("/api/skilltrees", skilltreesRouter(handle));
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok" });
