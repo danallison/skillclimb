@@ -61,7 +61,10 @@ export const topics = pgTable("topics", {
   name: text("name").notNull(),
   complexityWeight: real("complexity_weight").notNull().default(1.0),
   displayOrder: integer("display_order").notNull(),
-});
+  retiredAt: timestamp("retired_at"),
+}, (table) => [
+  unique().on(table.domainId, table.name),
+]);
 
 export const nodes = pgTable("nodes", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -90,7 +93,10 @@ export const nodes = pgTable("nodes", {
       }>
     >()
     .default([]),
-});
+  retiredAt: timestamp("retired_at"),
+}, (table) => [
+  unique().on(table.domainId, table.concept),
+]);
 
 export const learnerNodes = pgTable(
   "learner_nodes",

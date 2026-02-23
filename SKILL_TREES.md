@@ -301,6 +301,34 @@ npm run seed -- --skilltree your-skilltree-id
 
 The seed is idempotent — running it again won't duplicate data or overwrite learner progress.
 
+## Updating a Skill Tree
+
+After your skill tree is seeded, you can update it at any time by editing the YAML files and re-running `npm run seed`. The seed script handles updates incrementally — it never destroys learner progress.
+
+### Adding new content
+
+Add new topics or nodes to your domain YAML files and re-run the seed. New content appears automatically alongside existing content.
+
+### Updating questions
+
+Modify question templates in your YAML files and re-run the seed. New question types are appended to existing nodes (e.g., adding a `free_recall` question to a node that only had `recognition`). Existing question types are preserved as-is.
+
+### Removing content
+
+Remove topics or nodes from your YAML files and re-run the seed. Removed items are **retired** — they're hidden from new study sessions and placement tests, but learner history is preserved. Retired items won't appear in the skill tree map or be selected for new reviews.
+
+### Renaming
+
+Concept names are identity keys. If you rename a concept in YAML, the seed treats the old name as removed (retired) and the new name as a new node. Learner progress on the old concept does not transfer to the new one. If you need to fix a typo in a concept name and want to preserve progress, rename it directly in the database instead.
+
+### Re-running seed is always safe
+
+The seed script is idempotent and incremental:
+- New content is created
+- Existing content is updated (difficulty recalculated, question templates merged)
+- Removed content is retired (not deleted)
+- Learner progress is never modified or destroyed
+
 ## Tips for Writing Good Content
 
 **Structure your hierarchy well:**

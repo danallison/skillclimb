@@ -602,8 +602,9 @@ Package the platform for one-command self-hosted deployment.
 1. Create Dockerfile for backend (Express + MCP server).
 2. Extend `docker-compose.yml` with postgres, backend, and frontend services with persistent volumes.
 3. Create `.env.example` with all configuration variables documented.
-4. Build data export/import utilities for backup and migration.
+4. ~~Build data export/import utilities for backup and migration.~~ **Done** — `GET/POST /api/users/me/data` (see `docs/data-export-import.md`).
 5. Write setup documentation: prerequisites, quickstart, configuration reference, upgrading.
+6. **Done** — Incremental seed with content retirement: re-running `npm run seed` upserts new content and retires removed content without destroying learner progress (see `SKILL_TREES.md`).
 
 #### P8: AI-Assisted Content Authoring
 

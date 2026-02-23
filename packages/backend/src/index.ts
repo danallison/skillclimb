@@ -16,6 +16,7 @@ import { hintsRouter } from "./routes/hints.js";
 import { skilltreesRouter } from "./routes/skilltrees.js";
 import { lessonsRouter } from "./routes/lessons.js";
 import { aiProviderRouter } from "./routes/ai-provider.js";
+import { dataRouter } from "./routes/data.js";
 
 const app = express();
 const port = process.env.PORT ?? 3001;
@@ -42,6 +43,7 @@ app.use("/api/reviews", reviewsRouter(handle));
 app.use("/api/domains", domainsRouter(handle));
 app.use("/api/users", usersRouter(handle));
 app.use("/api/users", aiProviderRouter(handle));
+app.use("/api/users/me/data", dataRouter(handle));
 app.use("/api/placement", placementRouter(handle));
 app.use("/api/hints", hintsRouter(handle));
 app.use("/api/lessons", lessonsRouter(handle));

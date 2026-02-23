@@ -1,5 +1,5 @@
 import { Effect } from "effect";
-import { eq, and } from "drizzle-orm";
+import { eq, and, isNull } from "drizzle-orm";
 import {
   nodes,
   learnerNodes,
@@ -88,8 +88,10 @@ export const startPlacement = (
       );
     }
 
-    // Fetch all nodes, filtered by skill tree if provided
-    let allNodes = yield* query((db) => db.select().from(nodes));
+    // Fetch all active nodes, filtered by skill tree if provided
+    let allNodes = yield* query((db) =>
+      db.select().from(nodes).where(isNull(nodes.retiredAt)),
+    );
     if (skilltreeId) {
       const stDomains = yield* query((db) =>
         db.select().from(domains).where(eq(domains.skilltreeId, skilltreeId)),
@@ -221,8 +223,10 @@ export const submitPlacementAnswer = (
     // Check termination
     const done = shouldTerminate(newState, DEFAULT_PLACEMENT_CONFIG);
 
-    // Fetch nodes scoped to skill tree if placement has skilltreeId
-    let allNodes = yield* query((db) => db.select().from(nodes));
+    // Fetch active nodes scoped to skill tree if placement has skilltreeId
+    let allNodes = yield* query((db) =>
+      db.select().from(nodes).where(isNull(nodes.retiredAt)),
+    );
     if (placement.skilltreeId) {
       const stDomains = yield* query((db) =>
         db.select().from(domains).where(eq(domains.skilltreeId, placement.skilltreeId!)),
@@ -386,7 +390,9 @@ export const getPlacement = (placementId: string, userId: string) =>
 
     // If in progress, also return the next question
     if (placement.status === "in_progress") {
-      let allNodes = yield* query((db) => db.select().from(nodes));
+      let allNodes = yield* query((db) =>
+        db.select().from(nodes).where(isNull(nodes.retiredAt)),
+      );
       if (placement.skilltreeId) {
         const stDomains = yield* query((db) =>
           db.select().from(domains).where(eq(domains.skilltreeId, placement.skilltreeId!)),

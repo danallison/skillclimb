@@ -43,6 +43,8 @@ Skill trees live in `packages/backend/src/content/<skilltree-id>/`. Each skill t
 
 The seed script (`npm run seed`) auto-discovers and loads all skill trees. Use `npm run seed -- --skilltree <skilltree-id>` to seed a specific skill tree. Skill trees are distributable as git repos — clone into the content directory and seed. AI-assisted authoring via MCP tools (`generate_skill_tree_outline`, `generate_domain_content`, `validate_skill_tree`) enables AI agents to help scaffold new skill trees.
 
+**Incremental seeding:** Re-running `npm run seed` is always safe. New topics/nodes are created, existing ones are updated (difficulty recalculated, question templates merged by type), and topics/nodes removed from YAML are retired (`retired_at` set) rather than deleted. Retired content is hidden from placement tests and the skill tree map but learner history is preserved. Topics and nodes have unique constraints `(domainId, name)` and `(domainId, concept)` respectively, enabling upsert-based seeding.
+
 ## AI Provider Configuration
 
 AI providers live in `packages/backend/src/services/ai/`. The `AI_PROVIDER` env var selects the provider at startup via `resolveProvider()`. Each adapter implements `AIServiceShape`.

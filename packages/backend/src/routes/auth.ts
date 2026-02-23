@@ -361,7 +361,7 @@ export async function initializeLearnerNodes(
   userId: string,
   client: DbClient | typeof db = db,
 ): Promise<void> {
-  const allNodes = await client.select().from(nodes);
+  const allNodes = await client.select().from(nodes).where(isNull(nodes.retiredAt));
   if (allNodes.length === 0) return;
 
   const rows = allNodes.map((node) => ({

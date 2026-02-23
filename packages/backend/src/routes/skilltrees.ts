@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { Effect } from "effect";
-import { eq } from "drizzle-orm";
+import { eq, isNull } from "drizzle-orm";
 import { skilltrees, domains, topics, nodes } from "../db/schema.js";
 import { query } from "../services/Database.js";
 import { HttpResponse, type EffectHandler } from "../effectHandler.js";
@@ -35,9 +35,11 @@ export function skilltreesRouter(handle: EffectHandler) {
         );
 
         const allTopics = yield* query((db) =>
-          db.select().from(topics).orderBy(topics.displayOrder),
+          db.select().from(topics).where(isNull(topics.retiredAt)).orderBy(topics.displayOrder),
         );
-        const allNodes = yield* query((db) => db.select().from(nodes));
+        const allNodes = yield* query((db) =>
+          db.select().from(nodes).where(isNull(nodes.retiredAt)),
+        );
 
         const treeMap = allDomains.map((domain) => ({
           id: domain.id,
