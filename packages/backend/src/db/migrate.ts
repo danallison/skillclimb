@@ -1,14 +1,20 @@
 import { migrate } from "drizzle-orm/postgres-js/migrator";
-import { db } from "./connection.js";
+import { db, client } from "./connection.js";
+import { logger } from "../logger.js";
 
-async function main() {
-  console.log("Running migrations...");
+export async function runMigrations() {
+  logger.info("Running migrations...");
   await migrate(db, { migrationsFolder: "./drizzle" });
-  console.log("Migrations complete.");
-  process.exit(0);
+  logger.info("Migrations complete.");
 }
 
-main().catch((err) => {
-  console.error("Migration failed:", err);
-  process.exit(1);
-});
+// Run standalone when executed directly
+const isMain = process.argv[1]?.endsWith("migrate.js") || process.argv[1]?.endsWith("migrate.ts");
+if (isMain) {
+  runMigrations()
+    .then(() => client.end())
+    .catch((err) => {
+      logger.error("Migration failed", { error: String(err) });
+      process.exit(1);
+    });
+}

@@ -4,5 +4,5 @@ import * as schema from "./schema.js";
 
 const connectionString = process.env.DATABASE_URL ?? "postgres://localhost:5432/skillclimb";
 
-const client = postgres(connectionString);
+export const client = postgres(connectionString);
 export const db = drizzle(client, { schema });

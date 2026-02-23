@@ -53,31 +53,18 @@ The project follows a **functional core / imperative shell** architecture. All d
 ### Setup
 
 ```bash
-# Start PostgreSQL
-docker compose up -d
-
 # Install dependencies
 npm install
 
-# Create backend .env
-cat > packages/backend/.env << 'EOF'
-DATABASE_URL=postgres://postgres:postgres@localhost:5432/skillclimb
-JWT_SECRET=               # Optional — defaults to dev secret
-APP_URL=http://localhost:5173
+# Create .env (copy from .env.example and fill in values)
+cp .env.example .env
+# Edit .env with your settings (POSTGRES_PASSWORD, API keys, etc.)
 
-# AI Provider (optional — omit for no AI features)
-AI_PROVIDER=anthropic     # Options: anthropic, openai, ollama, none
-ANTHROPIC_API_KEY=        # Required if AI_PROVIDER=anthropic
-ANTHROPIC_MODEL=claude-haiku-4-5-20251001  # Optional
-# OPENAI_API_KEY=         # Required if AI_PROVIDER=openai
-# OPENAI_MODEL=gpt-4o-mini                # Optional
-# OPENAI_BASE_URL=                         # Optional (custom endpoint)
-# OLLAMA_BASE_URL=http://localhost:11434/v1  # Default for AI_PROVIDER=ollama
-# OLLAMA_MODEL=llama3.2                      # Optional
-EOF
+# Start PostgreSQL
+docker compose up -d postgres
 
-# Push schema to database
-npm run db:push
+# Run database migrations
+npm run migrate
 
 # Seed skill tree content
 npm run seed
@@ -100,7 +87,6 @@ npm run seed            # Seed all skill trees (idempotent)
 npm run seed -- --skilltree cybersecurity  # Seed specific skill tree
 npm run migrate         # Run database migrations
 npm run db:generate     # Generate Drizzle migrations from schema changes
-npm run db:push         # Push schema directly to database
 ```
 
 ## Testing
@@ -229,6 +215,10 @@ Revoke a token by ID:
 ```bash
 npm run api:tokens --workspace=@skillclimb/backend -- --revoke <token-id>
 ```
+
+## Deployment
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for the full deployment guide, including migrations, rollback, and updates.
 
 ## Architecture Details
 

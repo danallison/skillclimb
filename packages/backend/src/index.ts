@@ -3,6 +3,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import { Layer } from "effect";
+import { logger } from "./logger.js";
 import { DatabaseLive } from "./services/Database.js";
 import { AIServiceLive } from "./services/AIService.js";
 import { createEffectHandler } from "./effectHandler.js";
@@ -52,8 +53,24 @@ app.use("/api/placement", placementRouter(handle));
 app.use("/api/hints", hintsRouter(handle));
 app.use("/api/lessons", lessonsRouter(handle));
 
-app.listen(port, () => {
-  console.log(`SkillClimb API running on http://localhost:${port}`);
+const server = app.listen(port, () => {
+  logger.info(`SkillClimb API running on http://localhost:${port}`);
 });
+
+function shutdown(signal: string) {
+  logger.info(`Received ${signal}, shutting down`);
+  server.close(() => {
+    logger.info("Server closed");
+    process.exit(0);
+  });
+  // Force exit after 10s if connections don't close
+  setTimeout(() => {
+    logger.warn("Forcing shutdown after timeout");
+    process.exit(1);
+  }, 10_000).unref();
+}
+
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("SIGINT", () => shutdown("SIGINT"));
 
 export default app;

@@ -3,6 +3,7 @@ import type { Request, Response } from "express";
 import type { Database } from "./services/Database.js";
 import type { AIService } from "./services/AIService.js";
 import { DatabaseError, NotFoundError, ValidationError, AIRequestError, AuthenticationError } from "./errors.js";
+import { logger } from "./logger.js";
 
 export class HttpResponse<T = unknown> {
   constructor(
@@ -27,16 +28,16 @@ function errorToResponse(error: { _tag: string }): HttpResponse {
     }
     case "AIRequestError": {
       const e = error as InstanceType<typeof AIRequestError>;
-      console.error("AI service error:", e.cause);
+      logger.error("AI service error", { cause: String(e.cause) });
       return new HttpResponse(502, { error: "AI service unavailable" });
     }
     case "DatabaseError": {
       const e = error as InstanceType<typeof DatabaseError>;
-      console.error("Database error:", e.cause);
+      logger.error("Database error", { cause: String(e.cause) });
       return new HttpResponse(500, { error: "Internal server error" });
     }
     default:
-      console.error("Unhandled error:", error);
+      logger.error("Unhandled error", { error: String(error) });
       return new HttpResponse(500, { error: "Internal server error" });
   }
 }
@@ -59,7 +60,7 @@ export function createEffectHandler(
       );
       res.status(response.status).json(response.body);
     } catch (defect) {
-      console.error("Unexpected error:", defect);
+      logger.error("Unexpected defect", { error: String(defect) });
       res.status(500).json({ error: "Internal server error" });
     }
   };

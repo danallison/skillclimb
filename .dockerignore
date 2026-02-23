@@ -1,0 +1,12 @@
+node_modules
+*/node_modules
+*/*/node_modules
+.git
+*.md
+!packages/backend/drizzle/*.sql
+.env
+.env.*
+packages/backend/.env
+packages/backend/dist
+packages/core/dist
+packages/frontend/dist
