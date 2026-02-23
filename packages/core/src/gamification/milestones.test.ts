@@ -60,14 +60,24 @@ describe("detectMilestones", () => {
   });
 
   it("detects overdue recovery", () => {
-    // Due date was 10 days ago
-    const prev = makeState({ dueDate: new Date("2025-03-05") });
-    const next = makeState({ repetitions: 1, easiness: 2.5 });
+    // Due date was 10 days ago, node was previously reviewed (repetitions: 1)
+    const prev = makeState({ dueDate: new Date("2025-03-05"), repetitions: 1 });
+    const next = makeState({ repetitions: 2, easiness: 2.5 });
 
     const milestones = detectMilestones(prev, next, [next], "Networking", "TCP/IP", true, now);
     const overdue = milestones.find((m) => m.type === "overdue_recovery");
     expect(overdue).toBeDefined();
     expect(overdue!.message).toMatch(/after \d+ days/);
+  });
+
+  it("does not detect overdue recovery for never-reviewed nodes", () => {
+    // Node was created 10 days ago but never reviewed (repetitions: 0)
+    // This is NOT a "recovery" — the user just hasn't seen it yet
+    const prev = makeState({ dueDate: new Date("2025-03-05"), repetitions: 0 });
+    const next = makeState({ repetitions: 1, easiness: 2.5 });
+
+    const milestones = detectMilestones(prev, next, [next], "Networking", "TCP/IP", true, now);
+    expect(milestones.find((m) => m.type === "overdue_recovery")).toBeUndefined();
   });
 
   it("does not detect overdue recovery for recent items", () => {

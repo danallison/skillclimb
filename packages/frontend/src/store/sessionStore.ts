@@ -62,6 +62,7 @@ interface SessionStore {
   setLessonContent: (lesson: { title: string; content: string; keyTakeaways: string[] }) => void;
   dismissLesson: () => void;
   resetForSecondAttempt: () => void;
+  pauseSession: () => void;
   reset: () => void;
   logout: () => void;
 }
@@ -133,7 +134,11 @@ export const useSessionStore = create<SessionStore>((set) => ({
   setReviewResult: (result) => set({ reviewResult: result }),
   recordReview: (record, milestones) =>
     set((state) => {
-      const updated = [...state.reviewHistory, record];
+      // If the last review was for the same node (hint retry), replace it
+      const lastIdx = state.reviewHistory.length - 1;
+      const updated = lastIdx >= 0 && state.reviewHistory[lastIdx].nodeId === record.nodeId
+        ? [...state.reviewHistory.slice(0, lastIdx), record]
+        : [...state.reviewHistory, record];
       localStorage.setItem(STORAGE_KEYS.reviewHistory, JSON.stringify(updated));
       const recentResults = updated.map((r) => r.wasCorrect);
       const momentum = computeMomentum(recentResults);
@@ -179,6 +184,21 @@ export const useSessionStore = create<SessionStore>((set) => ({
       confidenceRating: null,
       reviewResult: null,
     }),
+  pauseSession: () =>
+    set((state) => ({
+      session: null,
+      savedSessionId: localStorage.getItem("skillclimb_sessionId"),
+      savedItemIndex: state.currentItemIndex,
+      currentItemIndex: 0,
+      selectedAnswer: null,
+      selfRating: null,
+      confidenceRating: null,
+      reviewResult: null,
+      phase: "answering",
+      attemptNumber: 1,
+      hintText: null,
+      lessonContent: null,
+    })),
   reset: () => {
     localStorage.removeItem(STORAGE_KEYS.sessionId);
     localStorage.removeItem(STORAGE_KEYS.itemIndex);

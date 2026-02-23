@@ -79,8 +79,8 @@ export function detectMilestones(
     }
   }
 
-  // 3. Overdue recovery — correct answer on significantly overdue item
-  if (wasCorrect) {
+  // 3. Overdue recovery — correct answer on significantly overdue item (only if previously reviewed)
+  if (wasCorrect && previousState.repetitions > 0) {
     const daysOverdue = (now.getTime() - previousState.dueDate.getTime()) / MS_PER_DAY;
     if (daysOverdue >= OVERDUE_THRESHOLD_DAYS) {
       milestones.push({

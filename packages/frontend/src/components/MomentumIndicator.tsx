@@ -34,7 +34,7 @@ export default function MomentumIndicator() {
           display: "inline-block",
         }}
       />
-      <span>{momentum.recentCorrect}/{momentum.recentTotal} {momentum.state === "building" ? "strong" : momentum.state === "struggling" ? "hard" : ""}</span>
+      <span>{momentum.recentCorrect}/{momentum.recentTotal} correct</span>
     </div>
   );
 }

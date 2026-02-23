@@ -507,8 +507,8 @@ export default function FeedbackDisplay() {
         </>
       )}
 
-      {/* Empty answer: continue */}
-      {(isEmptyAnswer || isIdkAnswer) && reviewResult && (
+      {/* Empty answer: continue (only for non-auto-scored question types) */}
+      {(isEmptyAnswer || isIdkAnswer) && reviewResult && !wasAutoScored && (
         <button
           onClick={nextItem}
           style={buttonStyles.primary}

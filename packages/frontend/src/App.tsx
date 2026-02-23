@@ -10,7 +10,7 @@ import PlacementView from "./components/PlacementView.js";
 type View = "loading" | "login" | "skillTreeSelect" | "progress" | "session" | "placement";
 
 export default function App() {
-  const { userId, selectedSkillTreeId, savedSessionId, savedItemIndex, session, setUserId, setSelectedSkillTreeId, setSession, resumeSession, reset: resetSession, logout: storeLogout } = useSessionStore();
+  const { userId, selectedSkillTreeId, savedSessionId, savedItemIndex, session, setUserId, setSelectedSkillTreeId, setSession, resumeSession, pauseSession, reset: resetSession, logout: storeLogout } = useSessionStore();
   const placementStore = usePlacementStore();
   const { data: currentUser, isLoading: authLoading, error: authError } = useCurrentUser();
   const devLogin = useDevLogin();
@@ -121,7 +121,7 @@ export default function App() {
 
   // Active session
   if (view === "session" && session) {
-    return <SessionView onFinished={() => { resetSession(); setView("progress"); }} />;
+    return <SessionView onFinished={() => { resetSession(); setView("progress"); }} onExit={() => { pauseSession(); setView("progress"); }} />;
   }
 
   // Session view but still loading from API — show loading state

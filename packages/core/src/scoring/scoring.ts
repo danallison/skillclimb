@@ -4,8 +4,9 @@ import { CORRECT_SCORE_THRESHOLD } from "../types.js";
 
 export type SelfRating = "correct" | "partially_correct" | "incorrect";
 
-/** Maximum score for a hint-assisted second attempt. */
-export const HINTED_ATTEMPT_SCORE_CAP = 2;
+/** Maximum score for a hint-assisted second attempt.
+ * Must be >= CORRECT_SCORE_THRESHOLD so correct answers are still classified as correct. */
+export const HINTED_ATTEMPT_SCORE_CAP = 3;
 
 export function scoreFromSelfRating(rating: SelfRating): number {
   switch (rating) {

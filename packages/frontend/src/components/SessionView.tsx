@@ -12,9 +12,10 @@ import MomentumIndicator from "./MomentumIndicator.js";
 
 interface Props {
   onFinished: () => void;
+  onExit: () => void;
 }
 
-export default function SessionView({ onFinished }: Props) {
+export default function SessionView({ onFinished, onExit }: Props) {
   const { session, currentItemIndex, phase, setLessonContent, setPhase } = useSessionStore();
   const requestLesson = useRequestMicroLesson();
   const lessonChecked = useRef<number>(-1);
@@ -68,7 +69,7 @@ export default function SessionView({ onFinished }: Props) {
           <MomentumIndicator />
           <div style={{ color: colors.textMuted, fontSize: "0.9rem" }}>{progress}</div>
           <button
-            onClick={onFinished}
+            onClick={onExit}
             style={{
               background: "transparent",
               border: `1px solid ${colors.inputBorder}`,
