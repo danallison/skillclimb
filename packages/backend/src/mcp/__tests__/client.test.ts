@@ -188,6 +188,51 @@ describe("sessions", () => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
+// Answers
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe("answers", () => {
+  it("submitAnswer scores a recognition answer", async () => {
+    const result = (await client.submitAnswer({
+      nodeId: "node-1",
+      answer: "Three-way handshake",
+      confidence: 4,
+      questionType: "recognition",
+    })) as any;
+
+    expect(result).toHaveProperty("score");
+    expect(result).toHaveProperty("wasCorrect");
+    expect(result).toHaveProperty("feedback");
+    expect(result.feedback).toHaveProperty("correctAnswer");
+    expect(result.feedback).toHaveProperty("explanation");
+    expect(result).toHaveProperty("srs");
+    expect(result).toHaveProperty("calibration");
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Session completion
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe("session completion", () => {
+  it("completeSession returns completion summary", async () => {
+    const result = (await client.completeSession("session-1")) as any;
+
+    expect(result).toHaveProperty("sessionId", "session-1");
+    expect(result).toHaveProperty("completedAt");
+    expect(result).toHaveProperty("summary");
+    expect(result.summary).toHaveProperty("totalReviews");
+    expect(result.summary).toHaveProperty("accuracyPercentage");
+    expect(result).toHaveProperty("momentum");
+    expect(result).toHaveProperty("nextSession");
+  });
+
+  it("completeSession throws for nonexistent session", async () => {
+    await expect(client.completeSession("00000000-0000-0000-0000-000000000099")).rejects.toThrow(/HTTP/);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
 // Error handling
 // ═══════════════════════════════════════════════════════════════════════════
 

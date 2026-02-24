@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { Effect } from "effect";
-import { createSession, getSession } from "../services/session.service.js";
+import { createSession, getSession, completeSession } from "../services/session.service.js";
 import { NotFoundError, ValidationError } from "../errors.js";
 import { HttpResponse, type EffectHandler } from "../effectHandler.js";
 
@@ -38,6 +38,17 @@ export function sessionsRouter(handle: EffectHandler) {
           );
         }
         return new HttpResponse(200, session);
+      }),
+    ),
+  );
+
+  router.post(
+    "/:id/complete",
+    handle((req) =>
+      Effect.gen(function* () {
+        const id = req.params.id as string;
+        const result = yield* completeSession(id, req.userId!);
+        return new HttpResponse(200, result);
       }),
     ),
   );

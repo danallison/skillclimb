@@ -17,6 +17,7 @@ import { lessonsRouter } from "../lessons.js";
 import { usersRouter } from "../users.js";
 import { aiProviderRouter } from "../ai-provider.js";
 import { dataRouter } from "../data.js";
+import { answersRouter } from "../answers.js";
 import * as schema from "../../db/schema.js";
 
 // ---------------------------------------------------------------------------
@@ -354,6 +355,7 @@ export function createTestApp(
   app.use("/api/domains", domainsRouter(handle));
   app.use("/api/reviews", reviewsRouter(handle));
   app.use("/api/sessions", sessionsRouter(handle));
+  app.use("/api/answers", answersRouter(handle));
   app.use("/api/placement", placementRouter(handle));
   app.use("/api/hints", hintsRouter(handle));
   app.use("/api/lessons", lessonsRouter(handle));

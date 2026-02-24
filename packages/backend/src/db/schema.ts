@@ -172,11 +172,7 @@ export const sessions = pgTable("sessions", {
   nodeIds: jsonb("node_ids").notNull().$type<string[]>().default([]),
   analytics: jsonb("analytics")
     .notNull()
-    .$type<{
-      totalCorrect?: number;
-      totalIncorrect?: number;
-      calibration?: Record<string, number>;
-    }>()
+    .$type<Record<string, unknown>>()
     .default({}),
 });
 

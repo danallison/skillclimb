@@ -11,7 +11,8 @@
     "migrate": "tsx --env-file=../../.env src/db/migrate.ts",
     "mcp": "tsx src/mcp/index.ts",
     "api:token": "tsx --env-file=../../.env src/mcp/generate-token.ts",
-    "api:tokens": "tsx --env-file=../../.env src/mcp/manage-tokens.ts"
+    "api:tokens": "tsx --env-file=../../.env src/mcp/manage-tokens.ts",
+    "mcp:setup": "tsx --env-file=../../.env src/mcp/setup.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.77.0",

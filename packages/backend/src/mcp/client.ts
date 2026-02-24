@@ -140,6 +140,25 @@ export class SkillClimbClient {
     return this.get(`/api/skilltrees/${skilltreeId}/map`);
   }
 
+  // ─── Answers ─────────────────────────────────────────────────────
+
+  submitAnswer(body: {
+    nodeId: string;
+    answer: string | null;
+    confidence: number;
+    questionType: string;
+    attemptNumber?: number;
+    selfRating?: string;
+  }): Promise<unknown> {
+    return this.post("/api/answers", body);
+  }
+
+  // ─── Session Completion ─────────────────────────────────────────
+
+  completeSession(sessionId: string): Promise<unknown> {
+    return this.post(`/api/sessions/${sessionId}/complete`);
+  }
+
   // ─── AI ───────────────────────────────────────────────────────────
 
   generateHint(body: {
