@@ -71,6 +71,13 @@
       "when": 1771790091491,
       "tag": "0009_modern_molecule_man",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1771892524997,
+      "tag": "0010_blushing_lake",
+      "breakpoints": true
     }
   ]
 }

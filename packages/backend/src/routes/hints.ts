@@ -6,7 +6,7 @@ import { query } from "../services/Database.js";
 import { resolveAIForUser } from "../services/AIService.js";
 import { ValidationError, NotFoundError } from "../errors.js";
 import { HttpResponse, type EffectHandler } from "../effectHandler.js";
-import type { QuestionTemplate } from "@skillclimb/core";
+import { VALID_QUESTION_TYPES, type QuestionTemplate } from "@skillclimb/core";
 
 export function hintsRouter(handle: EffectHandler) {
   const router = Router();
@@ -17,9 +17,15 @@ export function hintsRouter(handle: EffectHandler) {
       Effect.gen(function* () {
         const { nodeId, questionType } = req.body;
 
-        if (!nodeId) {
+        if (typeof nodeId !== "string" || !nodeId) {
           return yield* Effect.fail(
-            new ValidationError({ message: "nodeId is required" }),
+            new ValidationError({ message: "nodeId must be a string" }),
+          );
+        }
+
+        if (questionType != null && !(VALID_QUESTION_TYPES as readonly string[]).includes(questionType)) {
+          return yield* Effect.fail(
+            new ValidationError({ message: `questionType must be one of ${VALID_QUESTION_TYPES.join(", ")}` }),
           );
         }
 

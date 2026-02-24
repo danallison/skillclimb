@@ -19,11 +19,15 @@ export function reviewsRouter(handle: EffectHandler) {
         const userId = req.userId!;
         const { nodeId, response } = req.body;
 
-        if (!nodeId || !response) {
+        if (typeof nodeId !== "string" || !nodeId) {
           return yield* Effect.fail(
-            new ValidationError({
-              message: "nodeId and response are required",
-            }),
+            new ValidationError({ message: "nodeId must be a string" }),
+          );
+        }
+
+        if (typeof response !== "string" || response.trim().length === 0) {
+          return yield* Effect.fail(
+            new ValidationError({ message: "response must be a non-empty string" }),
           );
         }
 
@@ -82,7 +86,13 @@ export function reviewsRouter(handle: EffectHandler) {
         const userId = req.userId!;
         const { nodeId, score, confidence, response, misconceptions } = req.body;
 
-        if (!nodeId || score == null || confidence == null) {
+        if (typeof nodeId !== "string" || !nodeId) {
+          return yield* Effect.fail(
+            new ValidationError({ message: "nodeId must be a string" }),
+          );
+        }
+
+        if (score == null || confidence == null) {
           return yield* Effect.fail(
             new ValidationError({
               message: "nodeId, score, and confidence are required",
@@ -90,17 +100,23 @@ export function reviewsRouter(handle: EffectHandler) {
           );
         }
 
-        if (score < 0 || score > 5) {
+        if (!Number.isInteger(score) || score < 0 || score > 5) {
           return yield* Effect.fail(
-            new ValidationError({ message: "score must be between 0 and 5" }),
+            new ValidationError({ message: "score must be an integer between 0 and 5" }),
           );
         }
 
-        if (confidence < 1 || confidence > 5) {
+        if (!Number.isInteger(confidence) || confidence < 1 || confidence > 5) {
           return yield* Effect.fail(
             new ValidationError({
-              message: "confidence must be between 1 and 5",
+              message: "confidence must be an integer between 1 and 5",
             }),
+          );
+        }
+
+        if (misconceptions != null && !Array.isArray(misconceptions)) {
+          return yield* Effect.fail(
+            new ValidationError({ message: "misconceptions must be an array" }),
           );
         }
 

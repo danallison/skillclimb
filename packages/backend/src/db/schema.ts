@@ -1,4 +1,5 @@
-import { pgTable, uuid, text, integer, real, timestamp, jsonb, primaryKey, unique, boolean } from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, integer, real, timestamp, jsonb, primaryKey, unique, boolean, check } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import type { IRTResponse } from "@skillclimb/core";
 
 export const users = pgTable("users", {
@@ -121,7 +122,13 @@ export const learnerNodes = pgTable(
     domainWeight: real("domain_weight").notNull().default(1.0),
     misconceptions: jsonb("misconceptions").notNull().$type<string[]>().default([]),
   },
-  (table) => [primaryKey({ columns: [table.userId, table.nodeId] })],
+  (table) => [
+    primaryKey({ columns: [table.userId, table.nodeId] }),
+    check("learner_nodes_easiness_check", sql`${table.easiness} >= 1.3`),
+    check("learner_nodes_interval_check", sql`${table.interval} >= 0`),
+    check("learner_nodes_repetitions_check", sql`${table.repetitions} >= 0`),
+    check("learner_nodes_domain_weight_check", sql`${table.domainWeight} > 0`),
+  ],
 );
 
 export const reviews = pgTable("reviews", {
@@ -136,7 +143,10 @@ export const reviews = pgTable("reviews", {
   confidence: integer("confidence").notNull(),
   response: text("response").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
-});
+}, (table) => [
+  check("reviews_score_check", sql`${table.score} >= 0 AND ${table.score} <= 5`),
+  check("reviews_confidence_check", sql`${table.confidence} >= 1 AND ${table.confidence} <= 5`),
+]);
 
 export const studyDays = pgTable(
   "study_days",

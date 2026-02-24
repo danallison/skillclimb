@@ -19,6 +19,13 @@ export function placementRouter(handle: EffectHandler) {
       Effect.gen(function* () {
         const userId = req.userId!;
         const { skilltreeId } = req.body;
+
+        if (skilltreeId != null && typeof skilltreeId !== "string") {
+          return yield* Effect.fail(
+            new ValidationError({ message: "skilltreeId must be a string" }),
+          );
+        }
+
         const result = yield* startPlacement(userId, skilltreeId);
         return new HttpResponse(201, result);
       }),
@@ -33,9 +40,15 @@ export function placementRouter(handle: EffectHandler) {
         const placementId = req.params.id as string;
         const { nodeId, selectedAnswer, confidence } = req.body;
 
-        if (!nodeId) {
+        if (typeof nodeId !== "string" || !nodeId) {
           return yield* Effect.fail(
-            new ValidationError({ message: "nodeId is required" }),
+            new ValidationError({ message: "nodeId must be a string" }),
+          );
+        }
+
+        if (confidence != null && (!Number.isInteger(confidence) || confidence < 1 || confidence > 5)) {
+          return yield* Effect.fail(
+            new ValidationError({ message: "confidence must be an integer between 1 and 5" }),
           );
         }
 

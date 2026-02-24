@@ -1,6 +1,7 @@
 import type { CalibrationHistory, CalibrationQuadrant, CalibrationEntry, QuestionTemplate } from "../types.js";
 import { createQuadrantCounts } from "../utils.js";
 import { CORRECT_SCORE_THRESHOLD } from "../types.js";
+import { assertConfidence, assertNonEmptyString } from "../validation/validation.js";
 
 export type SelfRating = "correct" | "partially_correct" | "incorrect";
 
@@ -56,6 +57,7 @@ export function requiresSelfRating(type: QuestionTemplate["type"]): boolean {
  * (honest admission of gap, slightly less punishing than a wrong guess).
  */
 export function evaluateRecognition(selected: string | null, correct: string): number {
+  assertNonEmptyString(correct, "correct");
   if (selected === null) {
     return 1; // "I don't know" — honest gap acknowledgment
   }
@@ -84,6 +86,8 @@ export function evaluateCuedRecall(
   correctAnswer: string,
   acceptableAnswers?: string[],
 ): number {
+  assertNonEmptyString(response, "response");
+  assertNonEmptyString(correctAnswer, "correctAnswer");
   const normalized = normalizeAnswer(response);
 
   if (normalized === normalizeAnswer(correctAnswer)) {
@@ -109,6 +113,7 @@ export function getCalibrationQuadrant(
   confidence: number,
   wasCorrect: boolean,
 ): CalibrationQuadrant {
+  assertConfidence(confidence);
   const highConfidence = confidence >= 3;
 
   if (highConfidence && wasCorrect) return "calibrated";

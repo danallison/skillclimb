@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { Effect } from "effect";
 import { createSession, getSession } from "../services/session.service.js";
-import { NotFoundError } from "../errors.js";
+import { NotFoundError, ValidationError } from "../errors.js";
 import { HttpResponse, type EffectHandler } from "../effectHandler.js";
 
 export function sessionsRouter(handle: EffectHandler) {
@@ -13,6 +13,13 @@ export function sessionsRouter(handle: EffectHandler) {
       Effect.gen(function* () {
         const userId = req.userId!;
         const { skilltreeId } = req.body;
+
+        if (skilltreeId != null && typeof skilltreeId !== "string") {
+          return yield* Effect.fail(
+            new ValidationError({ message: "skilltreeId must be a string" }),
+          );
+        }
+
         const session = yield* createSession(userId, skilltreeId);
         return new HttpResponse(201, session);
       }),

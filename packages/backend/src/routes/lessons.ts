@@ -25,10 +25,10 @@ export function lessonsRouter(handle: EffectHandler) {
         const userId = req.userId!;
         const { nodeId } = req.body;
 
-        if (!nodeId) {
+        if (typeof nodeId !== "string" || !nodeId) {
           return yield* Effect.fail(
             new ValidationError({
-              message: "nodeId is required",
+              message: "nodeId must be a string",
             }),
           );
         }

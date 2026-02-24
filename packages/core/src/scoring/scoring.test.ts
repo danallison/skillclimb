@@ -26,6 +26,10 @@ describe("evaluateRecognition", () => {
   it("returns 1 for 'I don't know' (null selection)", () => {
     expect(evaluateRecognition(null, "AES")).toBe(1);
   });
+
+  it("throws for empty correct answer", () => {
+    expect(() => evaluateRecognition("AES", "")).toThrow(RangeError);
+  });
 });
 
 describe("normalizeAnswer", () => {
@@ -61,6 +65,14 @@ describe("evaluateCuedRecall", () => {
 
   it("returns 5 for exact match even when acceptable answers exist", () => {
     expect(evaluateCuedRecall("AES", "AES", ["Rijndael"])).toBe(5);
+  });
+
+  it("throws for empty response", () => {
+    expect(() => evaluateCuedRecall("", "AES")).toThrow(RangeError);
+  });
+
+  it("throws for empty correctAnswer", () => {
+    expect(() => evaluateCuedRecall("AES", "")).toThrow(RangeError);
   });
 });
 
@@ -158,6 +170,18 @@ describe("getCalibrationQuadrant", () => {
   it("returns known_unknown for low confidence + incorrect", () => {
     expect(getCalibrationQuadrant(1, false)).toBe("known_unknown");
     expect(getCalibrationQuadrant(2, false)).toBe("known_unknown");
+  });
+
+  it("throws for confidence < 1", () => {
+    expect(() => getCalibrationQuadrant(0, true)).toThrow(RangeError);
+  });
+
+  it("throws for confidence > 5", () => {
+    expect(() => getCalibrationQuadrant(6, true)).toThrow(RangeError);
+  });
+
+  it("throws for non-integer confidence", () => {
+    expect(() => getCalibrationQuadrant(2.5, true)).toThrow(RangeError);
   });
 });
 

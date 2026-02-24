@@ -132,6 +132,45 @@ describe("POST /api/reviews", () => {
     expect(res.body.error).toMatch(/confidence/);
   });
 
+  it("returns 400 for non-integer score", async () => {
+    const app = createTestApp();
+    const cookie = await authCookie("user-1");
+
+    const res = await request(app)
+      .post("/api/reviews")
+      .set("Cookie", cookie)
+      .send({ nodeId: "n1", score: 4.5, confidence: 3 });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/score/);
+  });
+
+  it("returns 400 when nodeId is a number", async () => {
+    const app = createTestApp();
+    const cookie = await authCookie("user-1");
+
+    const res = await request(app)
+      .post("/api/reviews")
+      .set("Cookie", cookie)
+      .send({ nodeId: 123, score: 4, confidence: 3 });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/nodeId/);
+  });
+
+  it("returns 400 when misconceptions is a string", async () => {
+    const app = createTestApp();
+    const cookie = await authCookie("user-1");
+
+    const res = await request(app)
+      .post("/api/reviews")
+      .set("Cookie", cookie)
+      .send({ nodeId: "n1", score: 4, confidence: 3, misconceptions: "not an array" });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/misconceptions/);
+  });
+
   it("returns 401 without auth", async () => {
     const app = createTestApp();
 
@@ -256,6 +295,45 @@ describe("POST /api/reviews/evaluate", () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toBeNull();
+  });
+
+  it("returns 400 when nodeId is a number", async () => {
+    const app = createTestApp();
+    const cookie = await authCookie("user-1");
+
+    const res = await request(app)
+      .post("/api/reviews/evaluate")
+      .set("Cookie", cookie)
+      .send({ nodeId: 123, response: "my answer" });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/nodeId/);
+  });
+
+  it("returns 400 when response is a number", async () => {
+    const app = createTestApp();
+    const cookie = await authCookie("user-1");
+
+    const res = await request(app)
+      .post("/api/reviews/evaluate")
+      .set("Cookie", cookie)
+      .send({ nodeId: "n1", response: 123 });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/response/);
+  });
+
+  it("returns 400 for empty response string", async () => {
+    const app = createTestApp();
+    const cookie = await authCookie("user-1");
+
+    const res = await request(app)
+      .post("/api/reviews/evaluate")
+      .set("Cookie", cookie)
+      .send({ nodeId: "n1", response: "" });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/response/);
   });
 
   it("returns 401 without auth", async () => {

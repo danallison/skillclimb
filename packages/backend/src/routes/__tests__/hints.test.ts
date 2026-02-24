@@ -24,6 +24,32 @@ describe("POST /api/hints", () => {
     expect(res.body.error).toMatch(/nodeId/);
   });
 
+  it("returns 400 when nodeId is a number", async () => {
+    const app = createTestApp();
+    const cookie = await authCookie("user-1");
+
+    const res = await request(app)
+      .post("/api/hints")
+      .set("Cookie", cookie)
+      .send({ nodeId: 123 });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/nodeId/);
+  });
+
+  it("returns 400 for invalid questionType", async () => {
+    const app = createTestApp();
+    const cookie = await authCookie("user-1");
+
+    const res = await request(app)
+      .post("/api/hints")
+      .set("Cookie", cookie)
+      .send({ nodeId: "n1", questionType: "invalid_type" });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/questionType/);
+  });
+
   it("returns 404 for nonexistent node", async () => {
     const app = createTestApp({ nodes: [] });
     const cookie = await authCookie("user-1");

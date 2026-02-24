@@ -57,6 +57,19 @@ describe("POST /api/sessions", () => {
     expect(res.body).toHaveProperty("totalItems");
   });
 
+  it("returns 400 when skilltreeId is a number", async () => {
+    const app = createTestApp();
+    const cookie = await authCookie("user-1");
+
+    const res = await request(app)
+      .post("/api/sessions")
+      .set("Cookie", cookie)
+      .send({ skilltreeId: 123 });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/skilltreeId/);
+  });
+
   it("returns 401 without auth", async () => {
     const app = createTestApp();
 

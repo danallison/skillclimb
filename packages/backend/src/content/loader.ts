@@ -2,6 +2,7 @@ import { readFileSync } from "fs";
 import { join } from "path";
 import { parse } from "yaml";
 import type { SkillTreeDef, SeedDomain, SeedTopic, SeedNode } from "../seed/types.js";
+import { validateSkillTreeDef } from "./validator.js";
 
 // ---------------------------------------------------------------------------
 // YAML shape types (what authors write)
@@ -137,7 +138,7 @@ export function loadYamlSkillTree(skilltreeDir: string): SkillTreeDef {
     displayOrder: p.displayOrder,
   }));
 
-  return {
+  const result: SkillTreeDef = {
     name: skilltreeYaml.name,
     id: skilltreeYaml.id,
     tierBases: skilltreeYaml.tierBases,
@@ -145,4 +146,8 @@ export function loadYamlSkillTree(skilltreeDir: string): SkillTreeDef {
     prerequisites,
     placeholderDomains,
   };
+
+  validateSkillTreeDef(result);
+
+  return result;
 }

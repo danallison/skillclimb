@@ -1,10 +1,12 @@
 import type { LearnerNodeState } from "../types.js";
+import { assertScore, assertRepetitions, assertInterval, assertEasiness, assertDomainWeight } from "../validation/validation.js";
 
 /**
  * Calculate the new easiness factor after a review.
  * Easiness never drops below 1.3.
  */
 export function calculateEasiness(current: number, score: number): number {
+  assertScore(score);
   if (score <= 2) {
     // Fail: decrease easiness
     return Math.max(1.3, current - 0.2);
@@ -32,6 +34,10 @@ export function calculateInterval(
   easiness: number,
   domainWeight: number,
 ): number {
+  assertRepetitions(repetitions);
+  assertInterval(previousInterval);
+  assertEasiness(easiness);
+  assertDomainWeight(domainWeight);
   if (repetitions === 0) {
     return 1;
   }

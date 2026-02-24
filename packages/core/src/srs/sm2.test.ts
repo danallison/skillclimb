@@ -47,6 +47,22 @@ describe("calculateEasiness", () => {
   it("never exceeds 5.0", () => {
     expect(calculateEasiness(5.0, 5)).toBe(5.0);
   });
+
+  it("throws for score > 5", () => {
+    expect(() => calculateEasiness(2.5, 6)).toThrow(RangeError);
+  });
+
+  it("throws for score < 0", () => {
+    expect(() => calculateEasiness(2.5, -1)).toThrow(RangeError);
+  });
+
+  it("throws for non-integer score", () => {
+    expect(() => calculateEasiness(2.5, 4.5)).toThrow(RangeError);
+  });
+
+  it("throws for NaN score", () => {
+    expect(() => calculateEasiness(2.5, NaN)).toThrow(RangeError);
+  });
 });
 
 describe("calculateInterval", () => {
@@ -72,6 +88,22 @@ describe("calculateInterval", () => {
 
   it("never returns less than 1", () => {
     expect(calculateInterval(2, 1, 1.3, 0.5)).toBeGreaterThanOrEqual(1);
+  });
+
+  it("throws for negative repetitions", () => {
+    expect(() => calculateInterval(-1, 6, 2.5, 1.0)).toThrow(RangeError);
+  });
+
+  it("throws for negative previousInterval", () => {
+    expect(() => calculateInterval(2, -1, 2.5, 1.0)).toThrow(RangeError);
+  });
+
+  it("throws for easiness below 1.3", () => {
+    expect(() => calculateInterval(2, 6, 1.2, 1.0)).toThrow(RangeError);
+  });
+
+  it("throws for domainWeight of 0", () => {
+    expect(() => calculateInterval(2, 6, 2.5, 0)).toThrow(RangeError);
   });
 });
 
@@ -167,6 +199,16 @@ describe("calculateNextState", () => {
     const next4 = calculateNextState(state, 4, now);
 
     expect(next3.interval).toBeLessThan(next4.interval);
+  });
+
+  it("throws for NaN score", () => {
+    const state = makeFreshState();
+    expect(() => calculateNextState(state, NaN, now)).toThrow(RangeError);
+  });
+
+  it("throws for score > 5", () => {
+    const state = makeFreshState();
+    expect(() => calculateNextState(state, 6, now)).toThrow(RangeError);
   });
 });
 
