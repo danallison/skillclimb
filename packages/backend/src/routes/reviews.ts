@@ -72,7 +72,16 @@ export function reviewsRouter(handle: EffectHandler) {
             learnerResponse: response,
             previousMisconceptions,
           })
-          .pipe(Effect.catchTag("AIRequestError", () => Effect.succeed(null)));
+          .pipe(Effect.catchTag("AIRequestError", () =>
+            Effect.succeed({
+              score: null as number | null,
+              feedback: "AI evaluation is unavailable. Use selfRating with submit_answer instead.",
+              keyPointsCovered: [] as string[],
+              keyPointsMissed: template.keyPoints ?? [],
+              misconceptions: [] as string[],
+              source: "unavailable" as const,
+            }),
+          ));
 
         return new HttpResponse(200, result);
       }),

@@ -218,7 +218,7 @@ describe("session completion", () => {
   it("completeSession returns completion summary", async () => {
     const result = (await client.completeSession("session-1")) as any;
 
-    expect(result).toHaveProperty("sessionId", "session-1");
+    expect(result).toHaveProperty("id", "session-1");
     expect(result).toHaveProperty("completedAt");
     expect(result).toHaveProperty("summary");
     expect(result.summary).toHaveProperty("totalReviews");

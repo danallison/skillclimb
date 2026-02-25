@@ -66,7 +66,7 @@ Entry point: `packages/backend/src/mcp/index.ts` — runs via stdio transport, s
 npm run mcp --workspace=@skillclimb/backend
 ```
 
-The MCP server reuses the same Effect layers (`DatabaseLive`, `AIServiceLive`) and service functions as Express. 13 tools (study sessions, placement tests, AI tutor, content discovery) and 5 resources (learner profile, due items, domain progress, skill tree map, session history).
+The MCP server is a thin stdio client that proxies to the Express backend via HTTP (`SkillClimbClient`). 15 tools (study sessions, answer submission, placement tests, AI tutor, content discovery) and 6 resources (study guide, learner profile, due items, domain progress, skill tree map, session history).
 
 ## Database Migrations
 

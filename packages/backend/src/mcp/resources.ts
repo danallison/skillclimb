@@ -26,7 +26,7 @@ through MCP tools — the learner never needs to use the web app.
 2. The response contains 15-25 items ordered by priority. Work through them in order.
 3. **For each item:**
    a. Check \`needsLesson\` — if true, the learner is struggling. Call \`generate_micro_lesson\`
-      or present the \`questionTemplate.microLesson\` content before asking the question.
+      to get a brief lesson before asking the question.
    b. Present the question based on type:
       - **recognition**: Show choices as A, B, C, D. Ask them to pick one.
       - **cued_recall**: Ask for a short answer (a word or phrase).
@@ -128,7 +128,16 @@ export function registerResources(
         "Comprehensive learner profile: mastery stats, tier completion, badges, streak, velocity, retention, calibration. Read this at the start of a session to understand the learner's current state.",
     },
     async (uri) => {
-      const profile = await client.getUserProfile();
+      const profile = (await client.getUserProfile()) as Record<string, unknown>;
+
+      // Trim heatmap — only include days with activity to reduce payload
+      if (Array.isArray(profile.heatMap)) {
+        const active = (
+          profile.heatMap as Array<{ date: string; reviewCount: number; intensity: number }>
+        ).filter((d) => d.reviewCount > 0);
+        profile.heatMap = active;
+      }
+
       return {
         contents: [
           {
@@ -148,16 +157,47 @@ export function registerResources(
     "skillclimb://me/due",
     {
       description:
-        "Nodes due for review right now with concept names, domains, and SRS state. Use this to check if the learner has items to review before starting a session.",
+        "Summary of nodes due for review: total count, per-domain breakdown, and the top 25 most urgent items. Call start_study_session to begin reviewing.",
     },
     async (uri) => {
-      const dueItems = await client.getDueItems();
+      const dueItems = (await client.getDueItems()) as Array<{
+        nodeId: string;
+        concept: string;
+        domainId: string;
+        domainName: string;
+        dueDate: string;
+        easiness: number;
+        interval: number;
+        repetitions: number;
+      }>;
+
+      // Build per-domain summary
+      const byDomain = new Map<string, { name: string; count: number }>();
+      for (const item of dueItems) {
+        const entry = byDomain.get(item.domainId) ?? {
+          name: item.domainName,
+          count: 0,
+        };
+        entry.count++;
+        byDomain.set(item.domainId, entry);
+      }
+
+      const summary = {
+        totalDue: dueItems.length,
+        byDomain: Array.from(byDomain.entries()).map(([domainId, d]) => ({
+          domainId,
+          domainName: d.name,
+          dueCount: d.count,
+        })),
+        topItems: dueItems.slice(0, 25),
+      };
+
       return {
         contents: [
           {
             uri: uri.href,
             mimeType: "application/json",
-            text: JSON.stringify(dueItems, null, 2),
+            text: JSON.stringify(summary, null, 2),
           },
         ],
       };
