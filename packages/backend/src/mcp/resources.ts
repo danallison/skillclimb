@@ -131,11 +131,11 @@ export function registerResources(
       const profile = (await client.getUserProfile()) as Record<string, unknown>;
 
       // Trim heatmap — only include days with activity to reduce payload
-      if (Array.isArray(profile.heatMap)) {
-        const active = (
-          profile.heatMap as Array<{ date: string; reviewCount: number; intensity: number }>
+      const trimmedProfile = { ...profile };
+      if (Array.isArray(trimmedProfile.heatMap)) {
+        trimmedProfile.heatMap = (
+          trimmedProfile.heatMap as Array<{ date: string; reviewCount: number; intensity: number }>
         ).filter((d) => d.reviewCount > 0);
-        profile.heatMap = active;
       }
 
       return {
@@ -143,7 +143,7 @@ export function registerResources(
           {
             uri: uri.href,
             mimeType: "application/json",
-            text: JSON.stringify(profile, null, 2),
+            text: JSON.stringify(trimmedProfile, null, 2),
           },
         ],
       };

@@ -21,7 +21,7 @@ function slimSession(session: Record<string, unknown>): Record<string, unknown> 
           ? { id: node.id, topicId: node.topicId, domainId: node.domainId, concept: node.concept }
           : node,
         learnerState: learner
-          ? { easiness: learner.easiness, interval: learner.interval, repetitions: learner.repetitions, dueDate: learner.dueDate }
+          ? { easiness: learner.easiness, interval: learner.interval, repetitions: learner.repetitions, dueDate: learner.dueDate, misconceptions: learner.misconceptions }
           : learner,
       };
     }),
@@ -38,10 +38,10 @@ export function registerTools(server: McpServer, client: SkillClimbClient) {
 Each item includes:
 - node.concept: the knowledge unit name
 - questionTemplate: { type, prompt, choices?, correctAnswer, explanation }
-- needsLesson: true if the learner is struggling — deliver the microLesson first
+- needsLesson: true if the learner is struggling — call generate_micro_lesson first
 
 Tutoring flow per item:
-1. If needsLesson is true, present the microLesson content or call generate_micro_lesson
+1. If needsLesson is true, call generate_micro_lesson to get a brief lesson before asking the question
 2. Present questionTemplate.prompt to the learner
    - recognition: show choices as lettered options (A, B, C, D)
    - cued_recall: ask for a short answer
