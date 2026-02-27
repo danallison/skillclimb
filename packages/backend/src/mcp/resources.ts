@@ -107,15 +107,31 @@ export function registerResources(
       description:
         "Complete tutoring workflow guide for AI assistants. Covers: first session, running study sessions, placement tests, confidence calibration, encouragement patterns, milestone celebrations.",
     },
-    async (uri) => ({
-      contents: [
-        {
-          uri: uri.href,
-          mimeType: "text/markdown",
-          text: STUDY_GUIDE,
-        },
-      ],
-    }),
+    async (uri) => {
+      // Append available skill trees so clients can discover curricula without a tool call
+      let guide = STUDY_GUIDE;
+      try {
+        const skilltrees = (await client.listSkilltrees()) as Array<{ id: string; name: string }>;
+        if (skilltrees.length > 0) {
+          guide += `\n## Available Skill Trees\n\n`;
+          for (const st of skilltrees) {
+            guide += `- **${st.name}** (id: \`${st.id}\`)\n`;
+          }
+          guide += `\nUse the skill tree id when calling \`start_study_session\` or \`start_placement\`.\n`;
+        }
+      } catch {
+        // If the API call fails, return the guide without skill tree info
+      }
+      return {
+        contents: [
+          {
+            uri: uri.href,
+            mimeType: "text/markdown",
+            text: guide,
+          },
+        ],
+      };
+    },
   );
 
   // ─── Learner Profile ──────────────────────────────────────────────
@@ -236,17 +252,43 @@ export function registerResources(
     }),
     {
       description:
-        "Full skill tree hierarchy with domains, topics, nodes, and prerequisite graph. Use this to understand the curriculum structure and explain learning paths to the learner.",
+        "Skill tree hierarchy with domains, topics, and node counts. Use this to understand the curriculum structure and explain learning paths to the learner. Individual node details are available via study sessions.",
     },
     async (uri, variables) => {
       const skilltreeId = variables.id as string;
-      const treeMap = await client.getSkilltreeMap(skilltreeId);
+      const treeMap = (await client.getSkilltreeMap(skilltreeId)) as Array<{
+        id: string;
+        name: string;
+        tier: number;
+        description: string;
+        prerequisites: string[];
+        topics: Array<{
+          id: string;
+          name: string;
+          nodes: Array<{ id: string; concept: string; difficulty: number }>;
+        }>;
+      }>;
+
+      // Slim: replace individual nodes with count per topic to reduce payload
+      const slimmed = treeMap.map((domain) => ({
+        id: domain.id,
+        name: domain.name,
+        tier: domain.tier,
+        description: domain.description,
+        prerequisites: domain.prerequisites,
+        topics: domain.topics.map((topic) => ({
+          id: topic.id,
+          name: topic.name,
+          nodeCount: topic.nodes.length,
+        })),
+      }));
+
       return {
         contents: [
           {
             uri: uri.href,
             mimeType: "application/json",
-            text: JSON.stringify(treeMap, null, 2),
+            text: JSON.stringify(slimmed, null, 2),
           },
         ],
       };
