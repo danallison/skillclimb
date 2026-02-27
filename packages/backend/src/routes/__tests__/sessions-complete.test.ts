@@ -53,7 +53,7 @@ describe("POST /api/sessions/:id/complete", () => {
       .set("Cookie", cookie);
 
     expect(res.status).toBe(200);
-    expect(res.body).toHaveProperty("sessionId", sessionId);
+    expect(res.body).toHaveProperty("id", sessionId);
     expect(res.body).toHaveProperty("completedAt");
     expect(res.body.summary.totalReviews).toBe(1);
     expect(res.body.summary.correctCount).toBe(1);

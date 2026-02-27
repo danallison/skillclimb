@@ -412,7 +412,9 @@ export function usersRouter(handle: EffectHandler) {
             .from(learnerNodes)
             .where(eq(learnerNodes.userId, userId)),
         );
-        const dueRows = rows.filter((r) => r.dueDate <= now);
+        const dueRows = rows
+          .filter((r) => r.dueDate <= now)
+          .sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime());
 
         if (dueRows.length === 0) {
           return new HttpResponse(200, []);

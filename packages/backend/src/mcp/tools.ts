@@ -2,6 +2,32 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import type { SkillClimbClient } from "./client.js";
 
+/**
+ * Strip bulky fields from session responses to reduce context window usage.
+ * Removes node.questionTemplates (redundant with the selected questionTemplate)
+ * and learnerState.confidenceHistory (detailed history not needed per-item).
+ */
+function slimSession(session: Record<string, unknown>): Record<string, unknown> {
+  const items = session.items;
+  if (!Array.isArray(items)) return session;
+  return {
+    ...session,
+    items: items.map((item: Record<string, unknown>) => {
+      const node = item.node as Record<string, unknown> | undefined;
+      const learner = item.learnerState as Record<string, unknown> | undefined;
+      return {
+        ...item,
+        node: node
+          ? { id: node.id, topicId: node.topicId, domainId: node.domainId, concept: node.concept }
+          : node,
+        learnerState: learner
+          ? { easiness: learner.easiness, interval: learner.interval, repetitions: learner.repetitions, dueDate: learner.dueDate, misconceptions: learner.misconceptions }
+          : learner,
+      };
+    }),
+  };
+}
+
 export function registerTools(server: McpServer, client: SkillClimbClient) {
   // ─── Study Session Tools ───────────────────────────────────────────
 
@@ -12,10 +38,10 @@ export function registerTools(server: McpServer, client: SkillClimbClient) {
 Each item includes:
 - node.concept: the knowledge unit name
 - questionTemplate: { type, prompt, choices?, correctAnswer, explanation }
-- needsLesson: true if the learner is struggling — deliver the microLesson first
+- needsLesson: true if the learner is struggling — call generate_micro_lesson first
 
 Tutoring flow per item:
-1. If needsLesson is true, present the microLesson content or call generate_micro_lesson
+1. If needsLesson is true, call generate_micro_lesson to get a brief lesson before asking the question
 2. Present questionTemplate.prompt to the learner
    - recognition: show choices as lettered options (A, B, C, D)
    - cued_recall: ask for a short answer
@@ -36,7 +62,7 @@ Tutoring flow per item:
         content: [
           {
             type: "text" as const,
-            text: JSON.stringify(session, null, 2),
+            text: JSON.stringify(slimSession(session as Record<string, unknown>), null, 2),
           },
         ],
       };
@@ -58,7 +84,7 @@ Use this to resume a session that was started earlier. Returns the same structur
           content: [
             {
               type: "text" as const,
-              text: JSON.stringify(session, null, 2),
+              text: JSON.stringify(slimSession(session as Record<string, unknown>), null, 2),
             },
           ],
         };

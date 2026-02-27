@@ -26,7 +26,7 @@ through MCP tools — the learner never needs to use the web app.
 2. The response contains 15-25 items ordered by priority. Work through them in order.
 3. **For each item:**
    a. Check \`needsLesson\` — if true, the learner is struggling. Call \`generate_micro_lesson\`
-      or present the \`questionTemplate.microLesson\` content before asking the question.
+      to get a brief lesson before asking the question.
    b. Present the question based on type:
       - **recognition**: Show choices as A, B, C, D. Ask them to pick one.
       - **cued_recall**: Ask for a short answer (a word or phrase).
@@ -107,15 +107,31 @@ export function registerResources(
       description:
         "Complete tutoring workflow guide for AI assistants. Covers: first session, running study sessions, placement tests, confidence calibration, encouragement patterns, milestone celebrations.",
     },
-    async (uri) => ({
-      contents: [
-        {
-          uri: uri.href,
-          mimeType: "text/markdown",
-          text: STUDY_GUIDE,
-        },
-      ],
-    }),
+    async (uri) => {
+      // Append available skill trees so clients can discover curricula without a tool call
+      let guide = STUDY_GUIDE;
+      try {
+        const skilltrees = (await client.listSkilltrees()) as Array<{ id: string; name: string }>;
+        if (skilltrees.length > 0) {
+          guide += `\n## Available Skill Trees\n\n`;
+          for (const st of skilltrees) {
+            guide += `- **${st.name}** (id: \`${st.id}\`)\n`;
+          }
+          guide += `\nUse the skill tree id when calling \`start_study_session\` or \`start_placement\`.\n`;
+        }
+      } catch {
+        // If the API call fails, return the guide without skill tree info
+      }
+      return {
+        contents: [
+          {
+            uri: uri.href,
+            mimeType: "text/markdown",
+            text: guide,
+          },
+        ],
+      };
+    },
   );
 
   // ─── Learner Profile ──────────────────────────────────────────────
@@ -128,13 +144,22 @@ export function registerResources(
         "Comprehensive learner profile: mastery stats, tier completion, badges, streak, velocity, retention, calibration. Read this at the start of a session to understand the learner's current state.",
     },
     async (uri) => {
-      const profile = await client.getUserProfile();
+      const profile = (await client.getUserProfile()) as Record<string, unknown>;
+
+      // Trim heatmap — only include days with activity to reduce payload
+      const trimmedProfile = { ...profile };
+      if (Array.isArray(trimmedProfile.heatMap)) {
+        trimmedProfile.heatMap = (
+          trimmedProfile.heatMap as Array<{ date: string; reviewCount: number; intensity: number }>
+        ).filter((d) => d.reviewCount > 0);
+      }
+
       return {
         contents: [
           {
             uri: uri.href,
             mimeType: "application/json",
-            text: JSON.stringify(profile, null, 2),
+            text: JSON.stringify(trimmedProfile, null, 2),
           },
         ],
       };
@@ -148,16 +173,47 @@ export function registerResources(
     "skillclimb://me/due",
     {
       description:
-        "Nodes due for review right now with concept names, domains, and SRS state. Use this to check if the learner has items to review before starting a session.",
+        "Summary of nodes due for review: total count, per-domain breakdown, and the top 25 most urgent items. Call start_study_session to begin reviewing.",
     },
     async (uri) => {
-      const dueItems = await client.getDueItems();
+      const dueItems = (await client.getDueItems()) as Array<{
+        nodeId: string;
+        concept: string;
+        domainId: string;
+        domainName: string;
+        dueDate: string;
+        easiness: number;
+        interval: number;
+        repetitions: number;
+      }>;
+
+      // Build per-domain summary
+      const byDomain = new Map<string, { name: string; count: number }>();
+      for (const item of dueItems) {
+        const entry = byDomain.get(item.domainId) ?? {
+          name: item.domainName,
+          count: 0,
+        };
+        entry.count++;
+        byDomain.set(item.domainId, entry);
+      }
+
+      const summary = {
+        totalDue: dueItems.length,
+        byDomain: Array.from(byDomain.entries()).map(([domainId, d]) => ({
+          domainId,
+          domainName: d.name,
+          dueCount: d.count,
+        })),
+        topItems: dueItems.slice(0, 25),
+      };
+
       return {
         contents: [
           {
             uri: uri.href,
             mimeType: "application/json",
-            text: JSON.stringify(dueItems, null, 2),
+            text: JSON.stringify(summary, null, 2),
           },
         ],
       };
@@ -196,17 +252,43 @@ export function registerResources(
     }),
     {
       description:
-        "Full skill tree hierarchy with domains, topics, nodes, and prerequisite graph. Use this to understand the curriculum structure and explain learning paths to the learner.",
+        "Skill tree hierarchy with domains, topics, and node counts. Use this to understand the curriculum structure and explain learning paths to the learner. Individual node details are available via study sessions.",
     },
     async (uri, variables) => {
       const skilltreeId = variables.id as string;
-      const treeMap = await client.getSkilltreeMap(skilltreeId);
+      const treeMap = (await client.getSkilltreeMap(skilltreeId)) as Array<{
+        id: string;
+        name: string;
+        tier: number;
+        description: string;
+        prerequisites: string[];
+        topics: Array<{
+          id: string;
+          name: string;
+          nodes: Array<{ id: string; concept: string; difficulty: number }>;
+        }>;
+      }>;
+
+      // Slim: replace individual nodes with count per topic to reduce payload
+      const slimmed = treeMap.map((domain) => ({
+        id: domain.id,
+        name: domain.name,
+        tier: domain.tier,
+        description: domain.description,
+        prerequisites: domain.prerequisites,
+        topics: domain.topics.map((topic) => ({
+          id: topic.id,
+          name: topic.name,
+          nodeCount: topic.nodes.length,
+        })),
+      }));
+
       return {
         contents: [
           {
             uri: uri.href,
             mimeType: "application/json",
-            text: JSON.stringify(treeMap, null, 2),
+            text: JSON.stringify(slimmed, null, 2),
           },
         ],
       };

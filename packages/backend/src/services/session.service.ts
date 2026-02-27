@@ -156,7 +156,7 @@ export const getSession = (
   });
 
 export interface SessionCompletionResult {
-  sessionId: string;
+  id: string;
   completedAt: string;
   summary: {
     totalReviews: number;
@@ -254,7 +254,7 @@ export const completeSession = (
     );
 
     return {
-      sessionId,
+      id: sessionId,
       completedAt: completedAt.toISOString(),
       summary,
       momentum,

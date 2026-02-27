@@ -294,7 +294,9 @@ describe("POST /api/reviews/evaluate", () => {
       .send({ nodeId, response: "XSS is injection" });
 
     expect(res.status).toBe(200);
-    expect(res.body).toBeNull();
+    expect(res.body).toHaveProperty("source", "unavailable");
+    expect(res.body).toHaveProperty("score", null);
+    expect(res.body).toHaveProperty("feedback");
   });
 
   it("returns 400 when nodeId is a number", async () => {
