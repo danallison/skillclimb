@@ -6,8 +6,10 @@ import { colors, buttonStyles } from "./styles/theme.js";
 import SessionView from "./components/SessionView.js";
 import ProgressView from "./components/ProgressView.js";
 import PlacementView from "./components/PlacementView.js";
+import JournalPrompt from "./components/JournalPrompt.js";
+import JournalView from "./components/JournalView.js";
 
-type View = "loading" | "login" | "skillTreeSelect" | "progress" | "session" | "placement";
+type View = "loading" | "login" | "skillTreeSelect" | "progress" | "session" | "placement" | "journal" | "journalPrompt";
 
 export default function App() {
   const { userId, selectedSkillTreeId, savedSessionId, savedItemIndex, session, setUserId, setSelectedSkillTreeId, setSession, resumeSession, pauseSession, reset: resetSession, logout: storeLogout } = useSessionStore();
@@ -19,6 +21,7 @@ export default function App() {
   const startPlacement = useStartPlacement();
   const { data: skillTreesData } = useSkillTrees();
   const [email, setEmail] = useState("");
+  const [lastSessionId, setLastSessionId] = useState<string | null>(null);
 
   // Sync auth state to store
   useEffect(() => {
@@ -121,7 +124,7 @@ export default function App() {
 
   // Active session
   if (view === "session" && session) {
-    return <SessionView onFinished={() => { resetSession(); setView("progress"); }} onExit={() => { pauseSession(); setView("progress"); }} />;
+    return <SessionView onFinished={(sessionId) => { resetSession(); setLastSessionId(sessionId); setView("journalPrompt"); }} onExit={() => { pauseSession(); setView("progress"); }} />;
   }
 
   // Session view but still loading from API — show loading state
@@ -141,6 +144,30 @@ export default function App() {
           placementStore.reset();
           setView("progress");
         }}
+      />
+    );
+  }
+
+  // Journal prompt (after session completion)
+  if (view === "journalPrompt" && selectedSkillTreeId && lastSessionId) {
+    return (
+      <JournalPrompt
+        skilltreeId={selectedSkillTreeId}
+        sessionId={lastSessionId}
+        onDone={() => {
+          setLastSessionId(null);
+          setView("progress");
+        }}
+      />
+    );
+  }
+
+  // Journal browser
+  if (view === "journal" && selectedSkillTreeId) {
+    return (
+      <JournalView
+        skilltreeId={selectedSkillTreeId}
+        onBack={() => setView("progress")}
       />
     );
   }
@@ -201,6 +228,7 @@ export default function App() {
           setSelectedSkillTreeId(null);
           setView("skillTreeSelect");
         } : undefined}
+        onJournal={() => setView("journal")}
         onBack={handleLogout}
       />
     );

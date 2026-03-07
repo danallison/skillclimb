@@ -18,6 +18,7 @@ import { usersRouter } from "../users.js";
 import { aiProviderRouter } from "../ai-provider.js";
 import { dataRouter } from "../data.js";
 import { answersRouter } from "../answers.js";
+import { journalsRouter } from "../journals.js";
 import * as schema from "../../db/schema.js";
 
 // ---------------------------------------------------------------------------
@@ -161,6 +162,33 @@ export function makePlacement(
   };
 }
 
+export function makeJournal(
+  overrides: Partial<typeof schema.journals.$inferSelect> = {},
+) {
+  return {
+    id: nextId(),
+    userId: "user-1",
+    skilltreeId: "cybersecurity",
+    createdAt: new Date(),
+    ...overrides,
+  };
+}
+
+export function makeJournalEntry(
+  overrides: Partial<typeof schema.journalEntries.$inferSelect> = {},
+) {
+  return {
+    id: nextId(),
+    journalId: "journal-1",
+    sessionId: null,
+    connection: null,
+    feeling: null,
+    reflection: null,
+    createdAt: new Date(),
+    ...overrides,
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Mock database
 // ---------------------------------------------------------------------------
@@ -245,28 +273,22 @@ export function createMockDb(fixtures: MockFixtures = {}) {
     return fixtures[tableName] ?? [];
   }
 
+  // Add chainable no-op methods (limit, offset, orderBy, where) to a result promise
+  function chainable(promise: Promise<any[]>, rows: any[]): any {
+    const p = promise as any;
+    p.where = (expr: any) => chainable(Promise.resolve(filterRows(rows, expr)), filterRows(rows, expr));
+    p.orderBy = () => chainable(Promise.resolve(rows), rows);
+    p.limit = () => chainable(Promise.resolve(rows), rows);
+    p.offset = () => chainable(Promise.resolve(rows), rows);
+    return p;
+  }
+
   const mockDb: any = {
     select: () => ({
       from: (table: any) => {
         const name = getTableName(table);
         const rows = getRows(name);
-        // Make the base promise-like AND chainable
-        const result = Promise.resolve(rows);
-        (result as any).where = (expr: any) => {
-          const filtered = Promise.resolve(filterRows(rows, expr));
-          (filtered as any).orderBy = () => filtered;
-          return filtered;
-        };
-        (result as any).orderBy = () => {
-          const ordered = Promise.resolve(rows);
-          (ordered as any).where = (expr: any) => {
-            const filtered = Promise.resolve(filterRows(rows, expr));
-            (filtered as any).orderBy = () => filtered;
-            return filtered;
-          };
-          return ordered;
-        };
-        return result;
+        return chainable(Promise.resolve(rows), rows);
       },
     }),
     insert: (table: any) => {
@@ -362,6 +384,7 @@ export function createTestApp(
   app.use("/api/users", usersRouter(handle));
   app.use("/api/users", aiProviderRouter(handle));
   app.use("/api/users/me/data", dataRouter(handle));
+  app.use("/api/journals", journalsRouter(handle));
 
   return app;
 }

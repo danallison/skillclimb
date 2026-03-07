@@ -4,11 +4,11 @@ import { colors, buttonStyles } from "../styles/theme.js";
 import StatCard from "./StatCard.js";
 
 interface Props {
-  onViewProgress: () => void;
+  onViewProgress: (sessionId: string) => void;
 }
 
 export default function SessionSummary({ onViewProgress }: Props) {
-  const { reviewHistory, sessionMilestones, reset } = useSessionStore();
+  const { session, reviewHistory, sessionMilestones, reset } = useSessionStore();
 
   const summary = computeSessionSummary(reviewHistory);
   const { totalReviews: total, correctCount: correct, accuracyPercentage: percentage, calibrationCounts: quadrantCounts } = summary;
@@ -116,8 +116,9 @@ export default function SessionSummary({ onViewProgress }: Props) {
 
       <button
         onClick={() => {
+          const sessionId = session?.id ?? "";
           reset();
-          onViewProgress();
+          onViewProgress(sessionId);
         }}
         style={buttonStyles.primary}
       >

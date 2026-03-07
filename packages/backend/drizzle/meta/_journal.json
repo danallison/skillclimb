@@ -78,6 +78,13 @@
       "when": 1771892524997,
       "tag": "0010_blushing_lake",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1772850836182,
+      "tag": "0011_chilly_korath",
+      "breakpoints": true
     }
   ]
 }

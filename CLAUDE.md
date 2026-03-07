@@ -31,6 +31,7 @@ Key subsystems:
 - **Placement Test** — adaptive IRT-based assessment (~40–60 questions)
 - **Confidence Calibration** — tracks self-rated confidence vs. actual performance
 - **Prerequisite Graph** — domains form a DAG; unlock at 60% mastery of prerequisites
+- **Learning Journal** — structured reflective writing (feeling, reflection, connection) per skilltree; prompted after study sessions
 - **Pluggable AI** — `AIServiceShape` contract with provider adapters (Anthropic, OpenAI, Ollama); graceful fallback when no provider configured
 - **MCP Server** — exposes tutor tools, session management, learning state resources, and content authoring tools to external AI agents
 - **Self-Hosted Deployment** — Docker Compose with postgres, backend, and frontend services; all config via `.env`
@@ -87,4 +88,4 @@ Migration files live in `packages/backend/drizzle/` and should be committed.
 
 `User` → `LearnerNode` (SRS state per user/node) → `Node` → `Topic` → `Domain` → `Tier`
 
-Supporting entities: `Review` (single assessment event), `Session` (study session grouping reviews)
+Supporting entities: `Review` (single assessment event), `Session` (study session grouping reviews), `Journal` (one per user/skilltree) → `JournalEntry` (reflective writing with optional feeling/reflection/connection sections, optionally linked to a session)

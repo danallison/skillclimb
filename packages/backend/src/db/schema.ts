@@ -197,6 +197,25 @@ export interface PlacementResultRow {
   }>;
 }
 
+export const journals = pgTable("journals", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull().references(() => users.id),
+  skilltreeId: text("skilltree_id").notNull().references(() => skilltrees.id),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (table) => [
+  unique().on(table.userId, table.skilltreeId),
+]);
+
+export const journalEntries = pgTable("journal_entries", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  journalId: uuid("journal_id").notNull().references(() => journals.id),
+  sessionId: uuid("session_id").references(() => sessions.id),
+  connection: text("connection"),
+  feeling: text("feeling"),
+  reflection: text("reflection"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 export const placementTests = pgTable("placement_tests", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: uuid("user_id")

@@ -11,7 +11,7 @@ import SessionSummary from "./SessionSummary.js";
 import MomentumIndicator from "./MomentumIndicator.js";
 
 interface Props {
-  onFinished: () => void;
+  onFinished: (sessionId: string) => void;
   onExit: () => void;
 }
 

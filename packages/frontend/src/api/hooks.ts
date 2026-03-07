@@ -482,6 +482,69 @@ export function useStreaks() {
   });
 }
 
+// === Journal ===
+
+export interface JournalEntryResponse {
+  id: string;
+  journalId: string;
+  sessionId: string | null;
+  connection: string | null;
+  feeling: string | null;
+  reflection: string | null;
+  createdAt: string;
+}
+
+export function useJournalEntries(skilltreeId: string) {
+  return useQuery({
+    queryKey: ["journalEntries", skilltreeId],
+    queryFn: () =>
+      fetchJson<JournalEntryResponse[]>(`/journals/${skilltreeId}/entries`),
+  });
+}
+
+export function useCreateJournalEntry() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: {
+      skilltreeId: string;
+      connection?: string;
+      feeling?: string;
+      reflection?: string;
+      sessionId?: string;
+    }) =>
+      fetchJson<JournalEntryResponse>(`/journals/${data.skilltreeId}/entries`, {
+        method: "POST",
+        body: JSON.stringify({
+          connection: data.connection,
+          feeling: data.feeling,
+          reflection: data.reflection,
+          sessionId: data.sessionId,
+        }),
+      }),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["journalEntries", variables.skilltreeId],
+      });
+    },
+  });
+}
+
+export function useDeleteJournalEntry() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { skilltreeId: string; entryId: string }) =>
+      fetchJson<{ ok: boolean }>(
+        `/journals/${data.skilltreeId}/entries/${data.entryId}`,
+        { method: "DELETE" },
+      ),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["journalEntries", variables.skilltreeId],
+      });
+    },
+  });
+}
+
 export function useProfile(skilltreeId?: string | null) {
   const params = skilltreeId ? `?skilltreeId=${skilltreeId}` : "";
   return useQuery({

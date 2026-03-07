@@ -15,6 +15,7 @@ Key subsystems:
 - **Session Builder** — Selects review items using due dates, interleaving, and prerequisite reinforcement
 - **Placement Test** — Adaptive IRT-based assessment (~40–60 questions)
 - **Confidence Calibration** — Tracks self-rated confidence vs. actual performance
+- **Learning Journal** — Structured reflective writing prompted after study sessions (feeling, reflection, connection)
 - **AI Tutor** — Pluggable providers (Anthropic, OpenAI, Ollama); evaluates free-recall responses, generates hints and micro-lessons
 - **MCP Server** — Exposes learning engine to external AI agents for tutoring, session management, and content authoring
 
@@ -96,7 +97,7 @@ npm test          # Run all tests
 npm run test:watch  # Watch mode
 ```
 
-Tests cover the core domain logic (SRS, IRT, scoring, session building, calibration, progress) and backend routes (auth, skilltrees, domains, reviews, sessions, hints, lessons). Route tests use Supertest with mock Effect layers — no database required.
+Tests cover the core domain logic (SRS, IRT, scoring, session building, calibration, progress) and backend routes (auth, skilltrees, domains, reviews, sessions, hints, lessons, journals). Route tests use Supertest with mock Effect layers — no database required.
 
 ## Skill Trees
 
@@ -139,6 +140,9 @@ All routes under `/api`. Auth-protected routes require a JWT `access_token` cook
 | POST | `/api/placement/:id/answer` | * | Submit placement answer |
 | POST | `/api/hints` | * | Generate hint (static → AI → generic) |
 | POST | `/api/lessons` | * | Generate micro-lesson (static → AI → fallback) |
+| GET | `/api/journals/:skilltreeId/entries` | * | List journal entries (newest first, `?limit=20&offset=0`) |
+| POST | `/api/journals/:skilltreeId/entries` | * | Create journal entry (feeling, reflection, connection) |
+| DELETE | `/api/journals/:skilltreeId/entries/:entryId` | * | Delete journal entry |
 
 ## MCP Server
 

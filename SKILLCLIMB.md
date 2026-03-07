@@ -374,6 +374,17 @@ No confetti, no fanfare — just clear acknowledgment of real SRS state transiti
 
 *Theory: Flow (immediate relevant feedback), Self-Determination Theory (acknowledging genuine competence growth).*
 
+#### Learning Journal
+
+After completing a study session, learners are prompted to write a brief reflective entry (with a skip option). Entries have three optional sections:
+- **Feeling** — "How are you feeling about your learning right now?"
+- **Reflection** — "What do you understand well? What's still confusing?"
+- **Connection** — "How does what you have learned connect to your life, work, or interests?"
+
+One journal per user per skill tree. Post-session entries link to the session; entries can also be created from the journal browser on the progress view. No AI — just reflective writing.
+
+*Theory: Transfer-appropriate processing (connecting material to real life), affect awareness (tracking emotional responses to learning), metacognition (thinking about one's own understanding). Writing about learned material strengthens retention and deepens comprehension.*
+
 #### Knowledge Profile Dashboard
 
 A unified view bringing together all metrics:
@@ -480,6 +491,8 @@ The intended workflow is human-in-the-loop: an AI generates a draft skill tree, 
 | LearnerNode | user_id, node_id, easiness, interval, reps, due_date | SRS state per user per node |
 | Review | learner_node_id, score, confidence, response, timestamp | Individual review event record |
 | Session | user_id, started_at, items[], analytics | A single study session grouping reviews |
+| Journal | user_id, skilltree_id | One per user per skill tree (unique constraint) |
+| JournalEntry | journal_id, session_id?, feeling?, reflection?, connection? | Reflective writing; optionally linked to a session |
 
 ### Functional Core / Imperative Shell
 

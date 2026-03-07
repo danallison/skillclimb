@@ -12,6 +12,7 @@ interface Props {
   onStartSession: () => void;
   onStartPlacement: () => void;
   onChangeSkillTree?: () => void;
+  onJournal?: () => void;
   onBack: () => void;
 }
 
@@ -197,7 +198,7 @@ function DomainCard({ domain }: { domain: DomainProgressResponse }) {
   );
 }
 
-export default function ProgressView({ skilltreeId, onStartSession, onStartPlacement, onChangeSkillTree, onBack }: Props) {
+export default function ProgressView({ skilltreeId, onStartSession, onStartPlacement, onChangeSkillTree, onJournal, onBack }: Props) {
   const { data, isLoading, error } = useProgress(skilltreeId);
   const [progressView, setProgressView] = useState<"list" | "map" | "calibration" | "profile">("list");
 
@@ -244,6 +245,14 @@ export default function ProgressView({ skilltreeId, onStartSession, onStartPlace
           >
             Profile
           </button>
+          {onJournal && (
+            <button
+              onClick={onJournal}
+              style={{ ...buttonStyles.secondary, padding: "0.4rem 0.8rem" }}
+            >
+              Journal
+            </button>
+          )}
           <button
             onClick={() => setProgressView("calibration")}
             style={{ ...buttonStyles.secondary, padding: "0.4rem 0.8rem" }}
