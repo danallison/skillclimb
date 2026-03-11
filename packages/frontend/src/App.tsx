@@ -124,7 +124,7 @@ export default function App() {
 
   // Active session
   if (view === "session" && session) {
-    return <SessionView onFinished={(sessionId) => { resetSession(); setLastSessionId(sessionId); setView("journalPrompt"); }} onExit={() => { pauseSession(); setView("progress"); }} />;
+    return <SessionView onFinished={(sessionId) => { resetSession(); setLastSessionId(sessionId); setView("journalPrompt"); }} onContinue={async () => { try { const sess = await createSession.mutateAsync({ skilltreeId: selectedSkillTreeId ?? undefined }); setSession(sess); } catch (err) { console.error("Failed to start next batch:", err); resetSession(); setView("progress"); } }} onExit={() => { pauseSession(); setView("progress"); }} />;
   }
 
   // Session view but still loading from API — show loading state

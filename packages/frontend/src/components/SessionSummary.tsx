@@ -5,9 +5,10 @@ import StatCard from "./StatCard.js";
 
 interface Props {
   onViewProgress: (sessionId: string) => void;
+  onContinue: () => void;
 }
 
-export default function SessionSummary({ onViewProgress }: Props) {
+export default function SessionSummary({ onViewProgress, onContinue }: Props) {
   const { session, reviewHistory, sessionMilestones, reset } = useSessionStore();
 
   const summary = computeSessionSummary(reviewHistory);
@@ -114,16 +115,24 @@ export default function SessionSummary({ onViewProgress }: Props) {
         />
       </div>
 
-      <button
-        onClick={() => {
-          const sessionId = session?.id ?? "";
-          reset();
-          onViewProgress(sessionId);
-        }}
-        style={buttonStyles.primary}
-      >
-        View Progress
-      </button>
+      <div style={{ display: "flex", gap: "1rem" }}>
+        <button
+          onClick={onContinue}
+          style={{ ...buttonStyles.primary, flex: 1 }}
+        >
+          Keep Going
+        </button>
+        <button
+          onClick={() => {
+            const sessionId = session?.id ?? "";
+            reset();
+            onViewProgress(sessionId);
+          }}
+          style={{ ...buttonStyles.secondary, flex: 1 }}
+        >
+          Done for Now
+        </button>
+      </div>
     </div>
   );
 }

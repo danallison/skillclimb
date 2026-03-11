@@ -12,10 +12,11 @@ import MomentumIndicator from "./MomentumIndicator.js";
 
 interface Props {
   onFinished: (sessionId: string) => void;
+  onContinue: () => void;
   onExit: () => void;
 }
 
-export default function SessionView({ onFinished, onExit }: Props) {
+export default function SessionView({ onFinished, onContinue, onExit }: Props) {
   const { session, currentItemIndex, phase, setLessonContent, setPhase } = useSessionStore();
   const requestLesson = useRequestMicroLesson();
   const lessonChecked = useRef<number>(-1);
@@ -44,11 +45,11 @@ export default function SessionView({ onFinished, onExit }: Props) {
   if (!session) return null;
 
   if (phase === "summary") {
-    return <SessionSummary onViewProgress={onFinished} />;
+    return <SessionSummary onViewProgress={onFinished} onContinue={onContinue} />;
   }
 
   if (currentItemIndex >= session.items.length) {
-    return <SessionSummary onViewProgress={onFinished} />;
+    return <SessionSummary onViewProgress={onFinished} onContinue={onContinue} />;
   }
 
   const item = session.items[currentItemIndex];

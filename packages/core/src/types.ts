@@ -112,9 +112,9 @@ export const CORRECT_SCORE_THRESHOLD = 3;
 export const MASTERY_THRESHOLD_PERCENT = 60;
 
 export const DEFAULT_SESSION_CONFIG: SessionConfig = {
-  minItems: 15,
-  maxItems: 25,
-  targetItems: 20,
+  minItems: 1,
+  maxItems: 5,
+  targetItems: 5,
 };
 
 export const DEFAULT_LEARNER_STATE: Omit<LearnerNodeState, "userId" | "nodeId" | "domainId"> = {
