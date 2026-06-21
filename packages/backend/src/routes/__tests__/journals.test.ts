@@ -57,6 +57,41 @@ describe("POST /api/journals/:skilltreeId/entries", () => {
 
     expect(res.status).toBe(401);
   });
+
+  it("returns 400 when a section exceeds 10,000 characters", async () => {
+    const userId = "user-1";
+    const journal = makeJournal({ id: "journal-1", userId, skilltreeId: "cybersecurity" });
+
+    const app = createTestApp({
+      journals: [journal],
+    });
+    const cookie = await authCookie(userId);
+
+    const res = await request(app)
+      .post("/api/journals/cybersecurity/entries")
+      .set("Cookie", cookie)
+      .send({ reflection: "x".repeat(10_001) });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/reflection.*10000|10,000.*reflection|at most 10000/i);
+  });
+
+  it("accepts a section at exactly 10,000 characters", async () => {
+    const userId = "user-1";
+    const journal = makeJournal({ id: "journal-1", userId, skilltreeId: "cybersecurity" });
+
+    const app = createTestApp({
+      journals: [journal],
+    });
+    const cookie = await authCookie(userId);
+
+    const res = await request(app)
+      .post("/api/journals/cybersecurity/entries")
+      .set("Cookie", cookie)
+      .send({ reflection: "x".repeat(10_000) });
+
+    expect(res.status).toBe(201);
+  });
 });
 
 describe("GET /api/journals/:skilltreeId/entries", () => {
@@ -125,5 +160,23 @@ describe("DELETE /api/journals/:skilltreeId/entries/:entryId", () => {
       .delete("/api/journals/cybersecurity/entries/entry-1");
 
     expect(res.status).toBe(401);
+  });
+
+  it("returns 404 when the entry does not exist", async () => {
+    const userId = "user-1";
+    const journal = makeJournal({ id: "journal-1", userId, skilltreeId: "cybersecurity" });
+
+    // Journal exists, but no journal_entries fixture — delete should report not-found
+    const app = createTestApp({
+      journals: [journal],
+      journal_entries: [],
+    });
+    const cookie = await authCookie(userId);
+
+    const res = await request(app)
+      .delete("/api/journals/cybersecurity/entries/missing-entry")
+      .set("Cookie", cookie);
+
+    expect(res.status).toBe(404);
   });
 });

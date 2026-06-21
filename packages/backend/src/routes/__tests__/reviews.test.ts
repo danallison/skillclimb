@@ -171,6 +171,60 @@ describe("POST /api/reviews", () => {
     expect(res.body.error).toMatch(/misconceptions/);
   });
 
+  it("returns 400 when misconceptions has more than 50 items", async () => {
+    const app = createTestApp();
+    const cookie = await authCookie("user-1");
+
+    const res = await request(app)
+      .post("/api/reviews")
+      .set("Cookie", cookie)
+      .send({
+        nodeId: "n1",
+        score: 4,
+        confidence: 3,
+        misconceptions: Array(51).fill("x"),
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/misconceptions.*50|at most 50/);
+  });
+
+  it("returns 400 when a misconception is not a string", async () => {
+    const app = createTestApp();
+    const cookie = await authCookie("user-1");
+
+    const res = await request(app)
+      .post("/api/reviews")
+      .set("Cookie", cookie)
+      .send({
+        nodeId: "n1",
+        score: 4,
+        confidence: 3,
+        misconceptions: ["valid string", 42],
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/misconception.*string/);
+  });
+
+  it("returns 400 when a misconception exceeds 1000 characters", async () => {
+    const app = createTestApp();
+    const cookie = await authCookie("user-1");
+
+    const res = await request(app)
+      .post("/api/reviews")
+      .set("Cookie", cookie)
+      .send({
+        nodeId: "n1",
+        score: 4,
+        confidence: 3,
+        misconceptions: ["x".repeat(1001)],
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/misconception.*1000|at most 1000/);
+  });
+
   it("returns 401 without auth", async () => {
     const app = createTestApp();
 

@@ -6,7 +6,7 @@ import {
   listJournalEntries,
   deleteJournalEntry,
 } from "../services/journal.service.js";
-import { ValidationError } from "../errors.js";
+import { ValidationError, NotFoundError } from "../errors.js";
 import { HttpResponse, type EffectHandler } from "../effectHandler.js";
 
 export function journalsRouter(handle: EffectHandler) {
@@ -18,9 +18,11 @@ export function journalsRouter(handle: EffectHandler) {
     handle((req) =>
       Effect.gen(function* () {
         const userId = req.userId!;
-        const { skilltreeId } = req.params;
-        const limit = Math.min(parseInt(req.query.limit as string) || 20, 100);
-        const offset = parseInt(req.query.offset as string) || 0;
+        const skilltreeId = req.params.skilltreeId as string;
+        const parsedLimit = parseInt(req.query.limit as string);
+        const limit = Math.max(1, Math.min(Number.isFinite(parsedLimit) ? parsedLimit : 20, 100));
+        const parsedOffset = parseInt(req.query.offset as string);
+        const offset = Number.isFinite(parsedOffset) ? Math.max(0, parsedOffset) : 0;
 
         const journal = yield* getOrCreateJournal(userId, skilltreeId);
         const entries = yield* listJournalEntries(journal.id, limit, offset);
@@ -35,8 +37,20 @@ export function journalsRouter(handle: EffectHandler) {
     handle((req) =>
       Effect.gen(function* () {
         const userId = req.userId!;
-        const { skilltreeId } = req.params;
+        const skilltreeId = req.params.skilltreeId as string;
         const { connection, feeling, reflection, sessionId } = req.body;
+
+        // Validate field lengths (max 10,000 chars each)
+        const MAX_ENTRY_LENGTH = 10_000;
+        for (const [name, value] of [["connection", connection], ["feeling", feeling], ["reflection", reflection]] as const) {
+          if (typeof value === "string" && value.length > MAX_ENTRY_LENGTH) {
+            return yield* Effect.fail(
+              new ValidationError({
+                message: `${name} must be at most ${MAX_ENTRY_LENGTH} characters`,
+              }),
+            );
+          }
+        }
 
         // Validate at least one section is non-empty
         const hasContent =
@@ -70,10 +84,16 @@ export function journalsRouter(handle: EffectHandler) {
     handle((req) =>
       Effect.gen(function* () {
         const userId = req.userId!;
-        const { skilltreeId, entryId } = req.params;
+        const skilltreeId = req.params.skilltreeId as string;
+        const entryId = req.params.entryId as string;
 
         const journal = yield* getOrCreateJournal(userId, skilltreeId);
-        yield* deleteJournalEntry(entryId, journal.id);
+        const deleted = yield* deleteJournalEntry(entryId, journal.id);
+        if (!deleted) {
+          return yield* Effect.fail(
+            new NotFoundError({ entity: "JournalEntry", id: entryId }),
+          );
+        }
         return new HttpResponse(200, { ok: true });
       }),
     ),

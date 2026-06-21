@@ -123,10 +123,31 @@ export function reviewsRouter(handle: EffectHandler) {
           );
         }
 
-        if (misconceptions != null && !Array.isArray(misconceptions)) {
-          return yield* Effect.fail(
-            new ValidationError({ message: "misconceptions must be an array" }),
-          );
+        if (misconceptions != null) {
+          if (!Array.isArray(misconceptions)) {
+            return yield* Effect.fail(
+              new ValidationError({ message: "misconceptions must be an array" }),
+            );
+          }
+          const MAX_MISCONCEPTIONS = 50;
+          const MAX_MISCONCEPTION_LENGTH = 1000;
+          if (misconceptions.length > MAX_MISCONCEPTIONS) {
+            return yield* Effect.fail(
+              new ValidationError({ message: `misconceptions must have at most ${MAX_MISCONCEPTIONS} items` }),
+            );
+          }
+          for (const m of misconceptions) {
+            if (typeof m !== "string") {
+              return yield* Effect.fail(
+                new ValidationError({ message: "each misconception must be a string" }),
+              );
+            }
+            if (m.length > MAX_MISCONCEPTION_LENGTH) {
+              return yield* Effect.fail(
+                new ValidationError({ message: `each misconception must be at most ${MAX_MISCONCEPTION_LENGTH} characters` }),
+              );
+            }
+          }
         }
 
         const result = yield* submitReview(

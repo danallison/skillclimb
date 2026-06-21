@@ -324,7 +324,14 @@ export function createMockDb(fixtures: MockFixtures = {}) {
       }),
     }),
     delete: (table: any) => ({
-      where: () => Promise.resolve(undefined),
+      where: (..._args: any[]) => {
+        const tableName = getTableName(table);
+        const rows = getRows(tableName);
+        const result = Promise.resolve(rows.length > 0 ? [rows[0]] : []);
+        // Support both .returning() chaining and direct await
+        (result as any).returning = () => Promise.resolve(rows.length > 0 ? [{ id: rows[0].id }] : []);
+        return result;
+      },
     }),
   };
 

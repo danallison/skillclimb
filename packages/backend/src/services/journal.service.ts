@@ -68,11 +68,12 @@ export const listJournalEntries = (
 export const deleteJournalEntry = (
   entryId: string,
   journalId: string,
-): Effect.Effect<void, DatabaseError, Database> =>
+): Effect.Effect<boolean, DatabaseError, Database> =>
   query((db) =>
     db
       .delete(journalEntries)
       .where(
         and(eq(journalEntries.id, entryId), eq(journalEntries.journalId, journalId)),
-      ),
-  ).pipe(Effect.asVoid);
+      )
+      .returning({ id: journalEntries.id }),
+  ).pipe(Effect.map((rows) => rows.length > 0));
