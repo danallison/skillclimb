@@ -1,9 +1,23 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import request from "supertest";
 import { createTestApp, authCookie, resetIdCounter } from "./helpers.js";
 
+// Mock node:dns/promises so tests don't hit the network and we can simulate
+// DNS rebinding (hostname resolving to a private IP).
+const resolve4 = vi.fn<(host: string) => Promise<string[]>>();
+const resolve6 = vi.fn<(host: string) => Promise<string[]>>();
+vi.mock("node:dns/promises", () => ({
+  resolve4: (h: string) => resolve4(h),
+  resolve6: (h: string) => resolve6(h),
+}));
+
 describe("AI Provider routes", () => {
-  beforeEach(() => resetIdCounter());
+  beforeEach(() => {
+    resetIdCounter();
+    // Default: hostname resolves to a public IP — pass DNS rebinding check
+    resolve4.mockResolvedValue(["93.184.216.34"]);
+    resolve6.mockResolvedValue([]);
+  });
 
   describe("GET /api/users/me/ai-provider", () => {
     it("returns null when no config exists", async () => {
@@ -263,6 +277,148 @@ describe("AI Provider routes", () => {
 
       expect(res.status).toBe(400);
       expect(res.body.error).toMatch(/at most/);
+    });
+
+    // ── Expanded private-IP literal blocks ─────────────────────────────
+
+    it.each([
+      ["10.0.0.1", "RFC1918 10/8"],
+      ["10.255.255.255", "RFC1918 10/8 upper"],
+      ["172.16.0.1", "RFC1918 172.16/12 lower"],
+      ["172.31.255.254", "RFC1918 172.16/12 upper"],
+      ["192.168.1.1", "RFC1918 192.168/16"],
+      ["0.0.0.0", "0/8 unspecified range"],
+    ])("returns 400 for private IPv4 literal %s (%s)", async (ip) => {
+      const app = createTestApp();
+      const cookie = await authCookie("user-1");
+
+      const res = await request(app)
+        .put("/api/users/me/ai-provider")
+        .set("Cookie", cookie)
+        .send({ webhookUrl: `http://${ip}/hook` });
+
+      expect(res.status).toBe(400);
+      expect(res.body.error).toMatch(/local or internal/);
+    });
+
+    it("returns 400 for IPv6 loopback ::1", async () => {
+      const app = createTestApp();
+      const cookie = await authCookie("user-1");
+
+      const res = await request(app)
+        .put("/api/users/me/ai-provider")
+        .set("Cookie", cookie)
+        .send({ webhookUrl: "http://[::1]/hook" });
+
+      expect(res.status).toBe(400);
+      expect(res.body.error).toMatch(/local or internal/);
+    });
+
+    it("returns 400 for IPv6 link-local fe80::", async () => {
+      const app = createTestApp();
+      const cookie = await authCookie("user-1");
+
+      const res = await request(app)
+        .put("/api/users/me/ai-provider")
+        .set("Cookie", cookie)
+        .send({ webhookUrl: "http://[fe80::1]/hook" });
+
+      expect(res.status).toBe(400);
+      expect(res.body.error).toMatch(/local or internal/);
+    });
+
+    it("returns 400 for IPv6 unique-local fc00::/7", async () => {
+      const app = createTestApp();
+      const cookie = await authCookie("user-1");
+
+      const res = await request(app)
+        .put("/api/users/me/ai-provider")
+        .set("Cookie", cookie)
+        .send({ webhookUrl: "http://[fd00::1]/hook" });
+
+      expect(res.status).toBe(400);
+      expect(res.body.error).toMatch(/local or internal/);
+    });
+
+    // ── DNS rebinding mitigation ──────────────────────────────────────
+
+    it("returns 400 when hostname resolves to a private IPv4 (DNS rebinding)", async () => {
+      resolve4.mockResolvedValue(["10.0.0.5"]);
+      resolve6.mockResolvedValue([]);
+
+      const app = createTestApp();
+      const cookie = await authCookie("user-1");
+
+      const res = await request(app)
+        .put("/api/users/me/ai-provider")
+        .set("Cookie", cookie)
+        .send({ webhookUrl: "https://evil.example.com/hook" });
+
+      expect(res.status).toBe(400);
+      expect(res.body.error).toMatch(/private|internal/i);
+    });
+
+    it("returns 400 when hostname resolves to a private IPv6 (DNS rebinding)", async () => {
+      resolve4.mockResolvedValue([]);
+      resolve6.mockResolvedValue(["fd00::1"]);
+
+      const app = createTestApp();
+      const cookie = await authCookie("user-1");
+
+      const res = await request(app)
+        .put("/api/users/me/ai-provider")
+        .set("Cookie", cookie)
+        .send({ webhookUrl: "https://evil.example.com/hook" });
+
+      expect(res.status).toBe(400);
+      expect(res.body.error).toMatch(/private|internal/i);
+    });
+
+    it("returns 400 when hostname does not resolve", async () => {
+      resolve4.mockResolvedValue([]);
+      resolve6.mockResolvedValue([]);
+
+      const app = createTestApp();
+      const cookie = await authCookie("user-1");
+
+      const res = await request(app)
+        .put("/api/users/me/ai-provider")
+        .set("Cookie", cookie)
+        .send({ webhookUrl: "https://nx.example.com/hook" });
+
+      expect(res.status).toBe(400);
+      expect(res.body.error).toMatch(/resolved/i);
+    });
+
+    it("returns 400 when hostname resolves to IPv4-mapped IPv6 of a private address", async () => {
+      resolve4.mockResolvedValue([]);
+      resolve6.mockResolvedValue(["::ffff:10.0.0.5"]);
+
+      const app = createTestApp();
+      const cookie = await authCookie("user-1");
+
+      const res = await request(app)
+        .put("/api/users/me/ai-provider")
+        .set("Cookie", cookie)
+        .send({ webhookUrl: "https://sneaky.example.com/hook" });
+
+      expect(res.status).toBe(400);
+      expect(res.body.error).toMatch(/private|internal/i);
+    });
+
+    it("accepts hostname that resolves to a public IP", async () => {
+      resolve4.mockResolvedValue(["8.8.8.8"]);
+      resolve6.mockResolvedValue([]);
+
+      const app = createTestApp();
+      const cookie = await authCookie("user-1");
+
+      const res = await request(app)
+        .put("/api/users/me/ai-provider")
+        .set("Cookie", cookie)
+        .send({ webhookUrl: "https://public.example.com/hook" });
+
+      expect(res.status).toBe(200);
     });
   });
 
