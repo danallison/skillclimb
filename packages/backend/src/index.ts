@@ -10,7 +10,7 @@ import { DatabaseLive } from "./services/Database.js";
 import { AIServiceLive } from "./services/AIService.js";
 import { createEffectHandler } from "./effectHandler.js";
 import { requireAuth } from "./middleware/auth.js";
-import { globalLimiter, authLimiter } from "./middleware/rateLimiter.js";
+import { globalLimiter, authLimiter, aiLimiter } from "./middleware/rateLimiter.js";
 import { authRouter } from "./routes/auth.js";
 import { sessionsRouter } from "./routes/sessions.js";
 import { reviewsRouter } from "./routes/reviews.js";
@@ -54,15 +54,15 @@ app.get("/api/health", async (_req, res) => {
 // Protected routes (auth required)
 app.use("/api", requireAuth);
 app.use("/api/sessions", sessionsRouter(handle));
-app.use("/api/reviews", reviewsRouter(handle));
+app.use("/api/reviews", aiLimiter, reviewsRouter(handle));
 app.use("/api/answers", answersRouter(handle));
 app.use("/api/domains", domainsRouter(handle));
 app.use("/api/users", usersRouter(handle));
 app.use("/api/users", aiProviderRouter(handle));
 app.use("/api/users/me/data", dataRouter(handle));
 app.use("/api/placement", placementRouter(handle));
-app.use("/api/hints", hintsRouter(handle));
-app.use("/api/lessons", lessonsRouter(handle));
+app.use("/api/hints", aiLimiter, hintsRouter(handle));
+app.use("/api/lessons", aiLimiter, lessonsRouter(handle));
 app.use("/api/journals", journalsRouter(handle));
 
 const server = app.listen(port, () => {
