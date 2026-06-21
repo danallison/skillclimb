@@ -178,7 +178,7 @@ router.get("/callback/github", async (req, res) => {
 
 // --- Dev login (non-production only) ---
 
-if (process.env.NODE_ENV !== "production") {
+if (process.env.NODE_ENV !== "production" && process.env.ENABLE_DEV_LOGIN === "true") {
   router.post("/dev", async (req, res) => {
     const { email } = req.body;
     if (!email || typeof email !== "string") {
