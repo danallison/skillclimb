@@ -1,3 +1,13 @@
+import { z } from "zod";
+
+export const AIFeedbackSchema = z.object({
+  score: z.number(),
+  feedback: z.string(),
+  keyPointsCovered: z.array(z.string()).default([]),
+  keyPointsMissed: z.array(z.string()).default([]),
+  misconceptions: z.array(z.string()).default([]),
+});
+
 export interface AIFeedback {
   score: number; // 0–5
   feedback: string;
@@ -30,6 +40,12 @@ export interface AIMicroLessonInput {
   keyPoints: string[];
   misconceptions: string[];
 }
+
+export const AIMicroLessonSchema = z.object({
+  title: z.string(),
+  content: z.string(),
+  keyTakeaways: z.array(z.string()).default([]),
+});
 
 export interface AIMicroLesson {
   title: string;

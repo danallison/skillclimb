@@ -208,6 +208,49 @@ describe("createAnthropicAdapter (mocked SDK)", () => {
     if (!result.ok) expect(result.error._tag).toBe("AIRequestError");
   });
 
+  it("evaluateFreeRecall — JSON missing required `score` → fails with AIRequestError", async () => {
+    // Valid JSON but no score field — zod schema should reject
+    anthropicCreate.mockResolvedValue(
+      anthropicResponse(JSON.stringify({ feedback: "no score here" })),
+    );
+
+    const adapter = await getAdapter();
+    const result = await runEffect(adapter.evaluateFreeRecall(evalInput));
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error._tag).toBe("AIRequestError");
+  });
+
+  it("evaluateFreeRecall — score is a string → fails with AIRequestError", async () => {
+    // zod schema enforces `score: number`; a string should be rejected (no coercion)
+    anthropicCreate.mockResolvedValue(
+      anthropicResponse(JSON.stringify({ score: "4", feedback: "ok" })),
+    );
+
+    const adapter = await getAdapter();
+    const result = await runEffect(adapter.evaluateFreeRecall(evalInput));
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error._tag).toBe("AIRequestError");
+  });
+
+  it("evaluateFreeRecall — missing array fields default to []", async () => {
+    // Schema defaults keyPointsCovered/Missed/misconceptions to []; minimal payload should succeed
+    anthropicCreate.mockResolvedValue(
+      anthropicResponse(JSON.stringify({ score: 3, feedback: "minimal" })),
+    );
+
+    const adapter = await getAdapter();
+    const result = await runEffect(adapter.evaluateFreeRecall(evalInput));
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.keyPointsCovered).toEqual([]);
+      expect(result.value.keyPointsMissed).toEqual([]);
+      expect(result.value.misconceptions).toEqual([]);
+    }
+  });
+
   // --- generateHint ---
 
   it("generateHint — valid text → returns trimmed string", async () => {
@@ -258,6 +301,30 @@ describe("createAnthropicAdapter (mocked SDK)", () => {
 
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error._tag).toBe("AIRequestError");
+  });
+
+  it("generateMicroLesson — JSON missing required `title` → fails with AIRequestError", async () => {
+    anthropicCreate.mockResolvedValue(
+      anthropicResponse(JSON.stringify({ content: "no title" })),
+    );
+
+    const adapter = await getAdapter();
+    const result = await runEffect(adapter.generateMicroLesson(microLessonInput));
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error._tag).toBe("AIRequestError");
+  });
+
+  it("generateMicroLesson — missing keyTakeaways defaults to []", async () => {
+    anthropicCreate.mockResolvedValue(
+      anthropicResponse(JSON.stringify({ title: "T", content: "C" })),
+    );
+
+    const adapter = await getAdapter();
+    const result = await runEffect(adapter.generateMicroLesson(microLessonInput));
+
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.value.keyTakeaways).toEqual([]);
   });
 });
 
@@ -350,6 +417,30 @@ describe("createOpenAIAdapter (mocked SDK)", () => {
     const result = await runEffect(adapter.evaluateFreeRecall(evalInput));
 
     // null content → text is "" → JSON.parse("") throws → AIRequestError
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error._tag).toBe("AIRequestError");
+  });
+
+  it("evaluateFreeRecall — JSON missing required `score` → fails with AIRequestError", async () => {
+    openaiCreate.mockResolvedValue(
+      openaiResponse(JSON.stringify({ feedback: "no score" })),
+    );
+
+    const adapter = await getAdapter();
+    const result = await runEffect(adapter.evaluateFreeRecall(evalInput));
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error._tag).toBe("AIRequestError");
+  });
+
+  it("evaluateFreeRecall — wrong type for score → fails with AIRequestError", async () => {
+    openaiCreate.mockResolvedValue(
+      openaiResponse(JSON.stringify({ score: "high", feedback: "?" })),
+    );
+
+    const adapter = await getAdapter();
+    const result = await runEffect(adapter.evaluateFreeRecall(evalInput));
+
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error._tag).toBe("AIRequestError");
   });

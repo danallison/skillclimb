@@ -1,6 +1,7 @@
 import { Effect } from "effect";
 import OpenAI from "openai";
 import { AIRequestError } from "../../errors.js";
+import { AIFeedbackSchema, AIMicroLessonSchema } from "./ai.types.js";
 import type { AIFeedback, AIMicroLesson } from "./ai.types.js";
 import type { AIServiceShape } from "./AIService.js";
 import {
@@ -43,9 +44,9 @@ function createOpenAIAdapterWithConfig(
             ],
           });
           const text = response.choices[0]?.message?.content ?? "";
-          const parsed = JSON.parse(text) as AIFeedback;
+          const parsed = AIFeedbackSchema.parse(JSON.parse(text));
           parsed.score = Math.max(0, Math.min(5, Math.round(parsed.score)));
-          return parsed;
+          return parsed as AIFeedback;
         },
         catch: (cause) => new AIRequestError({ cause }),
       }),
@@ -80,7 +81,7 @@ function createOpenAIAdapterWithConfig(
             ],
           });
           const text = response.choices[0]?.message?.content ?? "";
-          return JSON.parse(text) as AIMicroLesson;
+          return AIMicroLessonSchema.parse(JSON.parse(text)) as AIMicroLesson;
         },
         catch: (cause) => new AIRequestError({ cause }),
       }),

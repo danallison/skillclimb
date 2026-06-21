@@ -59,8 +59,10 @@ async function callWebhook(
 
 const MAX_STRING = 10_000; // max length for any single string field
 
-function clampScore(score: number): number {
-  return Math.max(0, Math.min(5, Math.round(score)));
+function clampScore(score: unknown): number {
+  const n = typeof score === "number" ? score : Number(score);
+  if (!Number.isFinite(n)) return 0;
+  return Math.max(0, Math.min(5, Math.round(n)));
 }
 
 function truncate(s: string): string {

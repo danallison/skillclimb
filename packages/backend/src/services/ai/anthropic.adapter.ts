@@ -1,6 +1,7 @@
 import { Effect } from "effect";
 import Anthropic from "@anthropic-ai/sdk";
 import { AIRequestError } from "../../errors.js";
+import { AIFeedbackSchema, AIMicroLessonSchema } from "./ai.types.js";
 import type { AIFeedback, AIMicroLesson } from "./ai.types.js";
 import type { AIServiceShape } from "./AIService.js";
 import {
@@ -39,9 +40,9 @@ export function createAnthropicAdapter(): AIServiceShape {
           });
           const text =
             response.content[0].type === "text" ? response.content[0].text : "";
-          const parsed = JSON.parse(text) as AIFeedback;
+          const parsed = AIFeedbackSchema.parse(JSON.parse(text));
           parsed.score = Math.max(0, Math.min(5, Math.round(parsed.score)));
-          return parsed;
+          return parsed as AIFeedback;
         },
         catch: (cause) => new AIRequestError({ cause }),
       }),
@@ -78,7 +79,7 @@ export function createAnthropicAdapter(): AIServiceShape {
           });
           const text =
             response.content[0].type === "text" ? response.content[0].text : "";
-          return JSON.parse(text) as AIMicroLesson;
+          return AIMicroLessonSchema.parse(JSON.parse(text)) as AIMicroLesson;
         },
         catch: (cause) => new AIRequestError({ cause }),
       }),
