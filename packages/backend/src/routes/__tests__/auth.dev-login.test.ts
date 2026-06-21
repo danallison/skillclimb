@@ -31,7 +31,7 @@ vi.mock("../../services/auth.service.js", () => ({
 async function loadAuthRouter() {
   vi.resetModules();
   const mod = await import("../auth.js");
-  return mod.authRouter ?? mod.default;
+  return mod.authRouter;
 }
 
 function makeApp(router: any) {
