@@ -1,0 +1,17 @@
+#!/bin/sh
+# Run TypeScript checks across the workspace before pushing.
+# Catches errors that `npm test` (vitest) skips but `tsc` (CI) enforces.
+#
+# Skip with: git push --no-verify
+
+set -e
+
+# Skip if there are no commits to push (e.g. pushing a tag with no new commits)
+if [ -z "$(git log @{u}.. 2>/dev/null)" ] && [ -n "$(git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null)" ]; then
+  exit 0
+fi
+
+echo "▶ Running typecheck across workspaces..."
+npm run typecheck
+
+echo "✓ Typecheck passed"
